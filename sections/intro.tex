@@ -1,18 +1,18 @@
 \section{Introduction}
 \label{sec:intro}
 
-Decentralized storage networks (DSN) are emerging as reliable and cost-efficient long-term data storage for blockchains.
-Blockchain ecosystems have many data to store.
-Blockchains are generating blocks of historical transactions at high rates.
-These blocks should be properly achieved for future analysis and auditing.
-Blockchain applications store multimedia data for digital assets, which correspond to real economical values: losing the data means economic loss.
-All these data must be reliably stored under blockchains' strict security assumptions where none of the individual participating parties is trusted.
+Decentralized storage networks (DSNs) are emerging as reliable and cost-efficient long-term data storage for blockchains.
+Blockchain ecosystems generate large volumes of data.
+Blockchains produce blocks of historical transactions at high rates.
+These blocks should be properly archived for future analysis and auditing.
+Blockchain applications store multimedia data for digital assets that correspond to real economic value, and losing the data implies economic loss.
+All these data must be reliably stored under strict security assumptions where no individual participant is trusted.
 Thus, DSNs are proposed.
-Unlike centralized storage where all storage resources are owned and managed by single organization, in DSNs, storage resources are contributed by multiple permissionless providers and managed by distributed protocols such as smart contracts executed on blockchains.
-DSNs permit storage providers to join and leave the networks at any time.
-They can tolerate data loss on individual nodes that caused by various reasons, including node churning, disk failures and adversary.
-Subsequently, the users of DSNs do not need to trust any storage provider for its availability while still know that the DSNs will hold their data reliably.
-Moreover, DSNs are cost-efficient because no individual storage provider can monopolize storage resource in DSNs.
+Unlike centralized storage, where resources are owned and managed by a single organization, in DSNs resources are contributed by multiple permissionless providers and managed by distributed protocols such as smart contracts executed on blockchains.
+DSNs allow providers to join and leave the networks at any time.
+They can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
+Consequently, users do not need to trust any storage provider for availability while still knowing that DSNs will hold their data reliably.
+Moreover, DSNs are cost-efficient because no individual storage provider can monopolize storage resources in DSNs.
 
 \iffalse
 Data availability in decentralized storage is not unlike in distributed storage with central management.
@@ -36,53 +36,55 @@ Most critically, the Byzantine nodes may initiate unexpected correlated failures
 If some data are exclusively stored by faulty nodes (maybe by accident), they can withhold the data or even leave the network and create data loss.
 \else
 Compared to distributed storage whose nodes are owned and managed by a central entity, the unique challenge of keeping data available in DSNs comes from dealing with permissionless untrusted nodes.
-We assume up to a certain fraction of the nodes are Byzantine while the remaining are rational\cite{bar}.
+We assume that a certain fraction of the nodes are Byzantine while the remaining are rational~\cite{bar}.
 DSNs usually employ proof of retrievability~\cite{por} to perform storage audits on the nodes.
-Combining with an appropriate economic model, DSNs can incentivize the rational nodes to correctly follow the protocols and store data.
-However, the Byzantine nodes may attack the data availability even if that is not economically favored.
+With an appropriate economic model, DSNs can incentivize the rational nodes to correctly follow the protocols and store data.
+However, the Byzantine nodes may attack data availability even when that is not economically favored.
 Most critically, the Byzantine nodes may initiate unexpected correlated failures.
-If some data are exclusively stored by faulty nodes even for just one second, they can withhold the data or even leave the network and create data loss.
+If some data are stored exclusively by faulty nodes even briefly, they can withhold the data or leave the network and create data loss.
 \fi
 
 Unfortunately, current mainstream DSNs cannot efficiently tolerate faulty nodes.
-Filecoin distributes redundancy on only few nodes and demands high reliability of them.
-Even small fraction of faulty nodes can easily cause data loss by bidding for contract with low storage price, winning the contract and dropping redundancy together.
-Arweave, Permacoin and Swarm are not compatible with erasure coding.
-To tolerate faulty nodes whose number if proportional to the total number of nodes, they have to store data copies on a significant fraction of all nodes.
-The redundancy level grows as the number of nodes and soon become infeasible.
-Sia relies on clients to be always online and monitor the nodes storing data for them.
-Walrus, the new DSN proposed by Sui, periodically select a committee of fixed number of nodes to store redundancy for all data.
-This approach not only limits the storage capacity but also is vulnerable when the selected committee only comprises a small fraction of all available nodes and can be compromised by the faulty ones.
+Filecoin distributes redundancy across only a few nodes and demands high reliability from them.
+Even a small fraction of faulty nodes can easily cause data loss by bidding for contracts with low storage prices, winning the contracts, and dropping redundancy together.
+Arweave, Permacoin, and Swarm are not compatible with erasure coding.
+To tolerate faulty nodes whose number is proportional to the total number of nodes, they have to store data copies on a significant fraction of all nodes.
+The redundancy level grows as the number of nodes and soon becomes infeasible.
+Sia relies on clients being online and monitoring the nodes that store their data.
+Walrus, the new DSN proposed by Sui, periodically selects a committee of fixed size to store redundancy for all data.
+This approach not only limits the storage capacity but also is vulnerable if the selected committee comprises only a small fraction of all available nodes and can be compromised by faulty nodes.
 
-We propose \sys, a DSN that achieves practical Byzantine tolerance with reasonable and constantly-bounded redundancy level.
-The redundancy level of \sys is independent to the number of nodes and can be flexibly configured according to the faulty and the innocent failure rates of the nodes (\autoref{sec:motivation:model}), enabling \sys to reliably store data in the presence of arbitrary fraction of faulty nodes.
-We observe the previous works have one of the two pitfalls when determining which nodes are responsible to store certain data (i.e., the placement group of the data): they either restrict the responsibility to only few nodes and risk that all those nodes are faulty (either by attack or by chance), or does not specify the responsible nodes at all and can only ensure data availability by replicating data copies to the nodes proportional to the total nodes.
+We propose \sys, a DSN that achieves practical Byzantine tolerance with a reasonable and constant redundancy level.
+The redundancy level of \sys is independent of the number of nodes and can be flexibly configured according to the faulty and benign failure rates of the nodes (\autoref{sec:motivation:model}), enabling \sys to reliably store data in the presence of an arbitrary fraction of faulty nodes.
+We observe that prior work has one of two pitfalls when determining which nodes are responsible for storing certain data, that is, the placement group of the data.
+They either restrict responsibility to only a few nodes and risk that all those nodes are faulty, or they do not specify the responsible nodes at all and can only ensure data availability by replicating data copies to a number of nodes proportional to the total nodes.
 These pitfalls originate from the fundamental difficulty of memorizing and managing placement groups in decentralized environments.
-Due to the limitation of decentralized infrastructures such as blockchains, previous DSNs choose to manage small scale placement groups or do not manage placement at all.
+Due to limitations of decentralized infrastructures such as blockchains, previous DSNs choose to manage small scale placement groups or do not manage placement at all.
 
-To overcome these pitfalls, we propose to modernize a classical technique in peer-to-peer (P2P) storage, distributed hash table (DHT), to be able to employ large scale placement groups consisting more than 100 nodes.
-DHT is a distributed protocol that organizes nodes into an overlay network.
-Given a data to store, DHT can efficiently perform random sampling across all nodes in the network by discovering the nodes whose IDs are ``closest'' to the data hash in logarithmic steps regarding the number of nodes.
-DHT enables \sys to store data with large placement groups without the overhead of memorizing them, as the group members can be determined with DHT on the fly.
-Furthermore, given uniformly random node IDs, each node are uniformly randomly sampled by DHT.
-By performing large scale sampling (e.g., 80 nodes), we can make sure that at least a certain number of rational nodes (e.g., 32 nodes) will be sampled with high probability (over six-nines).
-Then, we can distribute erasure coded fragments across all these 80 nodes, where the fragments stored by any 32 nodes of them can recover the data.
-At the same time, our economic model incentivize the rational nodes to keep data recoverable, so they will actively store redundancy and repair for redundancy loss.
+To overcome these pitfalls, we modernize a classical technique in peer-to-peer (P2P) storage, the distributed hash table (DHT), to support large placement groups consisting of 80 to even more than 100 nodes.
+A DHT is a distributed protocol that organizes nodes into an overlay network.
+Given data to store, a DHT can efficiently perform random sampling across all nodes in the network by discovering the nodes whose IDs are closest to the data hash in logarithmic steps with respect to the number of nodes.
+A DHT enables \sys to store data with large placement groups without the overhead of memorizing them, as the group members can be determined on the fly.
+Furthermore, given uniformly random node IDs, each node is sampled uniformly at random by the DHT.
+By performing large scale sampling such as 80 nodes, we can ensure that at least a certain number of rational nodes such as 32 are sampled with high probability that exceeds six nines.
+We then distribute erasure coded fragments across these 80 nodes, where the fragments stored by any 32 of them can recover the data.
+At the same time, our economic model incentivizes the rational nodes to keep data recoverable, so they actively store redundancy and repair lost redundancy.
 
-However, the assumption of node IDs uniformly distributed only applies to the rational nodes.
-The faulty nodes may attack the system by clustering in the ID space (even if they need to pay economic cost for rolling identities).
-This will cause DHT to select mostly faulty nodes as placement groups of the data whose hashes nearby these IDs.
-To defend this attack, we enhance the DHT discovery protocol by validating the discovered nodes with verifiable random function (VRF).
-The VRF performs the actual sampling of the nodes according to the expected density of the nodes, followed by the rational nodes.
-Thus, even if there are more nodes than average in the ID space due to the clustering faulty nodes, those unexpected extra IDs will be deliberately ignored by VRF, and the sampling outcome will remain uniformly random.
+Although DHT has been extensively studied for secure P2P storage, DSN deployment introduces a new attack vector.
+Specifically, the assumption of uniformly distributed node IDs applies only to rational nodes.
+Faulty nodes may attack the system by clustering in the ID space, even if they must pay economic cost for rolling identities.
+This will cause the DHT to select mostly faulty nodes as placement groups of the data whose hashes are near these IDs.
+To defend this attack, we enhance the DHT discovery protocol by validating the discovered nodes with a verifiable random function (VRF).
+The VRF performs the actual sampling of the nodes according to the expected density of nodes, as observed by rational nodes.
+Thus, even if there are more nodes than average in the ID space due to clustering faulty nodes, those unexpected extra IDs will be ignored by the VRF, and the sampling outcome will remain uniformly random.
 
 We design \sys around this DHT with enhanced security.
-When clients store data into \sys, firstly the placement group is discovered by DHT.
-Then, clients encode data with erasure coding and distribute to the group.
-When node failures happen in the group, remaining group members will discover new nodes for the data with DHT.
-The remaining challenges are how to coordinate the new nodes to store distinct encoded fragments to the other nodes and how to recover the data and encode new fragments when the faulty nodes may transfer invalid fragments.
-We employ verifiable rateless erasure coding~\cite{verifiable_ec} to address both challenges.
-With this erasure coding scheme, the new nodes can verify the received fragments before decoding data with them, and after recover the data, they can encode a random fragment.
+When clients store data into \sys, the placement group is discovered by the DHT.
+Then, clients encode data with erasure coding and distribute fragments to the group.
+When node failures happen in the group, remaining group members will discover new nodes for the data with the DHT.
+The remaining challenges are how to coordinate the new nodes so that they store distinct encoded fragments and how to recover the data and encode new fragments when the faulty nodes may transfer invalid fragments.
+We employ verifiable rateless erasure coding~\cite{verifiable-ec} to address both challenges.
+With this erasure coding scheme, the new nodes can verify the received fragments before decoding data with them, and after they recover the data, they can encode a random fragment.
 The probability of the random fragment colliding with the existing ones is negligible.
 
 \xxx{Evaluation stuff.}
