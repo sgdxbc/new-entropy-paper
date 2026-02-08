@@ -1,0 +1,34 @@
+\usepackage{nicefrac}
+
+\def\Snospace~{\S{}}
+% Autoref
+\def\chapterautorefname{Chapter}
+\def\sectionautorefname{\Snospace}
+\def\subsectionautorefname{\Snospace}
+\def\subsubsectionautorefname{\Snospace}
+\def\appendixautorefname{Appendix}
+\def\thmautorefname{Theorem}
+\def\lemautorefname{Lemma}
+\def\defnautorefname{Definition}
+\def\algorithmautorefname{Algorithm}
+\def\invariantautorefname{Invariant}
+\def\principleautorefname{Principle}
+
+
+\ifdraft
+\newcommand{\editorial}[2]{{\color{#1}{#2}}}
+\else
+\newcommand{\editorial}[2]{\ignorespaces}
+\fi
+\newcommand{\XXX}{\editorial{red}{XXX}}
+\newcommand{\xxx}[1]{\editorial{red}{XXX #1}}
+\newcommand{\lijl}[1]{\editorial{orange}{lijl: #1}}
+\newcommand{\sgd}[1]{\editorial{cyan}{sgd: #1}}
+
+\ifdraft
+\newenvironment{outline}{\color{blue} \textbf{Outline:}}{}
+\else
+\excludecomment{outline}
+\fi
+
+\newcommand{\sys}{Entropy}
