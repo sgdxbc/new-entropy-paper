@@ -7,3 +7,5 @@ Permacoin
 Sia
 rateless
 Retricoin
+IPFS
+Oceanstore

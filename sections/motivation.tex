@@ -95,7 +95,8 @@ These DSNs do not specify placement for the stored data, instead allowing nodes 
 This design avoids compromised placement groups in storage markets and committee based approaches, because faulty nodes cannot be exclusively responsible for storing some data.
 
 The shortcoming of this incentive driven placement is high redundancy for availability.
-Redundancy in these DSNs is automatically balanced across data.
+Firstly, because these DSNs give up control on data placement, they can only store redundancy with replications so that nodes can increase data redundancy by simply synchronizing with each other.
+Secondly, redundancy in these DSNs is automatically balanced across data.
 If any data has more copies than others, the incentive to store it decreases due to competition, and storing nodes replace it with data that is more rarely stored.
 Faulty nodes can strategically attack availability by storing copies of targeted data regardless of rewards.
 If the average redundancy level, which is bounded by total storage capacity, is less than the number of faulty nodes, all rational nodes will cease to store the data.

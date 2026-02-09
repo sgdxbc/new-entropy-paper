@@ -1,5 +1,3 @@
-OUT_DIR := .latex.out
-
 .PHONY: FORCE
 
 paper.pdf: FORCE
@@ -7,4 +5,4 @@ paper.pdf: FORCE
 
 .PHONY: clean
 clean:
-	latexrun --clean-all
+	./bin/latexrun --clean-all

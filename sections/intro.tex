@@ -84,6 +84,7 @@ When clients store data into \sys, the placement group is discovered by the DHT.
 Then, clients encode data with erasure coding and distribute fragments to the group.
 When node failures happen in the group, remaining group members will discover new nodes for the data with the DHT.
 The remaining challenges are how to coordinate the new nodes so that they store distinct encoded fragments and how to recover the data and encode new fragments when the faulty nodes may transfer invalid fragments.
-We employ verifiable rateless erasure coding~\cite{verifiable-ec} to address both challenges.
+We employ verifiable rateless erasure coding~\cite{verify-rateless-ec} to address both challenges.
+\xxx{Figure out whether \cite{verify-ec} is usable, or just use cross checksum~\cite{cross-checksum}.}
 With this erasure coding scheme, the new nodes can verify the received fragments before decoding data with them, and after they recover the data, they can encode a random fragment.
 The probability of the random fragment colliding with the existing ones is negligible.
