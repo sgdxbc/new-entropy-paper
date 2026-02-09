@@ -44,7 +44,7 @@ Most critically, the Byzantine nodes may initiate unexpected correlated failures
 If some data are stored exclusively by faulty nodes even briefly, they can withhold the data or leave the network and create data loss.
 \fi
 
-Unfortunately, current mainstream DSNs cannot efficiently tolerate faulty nodes.
+Unfortunately, prior efforts to secure DSNs focus on ensuring rational nodes behave correctly, while correlated faulty nodes are largely overlooked and not efficiently tolerated.
 Filecoin distributes redundancy across only a few nodes, and its economic model incentivizes highly reliable nodes.
 However, the incentive is only effective on rational nodes.
 Even a small fraction of faulty nodes can easily cause data loss by bidding for contracts with low storage prices, winning the contracts, and dropping redundancy together.
