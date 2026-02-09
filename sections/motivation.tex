@@ -1,6 +1,24 @@
 \section{Motivation}
 \label{sec:motivation}
 
+\begin{table*}[ht]
+\centering
+\begin{tabular}{cccc}
+\toprule
+Protocol        & Redundancy        & Data placement    & Tolerate $O(N)$ Byzantine \\
+\midrule
+Filecoin, Sia   & Erasure coding    & Contract          & No                        \\
+Walrus          & Erasure coding    & Static            & No                        \\
+Arweave, Permacoin, Retricoin
+                & Replication       & Incentive         & With $O(N)$ storage       \\
+Swarm           & Replication       & DHT               & With $O(N)$ storage       \\
+\sys            & Erasure coding    & DHT               & With $O(1)$ storage       \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of DSNs.}
+\label{tab:dsn}
+\end{table*}
+
 \subsection{System Model and Goal}
 \label{sec:motivation:model}
 
@@ -29,27 +47,63 @@ DSNs provides two APIs: \texttt{put} to store data with expiration and obtain a 
 In all DSNs studied in this work, the data hashes are used as the references, so the retrieved data can be easily validated with the references.
 Data availability means that between \texttt{put} returns and the data expired, \texttt{get} can return the valid data successfully.
 
-\sys supports varying number of nodes $N$.
+The goal of \sys is not only ensuring data availability but also ensuring it with perfect redundancy level.
+The redundancy level is the total storage unit occupied by redundantly storing a data unit.
+We demand the redundancy level to be constant and does not grow with the number of nodes $N$, so the DSN can efficiently scale up to massive nodes.
+\sys also supports temporally varying $N$.
 For simplicity, we treat $N$ of each time interval $T$ as constant and equals to the minimum number of nodes during $T$.
 We assume $N$ for every time interval is known.
 
-\subsection{Limitations of Previous DSNs}
+\subsection{Previous DSNs}
 \label{sec:motivation:review}
 
-\begin{table*}[ht]
-\centering
-\begin{tabular}{cccc}
-\toprule
-Protocol        & Redundancy        & Data placement    & Tolerate $O(N)$ Byzantine \\
-\midrule
-Filecoin, Sia   & Erasure coding    & Contract          & No                        \\
-Walrus          & Erasure coding    & Static            & No                        \\
-Arweave, Permacoin, Retricoin
-                & Replication       & Incentive         & With $O(N)$ storage       \\
-Swarm           & Replication       & DHT               & With $O(N)$ storage       \\
-\sys            & Erasure coding    & DHT               & With $O(1)$ storage       \\
-\bottomrule
-\end{tabular}
-\caption{Comparison of DSNs.}
-\label{tab:dsn}
-\end{table*}
+In \autoref{tab:dsn} we summarize previous DSNs.
+In this section, we examine their redundancy and data placement mechanism and analyze their tolerance against Byzantine faults.
+
+\paragraph{Storage markets.}
+In Filecoin and Sia, the clients sign storage contracts with the nodes, who rent their storage space for a certain period.
+The contracts deal on blockchains, who are responsible to pay the nodes after the renting periods.
+In the cases that the nodes lose the data, the contracts are terminated immediately, and the nodes lose their rewards and may get penalized.
+
+In these DSNs, the placement groups are materialized as storage contracts.
+If clients signing contracts with faulty nodes, those nodes can drop the data and simply cause data loss.
+The DSNs encourage clients to encode their data with erasure coding and sign contracts with multiple nodes, so single faults will not cause data loss.
+However, the placement group size is not scalable, because the DSNs must memorize each contract with costly blockchain state storage.
+In Filecoin, data is typically redundantly stored on less than 10 nodes, and the clients usually pick nodes by comparing the storage prices they offer.
+It is simple for faulty nodes to offer low storage prices to win the contract, so the data is exclusively stored by a set of faulty nodes.
+In Sia, clients are configured to pick 30 nodes and store data with a 10-out-of-30 code by default, tolerating 20 faulty nodes.
+This only alleviates the attack, and the placement groups will eventually be compromised as the network scales up to more nodes.
+What's worse, Sia relies on clients to detect node failures and repair for redundancy loss, so clients must keep online for all the time, or their data may become unrecoverable.
+
+\paragraph{Committee-based approach.}
+In Walrus, 1000 nodes are selected as the committee to store all data during every two-week epoch.
+It applies a sophisticated erasure coding called Red Stuff to minimize the repair overhead.
+The encoded fragments are deterministically distributed to the committee members, forming static placement groups for stored data.
+With erasure coding, Walrus can tolerate up to \nicefrac{2}{3} faulty nodes in committee.
+However, it is not guaranteed to Walrus that there won't be more faulty committee members.
+Walrus select committee members by ranking their staked assets.
+The faulty nodes will be selected as long as their staked assets are more than all the other committee candidates except the top few hundreds.
+They can compromise the committee with certain level of staking, which depends on the staking distribution of all committee candidates and even not necessarily be majority.
+Besides, the total capacity of Walrus is limited by the capacities of top nodes, and the storage resources on unselected nodes cannot be utilized.
+
+\paragraph{Integrate proofs of retrievability into consensus protocols.}
+In these DSNs, nodes propose blocks to a blockchain to gain rewards.
+The blocks must attach a proof of retrievability to certain data in order to be accepted by the nodes and appended to the blockchains.
+In Permacoin and Retricoin, the blocks can prove retrievability to arbitrary segments of a large dataset that the nodes agree to collectively archive.
+In Arweave, a random historical block is sampled for each round, so the blockchain history itself is permanently archived.
+These DSNs do not specify placement for the stored data, but allowing the nodes to freely choose the data they want to store.
+This design avoids the compromised placement groups in the storage markets and the committee-based approach, as the faulty nodes cannot be exclusively responsible for storing some data.
+
+The shortcoming of this incentive-driven placement is high redundancy for availability.
+The redundancy in these DSNs are automatically balanced across data.
+If any data has more copies than the other, the incentive of storing it will decrease due to competition, and the storing nodes will replace it with data that is more rarely stored.
+The faulty nodes can strategically attach the availability of data by storing copies for it regardless of rewards.
+If the average redundancy level, which is bounded by the total storage capacity, is less than the number of faulty nodes, all rational nodes will cease to persist the data.
+The data will be vulnerable to lose.
+To avoid this situation, these DSNs must ensure the redundancy level is more than the number of faulty nodes and growing proportionally to the total number of nodes.
+This extremely restricts the scalability of the DSNs.
+
+\paragraph{Neighborhood-based replication.}
+\xxx{Describe.}
+
+\subsection{Challenges in Efficient Byzantine Tolerance}
