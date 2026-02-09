@@ -6,3 +6,4 @@ Arweave
 Permacoin
 Sia
 rateless
+Retricoin

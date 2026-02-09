@@ -2,6 +2,7 @@
     "explorer.sortOrder": "mixed",
     "ltex.statusBarItem": false,
     "ltex.latex.commands": {
-        "\\sys": "dummy"
+        "\\sys": "dummy",
+        "\\XXX": "dummy"
     }
 }

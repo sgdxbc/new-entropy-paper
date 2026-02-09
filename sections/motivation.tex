@@ -1,7 +1,7 @@
 \section{Motivation}
 \label{sec:motivation}
 
-\subsection{System Model}
+\subsection{System Model and Goal}
 \label{sec:motivation:model}
 
 We assume multiple permissionless nodes contributing storage resources in DSNs, and the nodes follow a hybrid security model.
@@ -9,9 +9,14 @@ Among these nodes, we assume up to a certain fraction (e.g., \nicefrac{1}{3}) ar
 The Byzantine nodes may arbitrarily diverge from the expected behavior even if that would cause economic loss on them.
 They are potentially malicious, attacking the system and attempting to cause any data loss.
 At the same time, the rational nodes try to maximize their profits.
-So, they will only follow the protocol if that is the most profitable choice.
-For example, they may discard data copies that they are responsible to store if they believe that they won't be penalized for this.
-At the same time, the rational nodes experience innocent failures at a certain rate.
+We assume there exists an economic incentive mechanism, which can be employed by DSNs to effectively drive rational nodes to perform certain action.
+For example, in \sys nodes get reward for transmitting ``useful'' bits to clients, and we assume the value of reward is higher than the cost of persisting and transfer the bits, so rational nodes are incentivized for correct bit transmissions.
+We will detail the prototype incentive design in \XXX.
+
+The rational nodes will only follow the protocol if that is the most profitable choice.
+For example, they may discard data copies that they are responsible to store if they believe that they won't be caught and penalized for this.
+So, DSNs must be able to verify the behaviors they want to incentivize, such as a common practice of employing proof of retrievability~\cite{por} to verify correct storage.
+At the same time, the rational nodes experience benign failures at a certain rate.
 They unintentionally lose stored data for various reasons, including hardware wore out, catastrophic events and simply churned from the systems.
 These failures can be significant in heterogeneous storage, especially the resource-constraint devices.
 We define the faulty rate $f$ as the maximum fraction of the Byzantine faulty nodes and the failure rate $f_r$ as the average failed fraction of the rational nodes during a certain time interval $T$.
@@ -20,13 +25,31 @@ Under this model, DSNs must keep data available while tolerate both $fN$ faulty 
 Tolerating the faulty nodes is more challenging than tolerating innocent failures, because the faulty nodes may strategically attack the systems.
 For example, they may attempt to pick the data they store e.g., by picking specific node IDs, collude with each other and create correlated failures when that will lead to data loss.
 We assume Sybil attack can be alleviated (i.e., assuming a known $f$) by requiring nodes to stake to be qualified to participate.
+DSNs provides two APIs: \texttt{put} to store data with expiration and obtain a reference, and \texttt{get} to retrieve data with the reference.
+In all DSNs studied in this work, the data hashes are used as the references, so the retrieved data can be easily validated with the references.
+Data availability means that between \texttt{put} returns and the data expired, \texttt{get} can return the valid data successfully.
 
 \sys supports varying number of nodes $N$.
 For simplicity, we treat $N$ of each time interval $T$ as constant and equals to the minimum number of nodes during $T$.
 We assume $N$ for every time interval is known.
 
-\subsection{Why Heterogeneous Storage?}
-\label{sec:motivation:goals}
-
 \subsection{Limitations of Previous DSNs}
 \label{sec:motivation:review}
+
+\begin{table*}[ht]
+\centering
+\begin{tabular}{cccc}
+\toprule
+Protocol        & Redundancy        & Data placement    & Tolerate $O(N)$ Byzantine \\
+\midrule
+Filecoin, Sia   & Erasure coding    & Contract          & No                        \\
+Walrus          & Erasure coding    & Static            & No                        \\
+Arweave, Permacoin, Retricoin
+                & Replication       & Incentive         & With $O(N)$ storage       \\
+Swarm           & Replication       & DHT               & With $O(N)$ storage       \\
+\sys            & Erasure coding    & DHT               & With $O(1)$ storage       \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of DSNs.}
+\label{tab:dsn}
+\end{table*}
