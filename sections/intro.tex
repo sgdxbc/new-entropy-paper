@@ -45,7 +45,8 @@ If some data are stored exclusively by faulty nodes even briefly, they can withh
 \fi
 
 Unfortunately, current mainstream DSNs cannot efficiently tolerate faulty nodes.
-Filecoin distributes redundancy across only a few nodes and demands high reliability from them.
+Filecoin distributes redundancy across only a few nodes, and its economic model incentivizes highly reliable nodes.
+However, the incentive is only effective on rational nodes.
 Even a small fraction of faulty nodes can easily cause data loss by bidding for contracts with low storage prices, winning the contracts, and dropping redundancy together.
 Arweave, Permacoin, and Swarm are not compatible with erasure coding.
 To tolerate faulty nodes whose number is proportional to the total number of nodes, they have to store data copies on a significant fraction of all nodes.
@@ -55,13 +56,12 @@ Walrus, the new DSN proposed by Sui, periodically selects a committee of fixed s
 This approach not only limits the storage capacity but also is vulnerable if the selected committee comprises only a small fraction of all available nodes and can be compromised by faulty nodes.
 
 We propose \sys, a DSN that achieves practical Byzantine tolerance with a reasonable and constant redundancy level.
-The redundancy level of \sys is independent of the number of nodes and can be flexibly configured according to the faulty and benign failure rates of the nodes (\autoref{sec:motivation:model}), enabling \sys to reliably store data in the presence of an arbitrary fraction of faulty nodes.
-We observe that prior work has one of two pitfalls when determining which nodes are responsible for storing certain data, that is, the placement group of the data.
-They either restrict responsibility to only a few nodes and risk that all those nodes are faulty, or they do not specify the responsible nodes at all and can only ensure data availability by replicating data copies to a number of nodes proportional to the total nodes.
-These pitfalls originate from the fundamental difficulty of memorizing and managing placement groups in decentralized environments.
-Due to limitations of decentralized infrastructures such as blockchains, previous DSNs choose to manage small scale placement groups or do not manage placement at all.
+\sys guarantees high availability of stored data, while its redundancy level is independent of the number of nodes and can be flexibly configured according to the faulty and benign failure rates of the nodes (\autoref{sec:motivation:model}), enabling \sys to tolerate an arbitrary fraction of faulty nodes.
+We observe a key pitfall in prior work: faulty nodes can manipulate placement groups so that data are stored mostly or only by faulty nodes.
+This vulnerability stems from limitations of decentralized infrastructures such as blockchains, which restrict DSNs to manage small scale placement groups or avoid explicit placement management.
+In either case, placement groups can be compromised by faulty nodes either strategically or by chance.
 
-To overcome these pitfalls, we modernize a classical technique in peer-to-peer (P2P) storage, the distributed hash table (DHT), to support large placement groups consisting of 80 to even more than 100 nodes.
+To overcome this pitfall, we modernize a classical technique in peer-to-peer (P2P) storage, the distributed hash table (DHT), to support large placement groups consisting of 80 to even more than 100 nodes.
 A DHT is a distributed protocol that organizes nodes into an overlay network.
 Given data to store, a DHT can efficiently perform random sampling across all nodes in the network by discovering the nodes whose IDs are closest to the data hash in logarithmic steps with respect to the number of nodes.
 A DHT enables \sys to store data with large placement groups without the overhead of memorizing them, as the group members can be determined on the fly.
@@ -70,10 +70,11 @@ By performing large scale sampling such as 80 nodes, we can ensure that at least
 We then distribute erasure coded fragments across these 80 nodes, where the fragments stored by any 32 of them can recover the data.
 At the same time, our economic model incentivizes the rational nodes to keep data recoverable, so they actively store redundancy and repair lost redundancy.
 
-Although DHT has been extensively studied for secure P2P storage, DSN deployment introduces a new attack vector.
+Although DHT has been extensively studied for secure P2P storage, \sys introduces a new form of vertical attack~\cite{bittorrent-attack,ipfs-attack}.
 Specifically, the assumption of uniformly distributed node IDs applies only to rational nodes.
 Faulty nodes may attack the system by clustering in the ID space, even if they must pay economic cost for rolling identities.
 This will cause the DHT to select mostly faulty nodes as placement groups of the data whose hashes are near these IDs.
+Previous works~\cite{bittorrent-attack,ipfs-attack} discussed solving vertical attacks with disjoint path lookups, which requires replication and does not apply to \sys.
 To defend this attack, we enhance the DHT discovery protocol by validating the discovered nodes with a verifiable random function (VRF).
 The VRF performs the actual sampling of the nodes according to the expected density of nodes, as observed by rational nodes.
 Thus, even if there are more nodes than average in the ID space due to clustering faulty nodes, those unexpected extra IDs will be ignored by the VRF, and the sampling outcome will remain uniformly random.
@@ -86,5 +87,3 @@ The remaining challenges are how to coordinate the new nodes so that they store 
 We employ verifiable rateless erasure coding~\cite{verifiable-ec} to address both challenges.
 With this erasure coding scheme, the new nodes can verify the received fragments before decoding data with them, and after they recover the data, they can encode a random fragment.
 The probability of the random fragment colliding with the existing ones is negligible.
-
-\xxx{Evaluation stuff.}
