@@ -5,20 +5,21 @@
 \centering
 \begin{tabular}{cccc}
 \toprule
-Protocol        & Redundancy        & Data placement    & Tolerate $O(N)$ Byzantine \\
+Protocol        & Redundancy        & On-chain Footprint    & Failure Detection Overhead \\
 \midrule
-Filecoin, Sia   & Erasure coding    & Contract          & No                        \\
-Walrus          & Erasure coding    & Static            & No                        \\
+Filecoin, Sia   & Low               & High                  & High  \\
+Walrus          & Low               & High                  & Low   \\
 Arweave, Permacoin, Retricoin
-                & Replication       & Incentive         & With $O(N)$ storage       \\
-Swarm           & Replication       & DHT               & With $O(N)$ storage       \\
-\sys            & Erasure coding    & DHT               & With $O(1)$ storage       \\
+                & High              & High                  & High  \\
+Swarm           & High              & Low                   & Low   \\
+\sys            & Low               & Low                   & Low   \\
 \bottomrule
 \end{tabular}
 \caption{Comparison of DSNs.}
 \label{tab:dsn}
 \end{table*}
 
+\iffalse
 \subsection{System Model and Goal}
 \label{sec:motivation:model}
 
@@ -106,5 +107,5 @@ This severely restricts scalability.
 
 \paragraph{Neighborhood-based replication.}
 \xxx{Describe.}
-
-\subsection{Challenges in Efficient Byzantine Tolerance}
+\fi
+\nocite{por}
