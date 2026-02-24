@@ -1,58 +1,60 @@
 \section{Introduction}
 \label{sec:intro}
 
-Decentralized storage networks (DSNs) are emerging as reliable and cost-efficient long-term data storage for blockchains.
+Decentralized storage networks (DSNs) are emerging as a reliable and cost effective approach for long term blockchain data storage.
 Blockchain ecosystems generate large volumes of data.
 The consensus protocols produce blocks of historical transactions at high rates.
-These blocks should be properly archived for future analysis and auditing.
-Blockchain applications store multimedia data for digital assets that correspond to real economic value, and losing the data implies economic loss.
-All these data must be reliably stored under strict security assumptions where no individual participant is trusted.
-Thus, DSNs are proposed.
-Unlike centralized storage, where resources are owned and managed by a single organization, in DSNs resources are contributed by multiple permissionless providers and managed by distributed protocols such as smart contracts executed on blockchains.
-DSNs allow providers to join and leave the networks at any time.
-They can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
-Consequently, users do not need to trust any storage provider for availability while still knowing that DSNs will hold their data reliably.
-Moreover, DSNs are cost-efficient because no individual storage provider can monopolize storage resources in DSNs.
+These blocks must be archived for future analysis and auditing.
+In addition, blockchain applications store multimedia data for digital assets that have real economic value, so data loss can lead directly to financial loss.
+All of this information must be stored reliably under strict trust assumptions in which no single participant is trusted.
 
-Just as distributed storage with central management, the crucial task of governing data availability in DSNs is to determine the placement of data across nodes.
-Data blocks are stored with redundancy across multiple nodes, so that the failure of individual nodes will not lead to data loss.
-For each data block, DSNs determine the storing nodes, which we call the placement group of the data block.
-DSNs must be able to determine the placement groups consistently and continuously throughout the lifetime of the data block, so that the data can be reliably retrieved from the storing nodes at any time, and DSNs can continuously perform audits on the storing nodes.
-DSNs must ensure that the placement groups are sufficiently large to tolerate correlated failures and Byzantine nodes, which means that DSNs must be able to replace any failed node in the placement group with a new node at any time.
-Most importantly, DSNs must be able to incentivize the rational nodes to correctly follow the protocols and store data, for example, by requiring them to provide proofs of retrievability~\cite{por} so that they cannot claim to store data without actually storing it.
+DSNs address this requirement.
+Unlike centralized storage systems, where one organization owns and manages the resources, DSNs rely on resources contributed by many permissionless providers and coordinated by distributed protocols such as smart contracts executed on blockchains.
+Providers can join and leave the network at any time.
+DSNs can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
+As a result, users need not trust any single provider for availability while retaining confidence that their data remain reliably stored.
+DSNs are also cost effective because no single provider can monopolize storage resources.
 
-Comparing to traditional distributed storage, DSNs face unique challenges in determining data placement due to the decentralized nature of their infrastructures.
-Firstly, a certain fraction of nodes in DSNs are assumed to be Byzantine.
-The placement strategy must be designed to tolerate Byzantine nodes in the placement groups without incurring excessive redundancy.
-Secondly, most DSNs rely on blockchains to govern data placement to avoid reliance on any single party.
+As in centrally managed distributed storage, the central task in DSNs is to determine how data are placed across nodes.
+Each data block is stored redundantly on multiple nodes so that individual node failures do not cause data loss.
+For each block, the selected set of storing nodes is the placement group.
+DSNs must determine placement groups consistently over the entire lifetime of each block so that data remain retrievable at any time and storage audits can be executed continuously.
+Placement groups must also be large enough to tolerate correlated failures and Byzantine nodes, which requires replacing failed group members promptly when failures occur.
+Most importantly, DSNs must provide incentives for rational nodes to follow the protocol and store data correctly.
+For example, nodes can be required to provide proofs of retrievability~\cite{por}, which prevents them from claiming storage without actually retaining the data.
+
+Compared with traditional distributed storage, DSNs face unique challenges in data placement because of their decentralized infrastructure.
+First, a fraction of network nodes is assumed to be Byzantine.
+The placement strategy must therefore tolerate Byzantine nodes within placement groups without introducing excessive redundancy.
+Second, most DSNs rely on blockchains to govern data placement in order to avoid dependence on any single party.
 \xxx{Mention Storj as an exception if we want to.}
-DSNs must cope with the limited on-chain storage capacity and the high cost of on-chain operations.
-So, DSNs must keep the on-chain storage overhead of data placement low, even if dealing with large placement groups to tolerate high failure rates.
-Finally, DSNs must be able to adapt to the highly dynamic nature of the network.
-When there are nodes leaving network while storing redundancy for many data blocks, DSNs must be able to efficiently identify the affected data blocks and repair the redundancy loss by recruiting new nodes to each of the placement groups.
+DSNs must operate under limited on-chain storage capacity and high on-chain operation costs.
+Accordingly, they must keep the on-chain metadata overhead of data placement low, even when placement groups are large enough to tolerate high failure rates.
+Finally, DSNs must adapt to highly dynamic network conditions.
+When nodes leave while storing redundancy for many data blocks, the system must efficiently identify affected blocks and repair lost redundancy by recruiting new nodes into the corresponding placement groups.
 
-Prior efforts to design DSNs have focused on ensuring rational nodes behave correctly, while the efficiency of placement strategies against Byzantine nodes has been largely overlooked.
-Filecoin and Sia rely on storage contracts to govern data placement, which leads to significant on-chain storage overhead.
-This overhead limits the placement group size and thus their tolerance against Byzantine nodes.
-They also cannot efficiently handle node failures, and Sia undesireably offloads the responsibility of monitoring and repairing data loss to clients.
-Arweave and Permacoin do not support erasure coding, and they do not mandate data placement.
-Thus, they have to store data copies on a significant fraction of all nodes to tolerate Byzantine nodes, which leads to an unscalable redundancy level.
-They also inefficiently handle node failures by relying on individual nodes scanning the network to identify data blocks that are profitable to store.
-Additionally, Walrus underutilizes the storage resources of unselected nodes and is vulnerable to Byzantine nodes with its committee-based approach, and Swarm must replicate data to a large number of nodes to tolerate Byzantine joining attacks.
-In summary, none of the previous DSNs can achieve efficient storage, efficient on-chain storage and efficient repair at the same time to tolerate a fraction of Byzantine nodes.
+Prior DSN designs have focused mainly on enforcing correct behavior by rational nodes, while largely overlooking the efficiency of placement strategies under Byzantine faults.
+Filecoin and Sia rely on storage contracts to govern placement, which introduces substantial on-chain storage overhead.
+This overhead limits placement group size and therefore reduces tolerance to Byzantine nodes.
+They also handle node failures inefficiently, and Sia undesirably shifts the burden of monitoring and repair to clients.
+Arweave and Permacoin do not support erasure coding and do not enforce explicit data placement.
+As a result, they must store copies on a large fraction of all nodes to tolerate Byzantine behavior, which yields unscalable redundancy.
+They also handle node failures inefficiently because individual nodes must scan the network to identify blocks that are profitable to store.
+In addition, Walrus underutilizes the storage capacity of non selected nodes and remains vulnerable to Byzantine behavior under its committee based design, while Swarm must replicate data to many nodes to tolerate Byzantine joining attacks.
+In summary, existing DSNs do not simultaneously achieve storage efficiency, low on-chain overhead, and efficient repair while tolerating a Byzantine fraction of nodes.
 We discuss these DSNs in more detail in \autoref{sec:motivation:review}.
 
 In this work, we propose \sys, an efficient and practical data placement strategy for DSNs.
-\sys employs erasure coding to distribute redundancy across large placement groups with low redundancy levels.
-It keeps only a global parameter and a data hash per data block on-chain to determine the placement group.
-And it can also efficiently assign new nodes to the placement groups of all necessary data blocks.
-The key technique of \sys is to use a verifiable random function (VRF)~\cite{vrf,vrf-rfc} to determine the placement of data blocks.
-VRF is a cryptographic primitive that takes an input and produces a pseudorandom output along with a proof that the output is correct.
-The output is pseudorandom and unpredictable to anyone who does not know the secret key, but it can be efficiently verified by anyone who knows the corresponding public key.
-By using VRF, \sys can determine the placement of data blocks in a way that is unpredictable to adversaries, ensuring the nodes in placement groups cannot be manipulated by faulty nodes without relying on any additional consistent state on-chain.
-The VRF output can also be used to determine the encoded symbols for each node in the placement group.
-\sys employs verifiable rateless erasure coding~\cite{verify-rateless-ec} to generate an unlimited number of encoded symbols from the original data blocks, so the encoded symbols randomly assigned by VRF to each node will be distinct with high probability.
-And the encoded symbols can be verified solely with the data hash and the VRF proof, enabling DSNs to verify the storage of each node and to incentivize nodes accordingly.
+\sys uses erasure coding to distribute redundancy across large placement groups while maintaining low redundancy.
+It stores only a global parameter and one data hash per block on-chain to determine placement groups.
+It also assigns new nodes efficiently to the placement groups that require repair.
+The core technique in \sys is a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for determining data placement.
+A VRF is a cryptographic primitive that maps an input to a pseudorandom output together with a proof of correctness.
+The output is unpredictable to anyone without the secret key, yet efficiently verifiable by anyone with the corresponding public key.
+Using VRF, \sys determines placement in a manner that adversaries cannot predict or manipulate, without requiring additional consistent on-chain state.
+The VRF output also determines the encoded symbols assigned to each node in a placement group.
+\sys further employs verifiable rateless erasure coding~\cite{verify-rateless-ec} to generate an unbounded stream of encoded symbols from each original block, so symbols assigned by VRF are distinct with high probability.
+These symbols are verifiable using only the data hash and the VRF proof, which enables DSNs to audit storage and incentivize nodes accordingly.
 
 \xxx{We propose to integrate \sys into various DSNs so that they are strengthened.}
 
