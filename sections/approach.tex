@@ -18,21 +18,57 @@ A VRF satisfies the following properties:
     \item \textbf{Verifiability:} Given the public key $\pk$, input $x$, output $y$, and proof $\pi$, anyone can efficiently verify that $y$ is the correct VRF output for $x$ under $\pk$ using $\VRFVerify$.
 \end{itemize}
 
-\subsection{Desired Properties of Data Placement}
+\xxx{Maybe should also introduce rateless erasure coding here.}
 
-Data placement must only persist on-chain metadata whose size is independent to the placement group size.
-Otherwise, in the case where large placement groups are employed to tolerate high failure rates, the on-chain metadata would be impractically bloated.
-In some sense, the placement must be stateless, i.e., the placement of a data block can be determined solely based on the block's content and the current state of the system, without relying on any additional information or history.
+\subsection{Considerations of Data Placement in DSNs}
 
-Data placement must be compitable with erasure coding.
+As we have discussed in \XXX, data placement in Filecoin and Sia explicitly records the placement of each data block on-chain, which leads to significant on-chain storage overhead.
+To address this issue, we must adopt a algorithmic data placement strategy, which given a data block and the current state of the system, can determine the placement of the data block without relying on any additional state.
+This approach is widely adopted in distributed storage systems, such as the use of consistent hashing in Ceph and Walrus and the use of distributed hash tables in peer-to-peer storage systems.
+Arweave can also be considered as employing an algorithmic data placement strategy, where the placement of all data blocks includes all nodes in the network.
 
-A placement group must include a sufficient number of non-Byzantine nodes.
-It also must provide a mechanism to verify that the nodes in the placement group have correctly stored the data blocks.
+However, previous practices of algorithmic data placement do not apply to DSNs without problems.
+First, the Byzantine joining attack can enable adversaries to manipulate the placement of data blocks by strategically joining and leaving the network.
+If the Byzantine nodes can predict the placement of data blocks, they can manipulate it and eventually compromise the placement groups to cause data loss.
+Second, previous practices do not allow DSNs to effectively employ erasure coding.
+\xxx{Explain why.}
 
-Data placement must make repair efficient.
-It must be easy to detect redundancy failure for a data block.
-It must be possible and efficient to introduce new nodes to the placement group to replace failed nodes.
+In our design, we employ VRF to determine the placement of data blocks, which is unpredictable to adversaries and verifiable by anyone.
+This approach can effectively mitigate the Byzantine joining attack, as adversaries cannot predict the placement of data blocks and thus cannot strategically manipulate it.
+
+Additionally, we propose to use rateless erasure coding, which can be perfectly combined with VRF-based data placement.
+In addition to determining the placement of data blocks, VRF can also be used to determine the encoded symbols stored by each node in the placement group.
+Rateless erasure coding allows us to generate an unlimited number of encoded symbols from the original data blocks, so the encoded symbols randomly assigned by VRF to each node will be distinct with high probability, thus ensuring the reliability of data storage.
 
 \subsection{Data Placement with VRF and Rateless Erasure Coding}
 
-\subsection{Stateless Storage Audits with Verifiable Online Code}
+Compute a selecting rate $r$ based on the target placement group size and the total number of nodes in the network.
+Take the output $y$ of VRF and compare with $r\times \max{y}$.
+If $y$ is smaller, the node is selected for the placement group, otherwise it is not selected.
+At the same time, the output $y$ can also be interpreted as a random index to select the encoded symbol for the rateless erasure coding.
+
+\paragraph{Repair for failures.}
+The repair process must be triggered when the number of nodes in the placement group falls below a certain threshold.
+We discuss two cases: when the total number of nodes in the network is also decreasing, or when the total number of nodes in the network is stable or increasing.
+In the latter case, the new nodes joining the network will be selected by VRF to join the placement group and store the encoded symbols.
+The previous nodes in the placement group are not affected.
+They are still selected by VRF to store the same encoded symbols as before.
+
+In the former case, the network is shrinking and must be reconfigured with a higher selecting rate $r'$ to maintain the placement group size.
+The previous nodes in the placement group are also not affected, as their output $y$ from VRF is also smaller than $r'\times \max{y}$.
+
+\paragraph{Verify storage.}
+In the case where the incentive mechanism of the DSN requires nodes to provide proofs of storage, we adopt a verifiable rateless erasure coding scheme~\cite{verify-rateless-ec}.
+\xxx{Explain the scheme.}
+Thus, we can verify the storage of each node in the placement group, only knowing the data hash.
+
+The main limitation of this scheme is that only complete encoded symbols can be verified, and we cannot sample a small portion of the encoded fragment for more efficient verification.
+To overcome this limitation, we can reduce the size of each encoded symbol and store multiple encoded symbols on each node, so that we can verify a small portion of the node storage by verifying a complete encoded symbol.
+
+\section{Integrate \sys into DSNs}
+
+\xxx{In Filecoin, sign contract automatically with nodes selected by \sys.}
+
+\xxx{In Arweave, use \sys to contraint the block producer of each round, similar to Algorand.}
+
+\xxx{In Swarm, use \sys instead of Kademlia DHT to determine the placement of data blocks. Basically what we proposed as the storage network in previous submissions.}
