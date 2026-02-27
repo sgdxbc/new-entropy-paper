@@ -5,14 +5,13 @@
 \centering
 \begin{tabular}{cccc}
 \toprule
-Protocol        & Redundancy        & On-chain Footprint    & Failure Detection Overhead \\
+Protocol                       & Redundancy & On-chain Footprint & Number of Faulty Nodes \\
 \midrule
-Filecoin, Sia   & Low               & High                  & High  \\
-Walrus          & Low               & High                  & Low   \\
-Arweave, Permacoin, Retricoin
-                & High              & High                  & High  \\
-Swarm           & High              & Low                   & Low   \\
-\sys            & Low               & Low                   & Low   \\
+Filecoin, Sia                  & $O(1)$     & $O(D\cdot P)$      & $O(1)$                  \\
+Walrus                         & $O(1)$     & $O(D)$             & $O(1)$                  \\
+Arweave, Permacoin, Retricoin  & $O(N)$     & $O(1)$             & $O(N)$                  \\
+Swarm                          & $O(N)$     & $O(1)$             & $O(N)$                  \\
+\sys                           & $O(1)$     & $O(D)$             & $O(N)$                  \\
 \bottomrule
 \end{tabular}
 \caption{Comparison of DSNs.}
