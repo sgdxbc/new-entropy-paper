@@ -30,21 +30,17 @@ Second, most DSNs rely on blockchains to govern data placement in order to avoid
 \sgd{May mention Storj as an exception if we want to.}
 DSNs must operate under limited on-chain storage capacity and high on-chain operation costs.
 Accordingly, they must keep the on-chain metadata overhead of data placement low, even when placement groups are large enough to tolerate high failure rates.
-Finally, DSNs must adapt to highly dynamic network conditions.
-When nodes leave while storing redundancy for many data blocks, the system must efficiently identify affected blocks and repair lost redundancy by recruiting new nodes into the corresponding placement groups.
 
-Prior DSN designs have focused mainly on enforcing correct behavior by rational nodes, while largely overlooking the efficiency of placement strategies under Byzantine faults.
+Prior DSN designs have focused mainly on enforcing correct behavior by rational nodes, while largely overlooking the efficiency and scalability of placement strategies under Byzantine faults.
 Filecoin and Sia rely on storage contracts to govern placement, which introduces substantial on-chain storage overhead.
 This overhead limits placement group size and therefore reduces tolerance to Byzantine nodes.
-They also handle node failures inefficiently, and Sia undesirably shifts the burden of monitoring and repair to clients.
 Arweave and Permacoin do not support erasure coding and do not enforce explicit data placement.
 As a result, they must store copies on a large fraction of all nodes to tolerate Byzantine behavior, which yields unscalable redundancy.
-They also handle node failures inefficiently because individual nodes must scan the network to identify blocks that are profitable to store.
-In addition, Walrus underutilizes the storage capacity of non selected nodes and remains vulnerable to Byzantine behavior under its committee based design, while Swarm must replicate data to many nodes to tolerate Byzantine joining attacks.
-In summary, existing DSNs do not simultaneously achieve storage efficiency, low on-chain overhead, and efficient repair while tolerating a Byzantine fraction of nodes.
+In addition, Walrus remains vulnerable to Byzantine behavior under its committee based design and underutilizes the storage capacity of non selected nodes, while Swarm must replicate data to many nodes to tolerate Byzantine joining attacks.
+In summary, existing DSNs do not simultaneously achieve storage efficiency and scalably low on-chain overhead while tolerating a Byzantine fraction of nodes.
 We discuss these DSNs in more detail in \autoref{sec:motivation:review}.
 
-In this work, we propose \sys, a DSN design with efficient and practical data placement strategy.
+In this work, we propose \sys, a DSN design with efficient and scalable data placement strategy.
 \sys uses erasure coding to distribute redundancy across large placement groups while maintaining low redundancy.
 It stores only a global parameter and one data hash per block on-chain to determine placement groups.
 It also assigns new nodes efficiently to the placement groups that require repair.
@@ -52,10 +48,13 @@ The core technique in \sys is a verifiable random function (VRF)~\cite{vrf,vrf-r
 A VRF is a cryptographic primitive that maps an input to a pseudorandom output together with a proof of correctness.
 The output is unpredictable to anyone without the secret key, yet efficiently verifiable by anyone with the corresponding public key.
 Using VRF, \sys determines placement in a manner that adversaries cannot predict or manipulate, without requiring additional consistent on-chain state.
-The VRF output also determines the encoded symbols assigned to each node in a placement group.
-\sys further employs verifiable rateless erasure coding~\cite{verify-rateless-ec} to generate an unbounded stream of encoded symbols from each original block, so symbols assigned by VRF are distinct with high probability.
+\sys further employs verifiable rateless erasure coding~\cite{verify-rateless-ec} to achieve storage efficiency without incurring additional on-chain overhead.
+The VRF output determines the encoded symbols assigned to each node in a placement group.
+Rateless erasure coding generates an unbounded stream of encoded symbols from each original block, so symbols assigned by VRF are distinct with high probability.
 These symbols are verifiable using only the data hash and the VRF proof, which enables \sys to audit storage and incentivize nodes accordingly.
 
 We present the complete design of \sys around this novel data placement strategy, including the network protocols for storing and retrieving data, auditing storage, and repairing lost redundancy.
+The repairing in \sys only happens when new nodes joining the network and in the rare case of a shrinking network, so it is efficient and does not require heavyweight on-chain maintenance routines.
+
 We have simulated \sys and get preliminary results.
 \xxx{Evaluation stuff.}
