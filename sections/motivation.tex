@@ -3,18 +3,22 @@
 
 \begin{table*}[ht]
 \centering
+\renewcommand{\arraystretch}{1.5}
 \begin{tabular}{cccc}
 \toprule
-Protocol                       & Redundancy & On-chain Footprint & Number of Faulty Nodes \\
+Protocol                       & Volume                             & On-chain Footprint        & Number of Faulty Nodes    \\
 \midrule
-Filecoin, Sia                  & $O(1)$     & $O(D\cdot P)$      & $O(1)$                  \\
-Walrus                         & $O(1)$     & $O(D)$             & $O(1)$                  \\
-Arweave, Permacoin, Retricoin  & $O(N)$     & $O(1)$             & $O(N)$                  \\
-Swarm                          & $O(N)$     & $O(1)$             & $O(N)$                  \\
-\sys                           & $O(1)$     & $O(D)$             & $O(N)$                  \\
+Filecoin, Sia                  & \ProsCell $O(N\cdot S)$            & \ConsCell $O(D\cdot P)$   & \ConsCell $O(P)$          \\
+Walrus                         & \ConsCell $O(S)$                   & \ProsCell $O(D)$          & \ConsCell $O(1)$          \\
+Arweave, Permacoin, Retricoin  & \ConsCell $O(\frac{N\cdot S}{P})$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
+Swarm                          & \ConsCell $O(\frac{N\cdot S}{P})$  & \ProsCell $O(1)$          & \ProsCell $O(N)$          \\
+\sys                           & \ProsCell $O(N\cdot S)$            & \ProsCell $O(D)$          & \ProsCell $O(N)$          \\
 \bottomrule
 \end{tabular}
-\caption{Comparison of DSNs.}
+\caption{
+    Comparison of DSNs.
+    $N$ indicates the total number of nodes, $S$ indicates the storage supply of each node (assuming uniform nodes), $D$ indicates the number of stored data, $P$ indicates placement group size.
+}
 \label{tab:dsn}
 \end{table*}
 
@@ -38,9 +42,20 @@ They encode a data block into $n$ fragments, any $k$ of which can recover the da
 Then, the storage systems can tolerate simultaneous failure of any combination of $n-k$ nodes while incurring only $\nicefrac{n}{k}$ times of the data block storage on these nodes.
 The rule of thumb is that with higher failure rate of the nodes (so they fail more frequently), the storage systems must be able to tolerate simultaneous failures of larger scale, and thus configure with larger placement groups.
 
-Compared to traditional storage systems, the unique challenge of data placement in DSNs stems from the Byzantine nodes.
+Compared to traditional storage systems, one unique challenges of data placement in DSNs stem from the Byzantine nodes and limited governance infrastructure.
 The DSNs who are configured with placement groups of $n$ nodes and can tolerate $k$ simultaneous failures of them must ensure that, no more than $f$ Byzantine nodes are selected into the $n$ nodes so that $f+f'>k$, where at most $f'$ benign simultaneous failures are expected from the $n-f$ rational nodes.
 Otherwise, those Byzantine nodes may collude with each other and create simultaneous failures that lead to data loss.
+The strict security model also forbid DSNs to leverage a trusted single party to manage data placement, but rely on blockchain to reach consensus on the governing routine to tolerate Byzantine nodes.
+Blockchains are notorious for high cost of on-chain state and high transaction cost.
+In DSNs, every blockchain node is effectively a full ledge storage controller and replicate maintenance effort of all data blocks.
+Keeping low on-chain overhead is crucial for DSNs to be scalable and manage large volume of data.
+
+In summary, we want to achieve the following goals of DSNs with their data placement strategies:
+\begin{itemize}
+    \item Tolerate up to a certain fraction of Byzantine nodes;
+    \item Keep low and scalable storage overhead: the storage volume should be proportional to the total storage supply of the nodes;
+    \item Minimize the on-chain state footprint.
+\end{itemize}
 
 \subsection{Previous DSNs and their Limitations}
 \label{sec:motivation:review}
