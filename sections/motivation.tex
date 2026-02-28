@@ -67,6 +67,26 @@ The storage volume and fault tolerance are the higher is better while the on-cha
 Next, we will explain the data placement strategies employed by these DSNs and how they have caused various drawbacks in the DSNs.
 
 \paragraph{Explicitly store placement on-chain.}
+In Filecoin and Sia, the users control placement of their data.
+They pick the storing nodes and sign contract with them, and the contracts are stored on-chain as explicit placement metadata.
+Only the contracted nodes can make profit by storing the data, and it is mandatory for them to store, or penalty will be applied to them.
+
+The advantage of this per-node explicit record is that it makes erasure coding easy.
+Clients can locally encode data blocks and sign contracts with different nodes to store different encoded fragments.
+The downside is large on-chain footprint.
+The on-chain state for storing each data block is proportional to the number of nodes in the placement group.
+To tolerate higher failure rate which is commonly found in DSNs, the on-chain state will be significantly bloated.
+Both DSNs have been trying to work around this limitation.
+Filecoin chooses large storage unit (32 GiB or 64 GiB) to reduce the number of data, and it incentivizes extremely reliable, cluster-grade nodes to secure stored data with small placement groups of usually less than 10 nodes.
+Sia is more suitable for daily personal use with its small storage unit and is able to be more friendly to less reliable nodes with its default placement group size of 30.
+This results in overwhelming blockchain state size, and Sia has subsequently shifted to stateless blockchain paradigm (with Utreexo) recently.
+As the result, Sia does not permit external clients.
+All users must stay online all the time to continuously download new block headers and update the Merkle proofs of their coins, and they have to monitor and audit the nodes storing their data by themselves, as the task is impossible for a stateless blockchain.
+
+What's worse, the number of Byzantine nodes these DSNs can tolerate is proportional to the placement group size instead of the total number of nodes.
+The Byzantine nodes can easily attack a data block by offering a low storage price and inducing the user to sign contract with them.
+Even if the users choose contracted nodes purely randomly, there is still nontrivial probability that overwhelming Byzantine nodes are chosen initially or throughout the data lifetime when replacing failed nodes.
+Thus, the high on-chain overhead of data placement makes these DSNs more vulnerable to Byzantine nodes.
 
 \paragraph{Implicit incentive-driven placement.}
 

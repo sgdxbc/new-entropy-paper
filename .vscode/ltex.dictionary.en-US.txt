@@ -9,3 +9,5 @@ rateless
 Retricoin
 IPFS
 Oceanstore
+Utreexo
+Merkle
