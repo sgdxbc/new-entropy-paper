@@ -43,7 +43,7 @@ We discuss these DSNs in more detail in \autoref{sec:motivation:review}.
 In this work, we propose \sys, a DSN design with efficient and scalable data placement strategy.
 \sys uses erasure coding to distribute redundancy across large placement groups while maintaining low redundancy.
 It stores only a global parameter and one data hash per block on-chain to determine placement groups.
-It also assigns new nodes efficiently to the placement groups that require repair.
+% It also assigns new nodes efficiently to the placement groups that require repair.
 The core technique in \sys is a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for determining data placement.
 A VRF is a cryptographic primitive that maps an input to a pseudorandom output together with a proof of correctness.
 The output is unpredictable to anyone without the secret key, yet efficiently verifiable by anyone with the corresponding public key.
@@ -54,7 +54,7 @@ Rateless erasure coding generates an unbounded stream of encoded symbols from ea
 These symbols are verifiable using only the data hash and the VRF proof, which enables \sys to audit storage and incentivize nodes accordingly.
 
 We present the complete design of \sys around this novel data placement strategy, including the network protocols for storing and retrieving data, auditing storage, and repairing lost redundancy.
-The repairing in \sys only happens when new nodes joining the network and in the rare case of a shrinking network, so it is efficient and does not require heavyweight on-chain maintenance routines.
+The repairing in \sys only happens when new nodes joining the network and in the rare case of a shrinking network, so it is efficient and does not involve heavyweight on-chain maintenance routines.
 
 We have simulated \sys and get preliminary results.
 \xxx{Evaluation stuff.}
