@@ -89,7 +89,33 @@ Even if the users choose contracted nodes purely randomly, there is still nontri
 Thus, the high on-chain overhead of data placement makes these DSNs more vulnerable to Byzantine nodes.
 
 \paragraph{Implicit incentive-driven placement.}
+Permacoin and Retricoin are research designs for archiving large volume public static datasets.
+They do not enforce data placement but encourage every node to store as much data as possible.
+Similar to Bitcoin, nodes are rewarded for successfully mining blocks, which require them to prove that they are storing a certain segment of the datasets.
+The more segments a node stores, the high probability for the node to successfully mine blocks and obtain rewards.
+Arweave is a production DSN following a similar approach.
+The historical blocks in the blockchain are themselves the stored data, and mining blocks of each round requires to prove that a random historical block is stored.
+With this approach, Arweave allows the stored data to be dynamically extended.
+All these DSNs achieve constant on-chain footprint.
+Only a small accumulator (e.g., Merkle root), representing all persisted data, is required to be stored by the nodes and validate mined blocks.
+The size of this accumulator remains constant regardless of the stored data size.
+
+Besides lacking function of easily deleting stored data, these DSNs suffer from poor storage efficiency.
+Firstly, these DSNs cannot employ erasure coding.
+\sgd{Need to clarify why cannot employ?}
+Secondly, similar to the storage contract approach, Byzantine nodes can easily attack a data segment by all storing it and forcing rational nodes to replace it with more profitable data segments.
+So, to tolerate Byzantine nodes, the effective placement group size (driven by incentive) must be larger than the number of Byzantine nodes.
+Thus, each data segment must be stored on the nodes whose number is proportional to the total number of nodes to tolerate a fraction of Byzantine nodes globally.
+This causes high and non-scalable redundancy level which is only feasible when the system scale is small.
+In Arweave, 350 TiB data is stored by only around 100 nodes.
 
 \paragraph{Static placement.}
+Walrus is an emerging DSN, taking an approach more akin to traditional storage systems.
+In Walrus, the top 1000 nodes (according to their staking) are selected as the committee to store all data for each epoch (i.e., two weeks).
+A hash function maps each data block to the nodes of its placement group, which collectively store the data with erasure coding.
+This design enables both efficient storage and low on-chain footprint, as the on-chain state only needs to store per-data record, and the placement can be solely determined with the hash function.
+However, Walrus has limited storage volume because it can only utilize storage resource from 1000 nodes.
+The fault tolerance is also limited to a fraction of those utilized nodes.
+With sufficient number of nodes in total, a fraction of Byzantine nodes may overwhelm the selected committee and cause data loss.
 
 \paragraph{Randomized replication.}
