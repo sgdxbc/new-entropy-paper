@@ -18,17 +18,29 @@ Swarm                          & $O(N)$     & $O(1)$             & $O(N)$       
 \label{tab:dsn}
 \end{table*}
 
-\subsection{Data Placement in DSNs}
+\subsection{DSNs and Their Data Placement}
 
-\xxx{What is data placement.}
+Decentralized storage networks (DSNs) provide blob storage service backed by decentralized storage resources collectively provided by permissionless nodes.
+Some nodes are rational and aim to generate profit with their storage supply, while the other nodes are Byzantine, behaving arbitrarily and potentially maliciously.
+DSNs can provide reliable storage service, ensuring the stored data can be successfully retrieved, given that there are at most a certain fraction (e.g. \nicefrac{1}{3}) of nodes are Byzantine.
+They guarantee reliable storage by driving rational nodes to correctly store and serve the data with incentive and tolerating Byzantine nodes.
 
-\xxx{Filecoin and Sia: memorize placement with chain states.}
+In this work, we focus on improving the data placement strategy in DSNs.
+In storage systems, data placement means given a data block, how to determine which nodes should store redundancy for this data block and what kind of redundancy they store.
+These storing nodes are called the placement group of the data block.
+Storing data redundantly on multiple nodes is crucial for tolerating simultaneous failures across them.
+For example, by storing $r$ copies of data on distinct nodes, the data will still be available even when $r-1$ of the nodes fail at the same time.
+So, as long as the storage system can repair the redundancy before all $r$ nodes fail, the storage will be durable.
 
-\xxx{Walrus: hashing-based static placement with fixed committee.}
+In practice, storing large number of data copies incur excessive storage overhead.
+Storage systems commonly employ erasure coding to achieve better storage efficiency.
+They encode a data block into $n$ fragments, any $k$ of which can recover the data block, and store them on $n$ nodes.
+Then, the storage systems can tolerate simultaneous failure of any combination of $n-k$ nodes while incurring only $\nicefrac{n}{k}$ times of the data block storage on these nodes.
+The rule of thumb is that with higher failure rate of the nodes (so they fail more frequently), the storage systems must be able to tolerate simultaneous failures of larger scale, and thus configure with larger placement groups.
 
-\xxx{Arweave, Permacoin, Retricoin: incentive driven placement.}
-
-\xxx{Swarm: random neighborhood-based replication.}
+Compared to traditional storage systems, the unique challenge of data placement in DSNs stems from the Byzantine nodes.
+The DSNs who are configured with placement groups of $n$ nodes and can tolerate $k$ simultaneous failures of them must ensure that, no more than $f$ Byzantine nodes are selected into the $n$ nodes so that $f+f'>k$, where at most $f'$ benign simultaneous failures are expected from the $n-f$ rational nodes.
+Otherwise, those Byzantine nodes may collude with each other and create simultaneous failures that lead to data loss.
 
 \subsection{Previous DSNs and their Limitations}
 \label{sec:motivation:review}
