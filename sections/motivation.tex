@@ -48,9 +48,9 @@ In summary, we want to achieve the following goals of DSNs with their data place
 Protocol                       & Volume                             & \shortstack{On-chain\\Footprint} & \shortstack{Number of\\Faulty Nodes} \\
 \midrule
 Filecoin, Sia                  & \ProsCell $O(N\cdot S)$            & \ConsCell $O(D\cdot P)$   & \ConsCell $O(P)$          \\
-Arweave, Permacoin, Retricoin  & \ConsCell $O(\frac{N\cdot S}{P})$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
+Arweave, Permacoin, Retricoin  & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
 Walrus                         & \ConsCell $O(S)$                   & \ProsCell $O(D)$          & \ConsCell $O(1)$          \\
-Swarm                          & \ConsCell $O(\frac{N\cdot S}{P})$  & \ProsCell $O(1)$          & \ProsCell $O(N)$          \\
+Swarm                          & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ProsCell $O(N)$          \\
 \sys                           & \ProsCell $O(N\cdot S)$            & \ProsCell $O(D)$          & \ProsCell $O(N)$          \\
 \bottomrule
 \end{tabularx}
@@ -119,3 +119,9 @@ The fault tolerance is also limited to a fraction of those utilized nodes.
 With sufficient number of nodes in total, a fraction of Byzantine nodes may overwhelm the selected committee and cause data loss.
 
 \paragraph{Randomized replication.}
+Swarm designs a data placement strategy that assigns data blocks and nodes into random neighborhoods via a distributed hash table.
+The nodes in the same neighborhood stores redundant copies of the same data blocks.
+This design achieves constant on-chain footprint.
+Data storing and retrieval requests can be routed to the correct neighborhood with the help of the distributed hash table, which does not incur additional on-chain overhead.
+To audit the stored data, Swarm relies on game theory and can detect faulty nodes as long as there is at least one honest node in the neighborhood.
+However, the game theory-based audit can only be applied with replication-based redundancy, which incurs high storage overhead.
