@@ -25,13 +25,33 @@ $\ECDecode$ guarantees to recover the data block with any combination of $(1+\ep
 The verifiable rateless EC scheme further provides a $\ECVerify$ algorithm to enables verifying encoded fragments with hash of the data block.
 It takes the data block hash, a fragment and its index, and outputs a boolean indicating whether the input fragment is correct.
 
-\subsection{Toward Resilient, Efficient and Scalable Data Placement}
+\subsection{Data Placement Challenges in DSNs}
 
 In this section, we illustrate data placement mechanism in \sys.
 As shown in \autoref{tab:dsn}, out data placement helps \sys to achieve all three goals.
 \sys can tolerate a fraction of Byzantine nodes globally with perfect storage efficiency.
 The available storage volume grows with total storage supply and does not depend on the placement group size.
 It has a low on-chain footprint that remain constant regarding the placement group size.
+
+Our key insight from previous DSNs is that algorithmic data placement is critical to reduce on-chain overhead but leads to more vulnerable placement groups.
+In many DSNs, the data placement can be viewed as a \emph{stateless} function that given the current system status, maps data blocks to their placement groups without needing to access any on-chain state.
+This closely corresponds to the hash function in Walrus and the DHT protocol in Swarm.
+In DSNs with incentive-driven data placement, we can consider all nodes as the placement groups of all data.
+By implicitly specifying placement groups by rules or network protocols, these DSNs achieve desirable linear or even constant on-chain footprint.
+However, the placement groups in these DSNs cannot say no to Byzantine nodes.
+In Filecoin and Sia, the explicit on-chain contract isolates the availability of a data block from all Byzantine nodes who do not get contracted.
+In DSNs with algorithmic data placement, it is always possible for Byzantine nodes to participate into a placement group as long as it pays corresponded economic cost.
+As the result, every placement group must tolerate Byzantine nodes from the whole network, and their sizes must be proportional to the total number of nodes when there are a fraction of Byzantine nodes.
+And what's even worse, these placement mechanisms usually cannot employ erasure coding due to the lack of coordination among the nodes in each placement group.
+Thus, these DSNs either cannot tolerate a fraction of Byzantine nodes or must incur excessive and non-scalable storage overhead.
+
+We identify the three challenges of data placement for overcoming the pitfalls of previous DSNs.
+Firstly, the placement groups must be statelessly determined.
+Secondly, Byzantine nodes must not be able to manipulate the placement groups.
+It must be computationally hard for more-than-intended Byzantine nodes to join a placement group, and more importantly, the rational nodes must stay in the placement group not matter what the Byzantine nodes do.
+Finally, the data placement mechanism must employ erasure coding.
+This means that the data placement mechanism must specify a distinct encoded fragment to each node in the placement group, and there are sufficient many fragments stored by rational nodes to recover the data.
+\sys can only achieve the goals if and only if all these challenges are addressed by its data placement mechanism.
 
 \iffalse
 As we have discussed in \XXX, data placement in Filecoin and Sia explicitly records the placement of each data block on-chain, which leads to significant on-chain storage overhead.
