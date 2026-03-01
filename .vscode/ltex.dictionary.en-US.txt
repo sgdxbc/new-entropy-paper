@@ -16,3 +16,4 @@ Pseudorandomness
 Verifiability
 Rateless
 statelessly
+Algorand
