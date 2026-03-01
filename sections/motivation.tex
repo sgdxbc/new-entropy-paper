@@ -45,18 +45,18 @@ In summary, we want to achieve the following goals of DSNs with their data place
 \begin{minipage}{\columnwidth}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X c c c}
 \toprule
-Protocol                       & Volume                             & \shortstack{On-chain\\Footprint} & \shortstack{Number of\\Faulty Nodes} \\
+Mechanism           & Volume                             & \shortstack{On-chain\\Footprint} & \shortstack{Number of\\Faulty Nodes} \\
 \midrule
-Filecoin, Sia                  & \ProsCell $O(N\cdot S)$            & \ConsCell $O(D\cdot P)$   & \ConsCell $O(P)$          \\
-Arweave, Permacoin, Retricoin  & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
-Walrus                         & \ConsCell $O(S)$                   & \ProsCell $O(D)$          & \ConsCell $O(1)$          \\
-Swarm                          & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ProsCell $O(N)$          \\
-\sys                           & \ProsCell $O(N\cdot S)$            & \ProsCell $O(D)$          & \ProsCell $O(N)$          \\
+On-chain            & \ProsCell $O(N\cdot S)$            & \ConsCell $O(D\cdot P)$   & \ConsCell $O(P)$          \\
+Incentive-driven    & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
+Neighborhood        & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
+Static              & \ConsCell $O(S)$                   & \ProsCell $O(D)$          & \ConsCell $O(1)$          \\
+\sys                & \ProsCell $O(N\cdot S)$            & \ProsCell $O(D)$          & \ProsCell $O(N)$          \\
 \bottomrule
 \end{tabularx}
 \end{minipage}
 \caption{
-    Comparison of DSNs.
+    Comparison of data placement mechanisms in DSNs.
     $N$ indicates the total number of nodes, $S$ indicates the storage supply of each node (assuming uniform nodes), $D$ indicates the number of stored data, $P$ indicates placement group size.
 }
 \label{tab:dsn}
@@ -106,6 +106,20 @@ Consequently, each data segment must be stored on a number of nodes proportional
 This yields high and non-scalable redundancy, feasible only when the system scale is small.
 In Arweave, 350 TiB of data is stored by only around 100 nodes.
 
+\paragraph{Disjoint replication.}
+Swarm separates nodes into disjoint neighborhoods based on their overlay-network address prefixes.
+Data blocks are uniformly routed, via a distributed hash table (DHT), to randomly selected neighborhoods and then replicated by the nodes within those neighborhoods.
+This design achieves a constant on-chain footprint.
+Storage and retrieval requests can be routed to the responsible neighborhood through the DHT without additional on-chain overhead.
+Swarm does not record stored data on chain; instead, it verifies whether nodes within the same neighborhood store identical data.
+Leveraging game-theoretic incentives, Swarm can detect faulty nodes as long as each neighborhood contains at least one honest node.
+
+Swarm suffers from limitations similar to those of DSNs with incentive-driven data placement.
+It also cannot readily employ erasure coding.
+Although data assignment across neighborhoods is randomized, nodes can freely choose which neighborhood to join.
+As a result, Byzantine nodes can cluster in specific neighborhoods and displace rational nodes, eventually rendering those neighborhoods insecure.
+Swarm must therefore enlarge neighborhood sizes so that each neighborhood can independently tolerate Byzantine concentration, which incurs substantial storage overhead.
+
 \paragraph{Static placement.}
 Walrus is an emerging DSN that more closely resembles traditional storage systems.
 In Walrus, the top 1000 nodes (according to their staking) are selected as the committee to store all data for each epoch (of two weeks).
@@ -114,11 +128,3 @@ This design enables both efficient storage and low on-chain footprint, as the on
 However, Walrus has limited storage volume because it can draw resources only from 1000 nodes.
 Fault tolerance is likewise limited to a fraction of those utilized nodes.
 With a large total node population, a fraction of Byzantine nodes may overwhelm the selected committee and cause data loss.
-
-\paragraph{Randomized replication.}
-Swarm assigns data blocks and nodes into random neighborhoods via a distributed hash table.
-The nodes in the same neighborhood store redundant copies of the same data blocks.
-This design achieves constant on-chain footprint.
-Data storing and retrieval requests can be routed to the correct neighborhood with the help of the distributed hash table, which does not incur additional on-chain overhead.
-To audit the stored data, Swarm relies on game theory and can detect faulty nodes as long as there is at least one honest node in the neighborhood.
-However, these audits require replication-based redundancy, which incurs high storage overhead.
