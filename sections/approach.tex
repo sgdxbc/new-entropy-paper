@@ -1,11 +1,9 @@
 \section{Approach}
 \label{sec:approach}
 
-\subsection{Preliminary on Verifiable Random Functions (VRF)}
+\subsection{Preliminary}
 
-\xxx{VRF introduction~\cite{vrf,vrf-rfc}.}
-
-\paragraph{VRF definition and properties.}
+\paragraph{Verifiable random function (VRF)\@.}
 A VRF provides two algorithms, $\VRFGen$ and $\VRFVerify$.
 $\VRFGen$ takes a secret key $\sk$ and an input $x$, and outputs a pseudorandom value $y$ and a proof $\pi$.
 $\VRFVerify$ takes a public key $\pk$, an input $x$, a value $y$, and a proof $\pi$, and outputs a boolean indicating whether $y$ is the correct VRF output for $x$ under $\pk$.
@@ -18,7 +16,14 @@ A VRF satisfies the following properties:
     \item \textbf{Verifiability:} Given the public key $\pk$, input $x$, output $y$, and proof $\pi$, anyone can efficiently verify that $y$ is the correct VRF output for $x$ under $\pk$ using $\VRFVerify$.
 \end{itemize}
 
-\xxx{Maybe should also introduce rateless erasure coding here.}
+\paragraph{Verifiable rateless erasure coding (EC)~\cite{verify-rateless-ec}\@.}
+A verifiable rateless EC scheme can produce an infinite sequence of encoded fragments for a data block.
+Its $\ECEncode$ algorithm takes the data block and an index, and outputs the encoded fragment at the index in the sequence.
+Similar to ordinary EC, the redundancy level of rateless EC is configured with a parameter $k$ that fragment size is $\nicefrac{1}{k}$ of the original data block.
+The rateless EC provides a $\ECDecode$ algorithm which takes a list of encoded fragment with their indices.
+$\ECDecode$ guarantees to recover the data block with any combination of $(1+\epsilon)k$ distinct input fragments with high probability, where $\epsilon$ is a small constant, e.g., 0.03 for online code.
+The verifiable rateless EC scheme further provides a $\ECVerify$ algorithm to enables verifying encoded fragments with hash of the data block.
+It takes the data block hash, a fragment and its index, and outputs a boolean indicating whether the input fragment is correct.
 
 \subsection{Considerations of Data Placement in DSNs}
 
