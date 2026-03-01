@@ -25,8 +25,15 @@ $\ECDecode$ guarantees to recover the data block with any combination of $(1+\ep
 The verifiable rateless EC scheme further provides a $\ECVerify$ algorithm to enables verifying encoded fragments with hash of the data block.
 It takes the data block hash, a fragment and its index, and outputs a boolean indicating whether the input fragment is correct.
 
-\subsection{Considerations of Data Placement in DSNs}
+\subsection{Toward Resilient, Efficient and Scalable Data Placement}
 
+In this section, we illustrate data placement mechanism in \sys.
+As shown in \autoref{tab:dsn}, out data placement helps \sys to achieve all three goals.
+\sys can tolerate a fraction of Byzantine nodes globally with perfect storage efficiency.
+The available storage volume grows with total storage supply and does not depend on the placement group size.
+It has a low on-chain footprint that remain constant regarding the placement group size.
+
+\iffalse
 As we have discussed in \XXX, data placement in Filecoin and Sia explicitly records the placement of each data block on-chain, which leads to significant on-chain storage overhead.
 To address this issue, we must adopt a algorithmic data placement strategy, which given a data block and the current state of the system, can determine the placement of the data block without relying on any additional state.
 This approach is widely adopted in distributed storage systems, such as the use of consistent hashing in Ceph and Walrus and the use of distributed hash tables in peer-to-peer storage systems.
@@ -69,11 +76,4 @@ Thus, we can verify the storage of each node in the placement group, only knowin
 
 The main limitation of this scheme is that only complete encoded symbols can be verified, and we cannot sample a small portion of the encoded fragment for more efficient verification.
 To overcome this limitation, we can reduce the size of each encoded symbol and store multiple encoded symbols on each node, so that we can verify a small portion of the node storage by verifying a complete encoded symbol.
-
-\section{Integrate \sys into DSNs}
-
-\xxx{In Filecoin, sign contract automatically with nodes selected by \sys.}
-
-\xxx{In Arweave, use \sys to contraint the block producer of each round, similar to Algorand.}
-
-\xxx{In Swarm, use \sys instead of Kademlia DHT to determine the placement of data blocks. A lot like the whole thing we proposed in previous submissions.}
+\fi
