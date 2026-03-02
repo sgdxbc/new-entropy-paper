@@ -43,8 +43,11 @@ It then encodes the fragment it is assigned, according to the VRF proof hash, an
 
 The sample rate $p$ is periodically reconfigured based on Byzantine fault rate $f$, maximum simultaneous benign failures in a placement group $f'$, EC recovery threshold $k$, and the number of nodes $N$.
 The parameters $f$, $f'$, and $k$ are preconfigured, and $N$ is derived from the current staking-node state.
-The formula for $p$ is shown in \XXX.
+The formula for $p$ is shown in \cref{sec:design:analysis}.
 If $p$ decreases because $N$ grows, each node reruns $\VRFGen$ on the data corresponding to stored fragments and discards fragments for which it is no longer endorsed.
 Conversely, if $p$ increases due to the rare case of system shrinkage, each node reruns the bootstrap routine and stores additional fragments.
 According to the random sampling definition (\cref{sec:approach:sample}), nodes only need to discard fragments when $p$ decreases and only need to store more fragments when $p$ increases.
 This design minimizes the number of transferred encoded fragments during reconfiguration.
+
+\subsection{Data Availability Analysis}
+\label{sec:design:analysis}
