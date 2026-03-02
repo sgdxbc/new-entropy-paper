@@ -38,7 +38,7 @@ Arweave and Permacoin do not support erasure coding and do not enforce explicit 
 As a result, they must store copies on a large fraction of all nodes to tolerate Byzantine behavior, which yields unscalable redundancy.
 In addition, Walrus remains vulnerable to Byzantine behavior under its committee based design and underutilizes the storage capacity of non selected nodes, while Swarm must replicate data to many nodes to tolerate Byzantine joining attacks.
 In summary, existing DSNs do not simultaneously achieve storage efficiency and scalably low on-chain overhead while tolerating a Byzantine fraction of nodes.
-We discuss these DSNs in more detail in \autoref{sec:motivation:review}.
+We discuss these DSNs in more detail in \cref{sec:motivation:review}.
 
 In this work, we propose \sys, a DSN design with efficient and scalable data placement strategy.
 \sys uses erasure coding to distribute redundancy across large placement groups while maintaining low redundancy.

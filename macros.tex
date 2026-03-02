@@ -2,21 +2,28 @@
 \usepackage{xspace}
 \usepackage[table]{xcolor}
 \usepackage{tabularx}
+\usepackage{cleveref}
 
-\def\Snospace~{\S{}}
-% Autoref
-\def\chapterautorefname{Chapter}
-\def\sectionautorefname{\Snospace}
-\def\subsectionautorefname{\Snospace}
-\def\subsubsectionautorefname{\Snospace}
-\def\appendixautorefname{Appendix}
-\def\thmautorefname{Theorem}
-\def\lemautorefname{Lemma}
-\def\defnautorefname{Definition}
-\def\algorithmautorefname{Algorithm}
-\def\invariantautorefname{Invariant}
-\def\principleautorefname{Principle}
+\newcommand{\Snospace}{\S}
 
+% Cleveref Configuration
+% Format: \crefname{type}{singular}{plural}
+\crefname{chapter}{Chapter}{Chapters}
+\Crefname{chapter}{Chapter}{Chapters}
+\crefname{section}{\Snospace}{\Snospace}
+\Crefname{section}{\Snospace}{\Snospace}
+\crefname{subsection}{\Snospace}{\Snospace}
+\Crefname{subsection}{\Snospace}{\Snospace}
+\crefname{subsubsection}{\Snospace}{\Snospace}
+\Crefname{subsubsection}{\Snospace}{\Snospace}
+\crefname{appendix}{Appendix}{Appendices}
+\Crefname{appendix}{Appendix}{Appendices}
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\Crefname{lemma}{Lemma}{Lemmas}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
 
 \ifdraft
 \newcommand{\editorial}[2]{{\textcolor{#1}{#2}}}
