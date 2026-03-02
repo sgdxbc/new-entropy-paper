@@ -1,2 +1,50 @@
 \section{Design}
 \label{sec:design}
+
+We propose \sys, a minimal DSN design that instantiates the data placement mechanism introduced in \cref{sec:approach}.
+We commonly assume that there exists a kind of token that is economically favored by the rational nodes.
+For example, the storage cost can be overly covered by the token rewarded for storage, and so on.
+
+\subsection{On-chain Control Plane}
+
+The smart contract of \sys maintains two on-chain states: current staking nodes and current storing data hashes.
+The former state determines the number of nodes, which is used to determine current sample rate $p$.
+The smart contract accepts three kinds of transactions: staking transactions for node joining, storing transaction for client storing data\footnotemark, and proving transaction for nodes to prove storage and gain rewards.
+\footnotetext{For simplicity, we omit data expiration and removal.}
+
+The staking transaction add nodes to the current staking nodes.
+The storing transaction add data hash to the current storing data hashes.
+On every block height, a random (node, data) pair is sampled from the states with the block hash as the seed, so the sampled pair cannot be predicted.
+If the sampled node is endorsed by the data's placement group, the node can submit a proving transaction with VRF proof and the stored fragment within a time window.
+The smart contract validates the node and the data hash in the transaction, then runs $\VRFVerify$ and $\ECVerify$ for validation as discussed in \cref{sec:approach:ec}.
+If the validation passes, the submitting node is rewarded with token.
+
+\subsection{Client Operations}
+
+To store a data block, client submits a storing transaction with data hash and the token paid for storage.
+When the nodes execute the storing transaction, they run $\VRFGen$ locally with their $\sk$ and current sample rate $p$ to determine whether they are endorsed.
+If so, they query the client with VRF proofs.
+The client first run $\VRFVerify$ to validate the nodes, and then encodes the fragments according to the proof hashes as indices and responds to the nodes.
+The client can conclude the store operation after sufficient number of encoded fragments have been sent.
+
+To retrieve a data block, client sends a gossip message to \sys to look for encoded fragments.
+The nodes who store the fragments send them to the client.
+The client then validates the fragments similar to the proving transaction and decodes the data block with the validated ones.
+In this work, we omit the incentive during data retrieval.
+
+\subsection{Node Bootstrapping}
+
+Repairing for redundancy loss usually happens naturally when new nodes bootstrap into \sys.
+After synchronizing the smart contract state, the nodes run $\VRFGen$ against the current storing data hashes.
+Then, for each placement group it is endorsed, it queries the encoded fragments and decodes the data block similar to a client retrieval operation.
+Then it encodes the fragment it should store according to the VRF proof hash and stores it locally.
+
+\subsection{Configure Sample Rate}
+
+The sample rate $p$ is periodically reconfigured based on Byzantine faulty rate $f$, maximum simultaneous benign failure size in a placement group $f'$, EC recover threshold $k$ and the number of nodes $N$.
+All $f$, $f'$ and $k$ are preconfigured system parameters, and $N$ is derived from the current staking nodes state.
+The formula of $p$ is shown in \XXX.
+If the $p$ decreases because of $N$ grows, every node rerun $\VRFGen$ on the data of stored fragments and discard the fragments if the node is no longer endorsed.
+Otherwise, if the $p$ increases due to the rare case of system shrinking, every node rerun the bootstrap routine and store additional fragments.
+According to the random sampling definition (\cref{sec:approach:sample}), nodes only need to discard fragments when $p$ decreases and only need to store more fragments when $p$ increases.
+This design minimizes the number of transferred encoded fragments during reconfiguration.
