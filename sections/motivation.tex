@@ -48,18 +48,18 @@ In summary, we want to achieve the following goals of DSNs with their data place
 \begin{minipage}{\columnwidth}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X c c c}
 \toprule
-Mechanism           & Volume                             & \shortstack{On-chain\\Footprint} & \shortstack{Number of\\Faulty Nodes} \\
+Solution            & Volume                             & \shortstack{On-chain\\Footprint} & \shortstack{Number of\\Faulty Nodes} \\
 \midrule
 On-chain            & \ProsCell $O(N\cdot S)$            & \ConsCell $O(D\cdot P)$   & \ConsCell $O(P)$          \\
 Incentive-driven    & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
-Neighborhood        & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
 Static              & \ConsCell $O(S)$                   & \ProsCell $O(D)$          & \ConsCell $O(1)$          \\
+Neighborhood        & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ProsCell $O(N)$          \\
 \sys                & \ProsCell $O(N\cdot S)$            & \ProsCell $O(D)$          & \ProsCell $O(N)$          \\
 \bottomrule
 \end{tabularx}
 \end{minipage}
 \caption{
-    Comparison of data placement mechanisms in DSNs.
+    Comparison of data placement solutions in DSNs.
     $N$ indicates the total number of nodes, $S$ indicates the storage supply of each node (assuming uniform nodes), $D$ indicates the number of stored data, $P$ indicates placement group size.
 }
 \label{tab:dsn}

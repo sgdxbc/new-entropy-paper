@@ -17,109 +17,71 @@ A VRF satisfies the following properties:
     \item \textbf{Verifiability:} Given the public key $\pk$, input $x$, output $y$, and proof $\pi$, anyone can efficiently verify that $y$ is the correct VRF output for $x$ under $\pk$ using $\VRFVerify$.
 \end{itemize}
 
-\paragraph{Verifiable rateless erasure coding (EC)~\cite{verify-rateless-ec}\@.}
-A verifiable rateless EC scheme can produce an infinite sequence of encoded fragments for a data block.
-Its $\ECEncode$ algorithm takes the data block and an index, and outputs the encoded fragment at the index in the sequence.
-Similar to ordinary EC, the redundancy level of rateless EC is configured by a parameter $k$ such that each fragment has size $\nicefrac{1}{k}$ of the original data block.
-Rateless EC also provides a $\ECDecode$ algorithm that takes a list of encoded fragments with their indices.
-$\ECDecode$ guarantees to recover the data block with any combination of $(1+\epsilon)k$ distinct input fragments with high probability, where $\epsilon$ is a small constant, e.g., 0.03 for online code.
-The verifiable rateless EC scheme further provides a $\ECVerify$ algorithm that verifies encoded fragments against the data block hash.
-It takes the data block hash, a fragment, and its index, and outputs a boolean indicating whether the input fragment is correct.
-
-\subsection{Data Placement Challenges in DSNs}
-\label{sec:approach:challenge}
-
-In this section, we describe the data placement mechanism in \sys.
-As shown in \cref{tab:dsn}, our data placement enables \sys to achieve all three goals.
-\sys can tolerate a fraction of Byzantine nodes globally with perfect storage efficiency.
-The available storage volume grows with total storage supply and does not depend on the placement group size.
-It has a low on-chain footprint that remains constant with respect to placement group size.
-
-Our key insight from previous DSNs is that algorithmic data placement is critical for reducing on-chain overhead, but it can also make placement groups more vulnerable.
-In many DSNs, data placement can be viewed as a \emph{stateless} function that, given the current system status, maps data blocks to placement groups without accessing additional on-chain state.
-This closely corresponds to the hash function in Walrus and the DHT protocol in Swarm.
-In DSNs with incentive-driven data placement, the group that including all nodes can be viewed as potential placement groups for all data.
-By implicitly specifying placement groups through rules or network protocols, these DSNs achieve desirable linear, or even constant, on-chain footprint.
-However, placement groups in these DSNs cannot exclude Byzantine nodes.
-In Filecoin and Sia, the explicit on-chain contract isolates the availability of a data block from all Byzantine nodes who do not get contracted.
-In DSNs with algorithmic data placement, Byzantine nodes can always join a placement group as long as they pay the corresponding economic cost.
-As a result, every placement group must tolerate Byzantine nodes from the entire network, and group size must scale with the total number of nodes if a fraction of them are Byzantine.
-
-We also observe that, in previous DSNs, EC can be applied only with \emph{agreed membership}.
-In Filecoin and Sia, the membership is encoded with contracts.
-In Walrus, the membership is explicitly agreed per epoch.
-Agreed membership is costly because all nodes must participate in agreeing on all placement groups, which leads to pitfalls in these DSNs, including large on-chain footprint and limited storage volume and resiliency.
-In other DSNs, nodes in placement groups do not have agreed membership.
-Applying EC in such ``permissionless'' placement groups requires handling their dynamics properly.
-Data placement must assign encoded fragments to a potentially unbounded sequence of nodes that continuously join and leave, while ensuring recoverability over time.
-For example, if data placement allows nodes to choose encoded fragments freely, Byzantine nodes may induce data loss by storing identical fragments.
-
-We identify three data placement challenges that must be addressed to overcome the pitfalls of previous DSNs.
-First, placement groups must be determined statelessly.
-Second, Byzantine nodes must not be able to manipulate the rational nodes in placement groups.
-No matter what Byzantine nodes do, rewards for rational nodes should remain unaffected, so rational nodes are incentivized to remain in their placement groups.
-Finally, the data placement mechanism must employ EC without agreed membership.
-\sys can only achieve the goals if and only if all these challenges are addressed by its data placement mechanism.
-
-\subsection{Verifiable Random Sampling}
+\subsection{Sampling for Globally Defend Byzantine Nodes}
 \label{sec:approach:sample}
 
-In \sys, data blocks are stored by groups of nodes sampled uniformly at random from all nodes via a VRF, inspired by committee formation in Algorand.
-This random sampling approach is algorithmic, similar to data placement in several previous DSNs, but is specifically designed to avoid their pitfalls.
-Compared to incentive-driven data placement, data placement in \sys is strict and enforceable: every selected node in a placement group is expected to store data, and incentives are individually guaranteed rather than pooled and competed.
-Walrus also samples random nodes with a hash function, but our scheme supports dynamic nodes and can employ all nodes in placement groups.
-Swarm randomly samples a neighborhood for each data block with DHT but does not control membership within each neighborhood, whereas \sys eliminates this layer of indirection via VRF.
+In the DSNs with $O(P)$ fault tolerance, every placement group is independently formed and open to all nodes, so it is easy for Byzantine nodes to concentrate on a placement group and compromise it.
+There is no correlation across these placement groups: the DSNs can be considered as unrelated tiny single-data storage networks simply overloading the same nodes, and these unrelated placement groups have to defend the same attacking power again and again.
+In the end, the whole system is only as resilient as individual placement groups, and the resiliency of these DSNs depends on the placement group size.
+If the placement group is not sufficiently large, the system is under-resilient; otherwise, the system is over-defending and suffers undesirable trade-offs.
+
+What if we form placement groups holistically?
+Among previous DSNs, Swarm is the only one to tolerate $O(N)$ Byzantine nodes thanks to its disjoint neighborhoods.
+The disjointedness of the placement groups is the key for them to defend Byzantine nodes \emph{together}: the Byzantine nodes can only reside in one neighborhood at a time.
+Thus, assuming \nicefrac{1}{3} Byzantine nodes overall, it is guaranteed that at most \nicefrac{1}{3} placement groups are compromised no matter how Byzantine nodes distribute in all the groups.
+Unlike in DSNs with $O(P)$ fault tolerance, in Swarm no placement group needs to defend the entire attacking power, so the placement group size does not need to scale with the total number of nodes.
+
+However, sacrificing placement groups is never ideal.
+The redundancy loss by failed placement groups can only be repaired manually (if possible), and it necessitates an extra layer of erasure coding even if Swarm employ erasure coding within neighborhoods (which it doesn't and incurs high storage overhead for replication).
+We wonder: can we go one step further and ensure availability of all placement groups via holistic formation?
+This is not possible with disjoint neighborhoods in Swarm because no placement group can defend Byzantine nodes alone (without growing to undesirable size).
+To summarize, our data placement solution
+\begin{itemize}
+    \item Must be holistic: placement groups are formed correlatedly to defend Byzantine nodes together;
+    \item Must be able to tolerate all Byzantine nodes in single placement groups, that is, there should be sufficent rational nodes in every placement group no matter how Byzantine nodes distribute;
+    \item Must be algorithmic to achieve low on-chain overhead;
+    \item Must employ erasure coding to reduce storage overhead.
+\end{itemize}
+
+Our key insight is to switch our view from the placement groups to the nodes.
+Instead of thinking about what nodes should we assign to the placement groups, we consider what placement groups we assign to the nodes.
+Our key principle is to \emph{isolate} the incentives of \emph{every} node from each other by independently \emph{sampling} placement groups for each node to join.
+This sampling is guarded by a VRF, so its result is pseudorandom and publicly verifiable.
+We call the sampled placement groups to \emph{endorse} the node, and the node is expected to store data for all endorsed placement groups and receive rewards from them.
 
 Now we detail the sampling scheme in \sys.
 Given a data block, every node runs $\VRFGen$ with its secret key and the data hash as the input $x$ and obtains the pseudorandom output $y$.
-The node is then \emph{endorsed} for the placement group if $\nicefrac{y}{Y}<p$, where $p$ is a public target sample rate; endorsed nodes are eligible to store redundancy and receive profit in the placement group.
+The node is then endorsed for the placement group if $\nicefrac{y}{Y}<p$, where $p$ is a public target sample rate; endorsed nodes are eligible to store redundancy and receive profit in the placement group.
 In other words, for a data block with hash $h$, the placement group $\mathcal{P}$ is
 $$\mathcal{P}(h)=\left\{n\in\mathcal{N}\mid\frac{\VRFGen(\sk_n,h)}{Y}<p\right\}$$
 where $\mathcal{N}$ is the set of all nodes and $Y$ is the maximum output of the employed VRF.
-This definition satisfies statelessness: the only consistent state it depends on is the target sample rate $p$, which can be stored on-chain with constant overhead or inferred from blockchain history, analogous to Bitcoin difficulty.
+This is an algorithmic approach: the only consistent state it depends on is the target sample rate $p$, which can be inferred from blockchain history, analogous to Bitcoin difficulty.
 
-Verifiability of placement groups is key to securing incentives for rational nodes.
-When nodes claim rewards from the blockchain, they must submit the pseudorandom output $y$ and its proof $\pi$.
-The smart contract runs lightweight on-chain $\VRFVerify$ to verify whether nodes are endorsed for the data.
-As long as nodes provide valid proofs, they are guaranteed fixed rewards, so rational nodes are incentivized to remain in all endorsed placement groups.
+Our sampling approach is holistic and establishes a global correlation across placement groups: every node is endorsed by a same number of placement groups at expectation, including the Byzantine nodes.
+Even if a Byzantine node strategically chooses its $\sk$ and steers the endorsement, it cannot increase its expected number of endorsements, and this is publicly known to all rational nodes.
+This enables us to allocate incentive per endorsement instead of per placement group, because the total endorsements of Byzantine nodes are probabilistically fixed across all placement groups no matter how they distribute, in another word, all placement groups defend the Byzantine nodes with a shared incentive loss.
+In the end, rational nodes can expect a guaranteed profit from every placement group they are endorsed by, which is completely isolated from the behavior of Byzantine nodes, so they are incentivized to remain in all endorsed placement groups.
+As we later show in \cref{sec:design:analysis}, the sampling approach enables \sys to tolerate $O(N)$ Byzantine nodes.
 
-\paragraph{What about the Byzantine nodes?}
-At first glance, Byzantine nodes may still join placement groups of arbitrary data, making \sys as vulnerable as previous DSNs.
-They would need to generate key pairs whose secret keys $\sk$ make $\VRFGen$ yield sufficiently small $y$ values.
-However, unlike in other DSNs, the rational nodes of a placement group will receive the same incentive even if all Byzantine nodes have joined the group.
-At the same time, by joining one group, Byzantine nodes forgo rewards from many other placement groups.
-We can capture this intuition with the following lemma.
-
-\begin{lemma}
-\label{lem:endorse}
-    For all nodes $n$, given a set of uniformly random data hashes $\mathcal{H}$, the probability variable
-    $$X_n = \left|\left\{h \in \mathcal{H} \mid n \in \mathcal{P}(h)\right\}\right|$$
-    has identical distribution.
-\end{lemma}
-
-This eventually leads to the following informal theorem.
-
-\begin{theorem}
-\label{thm:endorse}
-    The total number of placement groups endorsing Byzantine nodes is always probabilistically identical and proportional to the number of Byzantine nodes, regardless of how they choose their $\sk$ distribution.
-\end{theorem}
-
-We omit the proofs of \cref{lem:endorse} and \cref{thm:endorse}.
-Ultimately, the only way Byzantine nodes can increase their profit, and thus reduce the profit of rational nodes, is to increase the Byzantine fraction itself.
-Under the assumed fault fraction, rational nodes in placement groups cannot be manipulated.
-
-\subsection{Erasure Coding}
+\subsection{Sampling for Erasure Coding}
 \label{sec:approach:ec}
 
-For the last challenge in \cref{sec:approach:challenge}, we reuse the VRF to dispatch random encoded fragments to the endorsed nodes.
-The hash of the proof $\pi$ is interpreted as the fragment index.
-This is paired with a rateless EC scheme that can supply the required infinite sequence of fragments.
-Since the proof hash is uniformly random in a large domain, it is highly likely that every node is assigned to a distinct fragment, and the data can be recovered from the fragments of any $(1+\epsilon)k$ of the nodes.
+In \sys, each placement group contains a dynamic set of nodes that continuously join and leave.
+To ensure recoverability of data over time, we need to assign every encoded fragment to at least one node in the placement group, and the fragment assigned to new nodes must be dynamically determined according to the previous failures.
+Storing the assignment of fragments to nodes on-chain would lead to large on-chain overhead.
+It is infeasible for nodes to coordinate off-chain to decide the assignment because the potentially majority Byzantine nodes can manipulate the assignment to induce data loss.
 
-The last piece of our data placement scheme is proof of storage.
-In other DSNs, the commitment of each encoded fragment resides on-chain for storage audits.
-However, we cannot do the same with an infinite number of possible fragments.
-Therefore, we leverage the $\ECVerify$ algorithm of verifiable rateless EC.
+We propose to also use the sampling approach to assign random encoded fragments to the endorsed nodes.
+The hash of the proof $\pi$ is interpreted as a seed to sample the encoded fragment to store.
+Every node can independently compute the assigned fragment from the proof, and the assignment is pseudorandom and publicly verifiable.
+However, this assignment is not guaranteed to be injective, so multiple nodes may be assigned the same fragment, and some fragments may not be assigned at all.
+We solve this problem by sampling multiple fragments for each node to ensure that every fragment is assigned to at least one node with high probability.
+
+We further optimize the sampling approach for erasure coding by leveraging the rateless property of verifiable rateless EC~\cite{verify-rateless-ec}.
+A rateless EC can generate an infinite number of encoded fragments from the original data block, whose content can be interpreted as the XOR of the sampled encoded fragments (with different sampling distribuions to ensure recoverability).
+This allows us to assign distinct fragments to nodes with high probability by directly interpreting the hash of the proof $\pi$ as fragment index.
+Rateless EC also allows us to recover the original data block from the encoded fragments stored by $k$ nodes and provide superior space efficiency by eliminating the need for sampling multiple fragments for each node.
+Last but not least, the verifiable rateless EC provides a $\ECVerify$ algorithm to validate the integrity of an encoded fragment from the hash of the original data block and the fragment index, which is essential for the smart contract to verify the correct storage of potentially infinite different fragments.
 Only the hash of the original data block needs to be stored on-chain.
 To prove correct storage of an assigned fragment, a node submits the fragment together with its VRF output and proof.
 The smart contract first runs $\VRFVerify$ to validate endorsement, then derives the assigned index from the proof and runs $\ECVerify$ to validate fragment integrity.
