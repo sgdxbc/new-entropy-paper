@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Workspace-relative files/directories to skip while watching.
-DEFAULT_EXCLUDED_PATHS = {"latex.out", ".git"}
+DEFAULT_EXCLUDED_PATHS = {"latex.out", ".git", "paper.pdf"}
 EXCLUDED_PATHS = set(DEFAULT_EXCLUDED_PATHS)
 DEBOUNCE_SECONDS = 0.25
 
