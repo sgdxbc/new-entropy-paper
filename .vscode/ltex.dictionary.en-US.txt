@@ -18,3 +18,4 @@ Rateless
 statelessly
 Algorand
 verifiability
+Chernoff

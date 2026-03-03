@@ -4,13 +4,13 @@
 We propose \sys, a minimal DSN design that instantiates the data placement mechanism introduced in \cref{sec:approach}.
 We assume the existence of a token that is economically favorable to rational nodes.
 For example, storage costs are more than compensated by storage rewards denominated in this token.
+For simplicity, we omit data expiration and removal, and the incentive for data retrieval.
 
 \subsection{On-chain Control Plane}
 
 The smart contract in \sys maintains two on-chain states: the current set of staking nodes and the current set of stored data hashes.
 The former determines the number of nodes, which in turn determines the current sample rate $p$.
-The smart contract accepts three types of transactions: staking transactions for node joining, storing transactions for clients to store data\footnotemark, and proving transactions for nodes to prove storage and claim rewards.
-\footnotetext{For simplicity, we omit data expiration and removal.}
+The smart contract accepts three types of transactions: staking transactions for node joining, storing transactions for clients to store data, and proving transactions for nodes to prove storage and claim rewards.
 
 A staking transaction adds a node to the staking set.
 A storing transaction adds a data hash to the stored-data set.
@@ -30,7 +30,6 @@ The client concludes the store operation after sending a sufficient number of en
 To retrieve a data block, a client sends a gossip message to \sys to discover encoded fragments.
 Nodes that store relevant fragments return them to the client.
 The client validates these fragments in a manner similar to proving transactions and decodes the data block from the validated fragments.
-In this work, we omit retrieval incentives.
 
 \subsection{Node Bootstrapping}
 
@@ -41,8 +40,8 @@ It then encodes the fragment it is assigned, according to the VRF proof hash, an
 
 \subsection{Configure Sample Rate}
 
-The sample rate $p$ is periodically reconfigured based on Byzantine fault rate $f$, maximum simultaneous benign failures in a placement group $f'$, EC recovery threshold $k$, and the number of nodes $N$.
-The parameters $f$, $f'$, and $k$ are preconfigured, and $N$ is derived from the current staking-node state.
+The sample rate $p$ is periodically reconfigured based on Byzantine fault rate $f$, the size distribution of simultaneous benign failures in a placement group $S(x)$, EC recovery threshold $k$, and the number of nodes $N$.
+The parameters $f$, $S(x)$, and $k$ are preconfigured, and $N$ is derived from the current staking-node state.
 The formula for $p$ is shown in \cref{sec:design:analysis}.
 If $p$ decreases because $N$ grows, each node reruns $\VRFGen$ on the data corresponding to stored fragments and discards fragments for which it is no longer endorsed.
 Conversely, if $p$ increases due to the rare case of system shrinkage, each node reruns the bootstrap routine and stores additional fragments.
@@ -51,3 +50,36 @@ This design minimizes the number of transferred encoded fragments during reconfi
 
 \subsection{Data Availability Analysis}
 \label{sec:design:analysis}
+
+Next, we derive the target sample rate $p$ from the system parameters ($f$, $S(x)$, and $k$) and a target (negligible) data loss probability $\varepsilon$.
+We define $S(x)$ as the probability that at least $x$ rational nodes fail simultaneously within one time unit.
+For simplicity, we let $N$ denote the minimum number of bootstrapped nodes during a reconfiguration period.
+This assumption means that, when node failures occur, new nodes can join and complete bootstrapping before subsequent failures reduce the number of bootstrapped nodes below $N$.
+
+For a random data hash, the placement-group definition (\cref{sec:approach:sample}) implies that each of the $(1-f)N$ rational nodes is endorsed independently with probability $p$.
+(Byzantine nodes may deliberately choose $\sk$ to bias their endorsement probability upward or downward.
+Also, their behavior after endorsement is not reliable, we exclude them from this analysis.)
+We define $N_e$ as the target minimum number of endorsed rational nodes in a placement group.
+Under a binomial model and its Chernoff lower-tail bound, the probability that the number of endorsed rational nodes is below $N_e$ is
+$$
+\begin{aligned}
+\varepsilon_1
+&=\Pr[X<N_e]\le\exp\!\left(-\frac{(\mu-N_e)^2}{2\mu}\right),\\
+&X\sim\mathrm{Bin}((1-f)N,p),\ \mu=(1-f)Np
+\end{aligned}
+$$
+Using a conservative target $(1-f)Np=2N_e$, that is, setting $p$ so that the expected number of sampled rational nodes is $2N_e$, we obtain
+$$\varepsilon_1\le e^{-N_e/8}$$
+To simplify the analysis, we do not further characterize availability when $X<N_e$ and conservatively treat this event as failure.
+
+Then, by the EC definition (\cref{sec:approach:ec}), the data block is recoverable from any $k$ of the $N_e$ rational nodes\footnotemark. Therefore, the probability that the data is irrecoverable is
+$$\varepsilon_2=S(N_e-k)$$
+Finally, the data loss probability is bounded by
+$$\varepsilon\leq \varepsilon_1+(1-\varepsilon_1)\varepsilon_2\leq e^{-N_e/8}+S(N_e-k)$$
+and the sample rate should be configured to
+$$p=\frac{2N_e}{(1-f)N}$$
+We can first choose $N_e$ offline to meet a desired $\varepsilon$, and then configure $p$ online from $N_e$ and the other parameters.
+For example, choose $N_e=80$ with a typical parameter set $k=32$ and $S(48)=10^{-5}$, where $S(48)$ means that the probability of 48 rational nodes failing simultaneously is 0.001\% per day.
+The bound above yields $\varepsilon<5.54\times10^{-5}$, corresponding to a mean time to data loss of more than $1.81\times10^4$ days (about 49.0 years).
+With $f=\frac{1}{3}$ and $N=10^5$, the resulting sample rate is $p=2.4\times10^{-3}$ (i.e., 0.24\%).
+\footnotetext{For brevity, the $k$ here corresponds to $(1+\epsilon)k$ in the rateless EC definition.}
