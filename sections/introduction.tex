@@ -9,6 +9,7 @@ These blocks must be archived for future analysis and auditing.
 In addition, blockchain applications store multimedia data for digital assets that have real economic value, so data loss can lead directly to financial loss.
 
 DSNs address the requirement that data must be stored reliably under strict trust assumptions in which no single participant is trusted.
+\lijl{Given that the reviewers might not be familiar with the concept, we should elaborate on the motivation of DSN.}
 Unlike centralized storage systems, where one organization owns and manages the resources, DSNs rely on resources contributed by many permissionless providers and coordinated by distributed protocols such as smart contracts executed on blockchains.
 Providers can join and leave the network at any time.
 DSNs can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
@@ -18,7 +19,7 @@ DSNs are also cost effective because no single provider can monopolize storage r
 As in centrally managed distributed storage, the central task in DSNs is to determine how data are placed across nodes.
 Each data block is stored redundantly on multiple nodes so that individual node failures do not cause data loss.
 For each block, the selected set of storing nodes is the placement group.
-DSNs must determine placement groups consistently over the entire lifetime of each block so that data remain retrievable at any time and storage audits can be executed continuously.
+DSNs must determine placement groups consistently \lijl{``consistently'' here is a bit vague} over the entire lifetime of each block so that data remain retrievable at any time and storage audits \lijl{the concept of auditing has not been introduced} can be executed continuously.
 Placement groups must also be large enough to tolerate correlated failures and Byzantine nodes, which requires replacing failed group members promptly when failures occur.
 Most importantly, DSNs must provide incentives for rational nodes to follow the protocol and store data correctly.
 For example, nodes can be required to provide proofs of retrievability~\cite{por}, which prevents them from claiming storage without actually retaining the data.
@@ -42,13 +43,15 @@ We discuss these DSNs in more detail in \cref{sec:motivation:review}.
 
 In this work, we propose \sys, a DSN design with efficient and scalable data placement strategy.
 \sys uses erasure coding to distribute redundancy across large placement groups while maintaining low redundancy.
-It stores only a global parameter and one data hash per block on-chain to determine placement groups.
+It stores only a global parameter and one data hash per block \lijl{what is a block?} on-chain to determine placement groups.
 % It also assigns new nodes efficiently to the placement groups that require repair.
+\lijl{VRF seems a concrete design option. Can give a higher level design idea first.}
 The core technique in \sys is a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for determining data placement.
 A VRF is a cryptographic primitive that maps an input to a pseudorandom output together with a proof of correctness.
 The output is unpredictable to anyone without the secret key, yet efficiently verifiable by anyone with the corresponding public key.
 Using VRF, \sys determines placement in a manner that adversaries cannot predict or manipulate, without requiring additional consistent on-chain state.
 \sys further employs verifiable rateless erasure coding~\cite{verify-rateless-ec} to achieve storage efficiency without incurring additional on-chain overhead.
+\lijl{Similar to the previous point, should explain the higher level rationale first, before giving the concrete solution.}
 The VRF output determines the encoded symbols assigned to each node in a placement group.
 Rateless erasure coding generates an unbounded stream of encoded symbols from each original block, so symbols assigned by VRF are distinct with high probability.
 These symbols are verifiable using only the data hash and the VRF proof, which enables \sys to audit storage and incentivize nodes accordingly.
