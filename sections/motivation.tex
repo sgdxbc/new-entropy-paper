@@ -1,10 +1,12 @@
 \section{Motivation}
 \label{sec:motivation}
 
+\lijl{This section is too long. Should be at most 2.5 pages for the first two sections.}
 \subsection{DSNs and Their Data Placement}
 
 Decentralized storage networks (DSNs) provide blob storage services backed by resources collectively contributed by permissionless nodes.
 Some nodes are rational and aim to generate profit with their storage supply, while others are Byzantine, behaving arbitrarily and potentially maliciously.
+\lijl{Somewhere, maybe here, clarify what Byzantine nodes can do in this context.}
 DSNs provide reliable storage as long as the share of Byzantine nodes remains below a threshold (e.g., \nicefrac{1}{3}), ensuring stored data can be retrieved.
 They incentivize rational nodes to store and serve data correctly while tolerating the presence of Byzantine nodes.
 
@@ -25,6 +27,7 @@ Compared to traditional storage systems, data placement in DSNs faces additional
 DSNs configured with placement groups of $n$ nodes that can tolerate $k$ simultaneous failures must ensure that no more than $f$ Byzantine nodes are selected so that $f+f'>k$, where at most $f'$ benign simultaneous failures are expected among the $n-f$ rational nodes.
 Otherwise, colluding Byzantine nodes may create simultaneous failures leading to data loss.
 Because the security model forbids reliance on a trusted coordinator, DSNs must use blockchains to reach consensus on placement governance to tolerate Byzantine behavior.
+\lijl{Somewhere in the paper, should discuss storage metadata. DSNs use blockchain to generate and store metadata.}
 Blockchains are notorious for high on-chain state cost and high transaction cost.
 In DSNs, every blockchain node effectively acts as a full storage controller and replicates maintenance effort for all data blocks.
 Keeping on-chain overhead low is crucial for DSNs to scale and manage large data volumes.
