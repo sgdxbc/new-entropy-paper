@@ -20,47 +20,49 @@ A VRF satisfies the following properties:
 \subsection{Sampling for Globally Defend Byzantine Nodes}
 \label{sec:approach:sample}
 
-In the DSNs with $O(P)$ fault tolerance, every placement group is independently formed and open to all nodes, so it is easy for Byzantine nodes to concentrate on a placement group and compromise it.
-There is no correlation across these placement groups: the DSNs can be considered as unrelated tiny single-data storage networks simply overloading the same nodes, and these unrelated placement groups have to defend the same attacking power again and again.
-In the end, the whole system is only as resilient as individual placement groups, and the resiliency of these DSNs depends on the placement group size.
-If the placement group is not sufficiently large, the system is under-resilient; otherwise, the system is over-defending and suffers undesirable trade-offs.
+In DSNs with $O(P)$ fault tolerance, each placement group is formed independently and is open to all nodes, which allows Byzantine nodes to concentrate on a target placement group and compromise it.
+There is no correlation across placement groups: these DSNs can be viewed as many unrelated micro-networks that happen to share the same node pool, and each group must repeatedly defend against the full adversarial power.
+Consequently, overall system resilience is bounded by the resilience of an individual placement group, which is largely determined by placement-group size.
+If the group is too small, the system is under-resilient; if it is too large, the system over-defends and incurs undesirable trade-offs.
 
 What if we form placement groups holistically?
 Among previous DSNs, Swarm is the only one to tolerate $O(N)$ Byzantine nodes thanks to its disjoint neighborhoods.
-The disjointedness of the placement groups is the key for them to defend Byzantine nodes \emph{together}: the Byzantine nodes can only reside in one neighborhood at a time.
-Thus, assuming \nicefrac{1}{3} Byzantine nodes overall, it is guaranteed that at most \nicefrac{1}{3} placement groups are compromised no matter how Byzantine nodes distribute in all the groups.
+The disjoint structure of placement groups is the key to defending against Byzantine nodes \emph{collectively}: a Byzantine node can only reside in one neighborhood at a time.
+Therefore, assuming \nicefrac{1}{3} Byzantine nodes globally, at most \nicefrac{1}{3} of placement groups are compromised regardless of how Byzantine nodes are distributed.
 Unlike in DSNs with $O(P)$ fault tolerance, in Swarm no placement group needs to defend the entire attacking power, so the placement group size does not need to scale with the total number of nodes.
 
 However, sacrificing placement groups is never ideal.
-The redundancy loss by failed placement groups can only be repaired manually (if possible), and it necessitates an extra layer of erasure coding even if Swarm employ erasure coding within neighborhoods (which it doesn't and incurs high storage overhead for replication).
+Redundancy loss caused by failed placement groups can only be repaired manually, if repair is possible at all.
+It also requires an additional erasure-coding layer, even if Swarm were to employ erasure coding within neighborhoods, and Swarm currently does not do so, incurring high replication overhead.
 We wonder: can we go one step further and ensure availability of all placement groups via holistic formation?
-This is not possible with disjoint neighborhoods in Swarm because no placement group can defend Byzantine nodes alone (without growing to undesirable size).
+This is not possible with Swarm's disjoint neighborhoods because no placement group can defend against Byzantine nodes on its own without growing to an impractical size.
 To summarize, our data placement solution
 \begin{itemize}
     \item Must be holistic: placement groups are formed correlatedly to defend Byzantine nodes together;
-    \item Must be able to tolerate all Byzantine nodes in single placement groups, that is, there should be sufficent rational nodes in every placement group no matter how Byzantine nodes distribute;
+    \item Must tolerate all Byzantine nodes within any single placement group, that is, there must be sufficient rational nodes in every placement group regardless of Byzantine-node distribution;
     \item Must be algorithmic to achieve low on-chain overhead;
     \item Must employ erasure coding to reduce storage overhead.
 \end{itemize}
 
 Our key insight is to switch our view from the placement groups to the nodes.
-Instead of thinking about what nodes should we assign to the placement groups, we consider what placement groups we assign to the nodes.
+Instead of asking which nodes should be assigned to each placement group, we ask which placement groups should be assigned to each node.
 Our key principle is to \emph{isolate} the incentives of \emph{every} node from each other by independently \emph{sampling} placement groups for each node to join.
-This sampling is guarded by a VRF, so its result is pseudorandom and publicly verifiable.
-We call the sampled placement groups to \emph{endorse} the node, and the node is expected to store data for all endorsed placement groups and receive rewards from them.
+This sampling is protected by a VRF, making the outcome pseudorandom and publicly verifiable.
+We say that sampled placement groups \emph{endorse} the node, and the node is expected to store data for all endorsed groups and receive rewards from them.
 
 Now we detail the sampling scheme in \sys.
 Given a data block, every node runs $\VRFGen$ with its secret key and the data hash as the input $x$ and obtains the pseudorandom output $y$.
-The node is then endorsed for the placement group if $\nicefrac{y}{Y}<p$, where $p$ is a public target sample rate; endorsed nodes are eligible to store redundancy and receive profit in the placement group.
+The node is endorsed for the placement group if $\nicefrac{y}{Y}<p$, where $p$ is a public target sampling rate; endorsed nodes are eligible to store redundancy and earn rewards in that placement group.
 In other words, for a data block with hash $h$, the placement group $\mathcal{P}$ is
 $$\mathcal{P}(h)=\left\{n\in\mathcal{N}\mid\frac{\VRFGen(\sk_n,h)}{Y}<p\right\}$$
-where $\mathcal{N}$ is the set of all nodes and $Y$ is the maximum output of the employed VRF.
-This is an algorithmic approach: the only consistent state it depends on is the target sample rate $p$, which can be inferred from blockchain history, analogous to Bitcoin difficulty.
+where $\mathcal{N}$ is the set of all nodes and $Y$ is the maximum VRF output.
+This approach is algorithmic: the only consistent state it requires is the target sampling rate $p$, which can be inferred from blockchain history, analogous to Bitcoin difficulty.
 
-Our sampling approach is holistic and establishes a global correlation across placement groups: every node is endorsed by a same number of placement groups at expectation, including the Byzantine nodes.
-Even if a Byzantine node strategically chooses its $\sk$ and steers the endorsement, it cannot increase its expected number of endorsements, and this is publicly known to all rational nodes.
-This enables us to allocate incentive per endorsement instead of per placement group, because the total endorsements of Byzantine nodes are probabilistically fixed across all placement groups no matter how they distribute, in another word, all placement groups defend the Byzantine nodes with a shared incentive loss.
-In the end, rational nodes can expect a guaranteed profit from every placement group they are endorsed by, which is completely isolated from the behavior of Byzantine nodes, so they are incentivized to remain in all endorsed placement groups.
+Our sampling approach is holistic and creates global correlation across placement groups: every node, including Byzantine nodes, is endorsed by the same expected number of groups.
+Even if a Byzantine node strategically chooses its $\sk$ to influence endorsement, it cannot increase its expected number of endorsements, and this fact is publicly observable to rational nodes.
+This property allows us to allocate incentives per endorsement rather than per placement group, because the total number of Byzantine endorsements is probabilistically fixed across all groups regardless of distribution.
+In other words, all placement groups absorb Byzantine influence through a shared incentive loss.
+As a result, rational nodes can expect guaranteed profit from each placement group that endorses them, independently of Byzantine behavior, and are therefore incentivized to remain in all endorsed groups.
 As we later show in \cref{sec:design:analysis}, the sampling approach enables \sys to tolerate $O(N)$ Byzantine nodes.
 
 \subsection{Sampling for Erasure Coding}
@@ -69,18 +71,19 @@ As we later show in \cref{sec:design:analysis}, the sampling approach enables \s
 In \sys, each placement group contains a dynamic set of nodes that continuously join and leave.
 To ensure recoverability of data over time, we need to assign every encoded fragment to at least one node in the placement group, and the fragment assigned to new nodes must be dynamically determined according to the previous failures.
 Storing the assignment of fragments to nodes on-chain would lead to large on-chain overhead.
-It is infeasible for nodes to coordinate off-chain to decide the assignment because the potentially majority Byzantine nodes can manipulate the assignment to induce data loss.
+It is infeasible for nodes to coordinate this assignment off-chain, because a Byzantine majority could manipulate the assignment to induce data loss.
 
 We propose to also use the sampling approach to assign random encoded fragments to the endorsed nodes.
-The hash of the proof $\pi$ is interpreted as a seed to sample the encoded fragment to store.
-Every node can independently compute the assigned fragment from the proof, and the assignment is pseudorandom and publicly verifiable.
+The hash of proof $\pi$ is interpreted as a seed for sampling the encoded fragment to store.
+Every node can independently compute its assigned fragment from the proof, and the assignment is pseudorandom and publicly verifiable.
 However, this assignment is not guaranteed to be injective, so multiple nodes may be assigned the same fragment, and some fragments may not be assigned at all.
 We solve this problem by sampling multiple fragments for each node to ensure that every fragment is assigned to at least one node with high probability.
 
 We further optimize the sampling approach for erasure coding by leveraging the rateless property of verifiable rateless EC~\cite{verify-rateless-ec}.
-A rateless EC can generate an infinite number of encoded fragments from the original data block, whose content can be interpreted as the XOR of the sampled encoded fragments (with different sampling distribuions to ensure recoverability).
+A rateless EC can generate an unbounded number of encoded fragments from the original data block, whose content can be interpreted as the XOR of sampled encoded fragments, using different sampling distributions to ensure recoverability.
 This allows us to assign distinct fragments to nodes with high probability by directly interpreting the hash of the proof $\pi$ as fragment index.
-Rateless EC also allows us to recover the original data block from the encoded fragments stored by $k$ nodes and provide superior space efficiency by eliminating the need for sampling multiple fragments for each node.
+Rateless EC also allows recovery of the original data block from the encoded fragments stored by $k$ nodes, and it improves space efficiency by eliminating the need to sample multiple fragments per node.
+
 Last but not least, the verifiable rateless EC provides a $\ECVerify$ algorithm to validate the integrity of an encoded fragment from the hash of the original data block and the fragment index, which is essential for the smart contract to verify the correct storage of potentially infinite different fragments.
 Only the hash of the original data block needs to be stored on-chain.
 To prove correct storage of an assigned fragment, a node submits the fragment together with its VRF output and proof.
