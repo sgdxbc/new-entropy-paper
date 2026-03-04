@@ -11,8 +11,18 @@
 \begin{figure}
     \centering
     \includegraphics[width=0.95\columnwidth]{figures/faulty-lost}
-    \caption{Lost data portion under different fractions of Byzantine nodes.}
+    \caption{Fraction of data lost under different Byzantine-node fractions.}
     \label{fig:faulty-lost}
 \end{figure}
 
-\xxx{\cref{fig:time-alive,fig:faulty-lost}}
+We present preliminary simulation results for \sys.
+Our simulation uses $N=100$K nodes, a benign failure rate of $f'=\XXX$, and a 10-year time horizon.
+\sys is configured with code parameter $k=32$ and varying target endorsement counts $N_e$.
+In \cref{fig:time-alive}, we track a single data block and plot the number of its encoded fragments stored by rational nodes over time under a Byzantine fraction of \XXX.
+\sys preserves more than 32 fragments throughout the simulation when $N_e=80$.
+Increasing $N_e$ to 100 provides additional safety margin without significant storage overhead, with redundancy remaining near $2\times$.
+
+In a second simulation, we store 100 data blocks for 10 years under different Byzantine fractions and report the final data-loss rate in \cref{fig:faulty-lost}.
+\sys tolerates more than 30\% Byzantine nodes when $N_e=80$, and this tolerance increases to around 50\% when $N_e=120$.
+We also compare \sys with a 3-way replication baseline that incurs redundancy similar to \sys with $N_e=120$.
+The replication baseline loses all data with fewer than 5\% Byzantine nodes, indicating that it does not tolerate Byzantine populations that scale with total network size.
