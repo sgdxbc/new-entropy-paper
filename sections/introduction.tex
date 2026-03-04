@@ -51,7 +51,7 @@ The more Byzantine nodes in a placement group, the less rational nodes reside in
 
 \sgd{Reworked.}
 For many DSNs, the only way to defend against the Byzantine nodes clustering in single placement group is to enlarge its placement groups to outnumber the Byzantine nodes.
-To tolerate a fraction (e.g., \nicefrac{1}{3}) of Byzantine nodes commonly found in permissionless systems, such large placement groups lead to impractical on-chain footprint or limited total storage volume. We will review the limitation of prior DSNs in \cref{sec:motivation:review}.
+To tolerate a fraction (e.g., \nicefrac{1}{3}) of Byzantine nodes commonly found in permissionless systems, such large placement groups lead to impractical on-chain footprint or limited total storage volume. We review the limitations of prior DSNs in \cref{sec:motivation:review}.
 In the end, no prior DSNs can achieve scalable storage volume and on-chain footprint while tolerating a fraction of Byzantine nodes.
 
 \iffalse
@@ -73,6 +73,25 @@ In summary, existing DSNs do not simultaneously achieve storage efficiency and s
 We discuss these DSNs in more detail in \cref{sec:motivation:review}.
 \fi
 
+\sgd{Reworked.}
+We identify the crux of data placement solution efficiently tolerating Byzantine nodes in DSNs.
+The Byzantine nodes, unique to the permissionless decentralized storage, strategically move around placement groups to attack data placement.
+Many DSNs defend these adversarial power individually from each placement group, the same as how they (and the centrally managed storage) defend benign failures, which results in excessive repeated efforts which subsequently lead to various undesirable trade-offs.
+Instead, the data placement solution must be aware of the fact that it is always the \emph{same} set of Byzantine nodes attacking the system, with their limited attacking power that can only target limited number of placement groups at a time.
+The DSN can take advantage from this insight by holistically determine all placement groups that collectively defend the Byzantine nodes in the network.
+
+Following this idea, we design \sys, a DSN whose nodes are randomly sampled into every placement group\footnotemark.
+\footnotetext{The name \sys is to reflect this randomization-based design.}
+\sys employs verifiable random function (VRF)~\cite{vrf,vrf-rfc} to enable publicly verifiable sampling, which we call endorsement, and restrict the expected number of placement groups that endorse a node.
+Even though it is still possible for the Byzantine nodes of \sys to arbitrarily choose their sampled placement groups and e.g., cluster in single placement group, the total number of endorsing all Byzantine nodes by all placement groups is controlled by the VRF and remain probabilistically constant.
+Exploiting this fact, \sys allocates incentive per endorsement rather than per placement group.
+For the victim placement groups clustered by Byzantine nodes, the groups receive more reward, and the rewards received by the rational nodes endorsed by the groups are not affected by the Byzantine nodes in their groups, so they are incentivized to stay in the groups.
+Thus, the effective placement groups are stable no matter how Byzantine nodes distribute in the placement groups, allowing us to analysis data availability similar to centrally managed storage in \cref{sec:design:analysis}.
+\sys employs erasure coding to ensure scalable storage volume.
+We employ random sampling again to address the challenge of encoded fragment assignment in highly dynamic placement groups with nodes continuously joining and leaving.
+We adopt verifiable rateless erasure coding~\cite{verify-rateless-ec} to further optimize for space efficiency and enable verifiable storage.
+
+\iffalse
 In this work, we propose \sys, a DSN design with efficient and scalable data placement strategy.
 \sys uses erasure coding to distribute redundancy across large placement groups while maintaining low redundancy.
 It stores only a global parameter and one data hash per block \lijl{what is a block?} on-chain to determine placement groups.
@@ -90,6 +109,9 @@ These symbols are verifiable using only the data hash and the VRF proof, which e
 
 We present the complete design of \sys around this novel data placement strategy, including the network protocols for storing and retrieving data, auditing storage, and repairing lost redundancy.
 The repairing in \sys only happens when new nodes joining the network and in the rare case of a shrinking network, so it is efficient and does not involve heavyweight on-chain maintenance routines.
+\fi
 
-We have simulated \sys and get preliminary results.
-\xxx{Evaluation stuff.}
+In \cref{sec:design}, we present the full design of \sys around its sampling-based data placement solution.
+Then we show preliminary simulation results of \sys in \cref{sec:eval}.
+\sys is able to persist sufficient encoded fragments for recovery during a 10-year simulation while incurring only around $2\times$ redundancy.
+We also show that the Byzantine resiliency of \sys increases with more redundancy and is significantly higher than replication baseline.
