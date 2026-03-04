@@ -5,11 +5,11 @@
 \subsection{DSNs and Their Data Placement}
 
 Decentralized storage networks (DSNs) provide blob storage services backed by resources collectively contributed by permissionless nodes.
-Some nodes are rational and aim to generate profit with their storage supply, while others are Byzantine, behaving arbitrarily and potentially maliciously.
+Some nodes are rational and aim to generate profit with their storage supply, while others are Byzantine, behaving arbitrarily and potentially maliciously~\cite{bar}.
 \lijl{Somewhere, maybe here, clarify what Byzantine nodes can do in this context.} \sgd{Done.}
-In this work, we focus on DSN data placement: which nodes should store redundant fragments for each data block, and what form that redundancy should take.
+In this work, we focus on DSN data placement: which nodes should store redundant fragments for each data block, and what form that redundancy (i.e., replication or erasure coding~\cite{rs-code}) should take.
 
-Byzantine nodes can attack DSNs by exploiting their data placement policies.
+Byzantine nodes can attack DSNs by exploiting their data placement policies~\cite{ipfs-attack,bittorrent-attack}.
 Even when a data block appears to be securely replicated, it can become irrecoverable if too few nodes in its placement group are rational and Byzantine nodes deliberately fail as soon as they observe sufficiently many simultaneous failures of rational nodes.
 In practice, a placement group can tolerate failures only through its \emph{effective} portion, namely, its rational members.
 Moreover, Byzantine nodes may strategically join specific groups to reduce their effective reliability.
@@ -65,13 +65,17 @@ In summary, we seek DSN data placement solutions that satisfy the following goal
 \begin{minipage}{\columnwidth}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X c c c}
 \toprule
-Solution            & Volume                             & \shortstack{On-chain\\Footprint} & \shortstack{Number of\\Faulty Nodes} \\
+Solution    & Volume                             & \shortstack{On-chain\\Footprint} & \shortstack{Fault\\Tolerance} \\
 \midrule
-On-chain            & \ProsCell $O(N\cdot S)$            & \ConsCell $O(D\cdot P)$   & \ConsCell $O(P)$          \\
-Incentive-driven    & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
-Static              & \ConsCell $O(S)$                   & \ProsCell $O(D)$          & \ConsCell $O(1)$          \\
-Neighborhood        & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ProsCell $O(N)$          \\
-\sys                & \ProsCell $O(N\cdot S)$            & \ProsCell $O(D)$          & \ProsCell $O(N)$          \\
+On-chain~\cite{filecoin,sia,shelby}
+            & \ProsCell $O(N\cdot S)$            & \ConsCell $O(D\cdot P)$   & \ConsCell $O(P)$          \\
+Full~\cite{arweave,permacoin,retricoin}
+            & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ConsCell $O(P)$          \\
+Permissioned~\cite{walrus,bft-dsn}
+            & \ConsCell $O(S)$                   & \ProsCell $O(D)$          & \ConsCell $O(1)$          \\
+Neighborhood~\cite{swarm}
+            & \ConsCell $O(\frac{N}{P}\cdot S)$  & \ProsCell $O(1)$          & \ProsCell $O(N)$          \\
+\sys        & \ProsCell $O(N\cdot S)$            & \ProsCell $O(D)$          & \ProsCell $O(N)$          \\
 \bottomrule
 \end{tabularx}
 \end{minipage}
@@ -87,29 +91,29 @@ We summarize previous DSNs in \cref{tab:dsn}, comparing them along three dimensi
 Higher storage volume and fault tolerance are preferable, while lower on-chain footprint is desirable.
 Next, we explain how their limitations relate to their data placement solutions.
 
-Filecoin and Sia achieve scalable storage volume but must trade off between on-chain footprint and fault tolerance.
+Filecoin~\cite{filecoin}, Sia~\cite{sia} and Shelby~\cite{shelby} achieve scalable storage volume but must trade off between on-chain footprint and fault tolerance.
 Their on-chain footprints grow with placement-group size because placement metadata is explicitly recorded as storage contracts.
 In practice, they must bound on-chain overhead by using small groups, typically fewer than 10 in Filecoin and 30 by default in Sia.
 These group sizes are fixed and do not scale with the network.
 As a result, a fraction of Byzantine nodes can dominate individual groups, for example, by offering storage prices that rational nodes cannot sustainably match.
 Conversely, tolerating a global Byzantine fraction would require groups that scale with network size, which would make on-chain overhead infeasible.
 
-Permacoin, Retricoin, and Arweave achieve constant on-chain footprint, but they trade off storage volume against fault tolerance.
+Permacoin~\cite{permacoin}, Retricoin~\cite{retricoin}, and Arweave~\cite{arweave} achieve constant on-chain footprint, but they trade off storage volume against fault tolerance.
 These DSNs do not enforce mandatory placement, that is, no node is required to store specific data, and instead rely on incentives to balance block redundancy.
 Because these placement groups are unorganized, they cannot effectively support erasure coding and therefore must rely on replication, with redundancy increasing as group size grows.
 If groups do not scale with Byzantine participation, they cannot consistently outnumber Byzantine nodes, which can then cluster within and monopolize specific groups.
 If groups do scale with network size, storage volume becomes non-scalable and is constrained by the storage supply of individual nodes.
-This is exactly what happens in Arweave, where 350 TiB of data is stored by only around 100 nodes.
+This is exactly what happens in Arweave, where 350 TiB of data is stored by only around 100 nodes\footnote{\url{https://viewblock.io/arweave}}.
 
-Walrus adopts a data placement approach that more closely resembles traditional storage systems.
+Walrus~\cite{walrus} adopts a data placement approach that more closely resembles traditional storage systems~\cite{ceph}.
 In Walrus, the top 1000 nodes (according to their staking) are selected as the committee to store all data for each epoch (of two weeks).
 It uses algorithmic placement to map each data block to a subset of committee nodes via a hash function, which yields a scalable on-chain footprint.
 However, its storage volume is not scalable, and it is vulnerable to a fraction of Byzantine nodes compromising the committee at sufficient system scale.
 
-Swarm achieves both scalable on-chain footprint and Byzantine tolerance, but falls short in storage volume.
+Swarm~\cite{swarm} achieves both scalable on-chain footprint and Byzantine tolerance, but falls short in storage volume.
 Swarm divides nodes into disjoint neighborhoods.
 The nodes in the same neighborhoods replicate the same set of data and share rewards, so nodes are incentivized to shift to less-populated neighborhoods and automatically repair redundancy for their data.
-Each data block is routed to a random neighborhood for storage with the help of a distributed hash table (DHT), an algorithmic approach that enables constant on-chain overhead.
+Each data block is routed to a random neighborhood for storage with the help of a distributed hash table (DHT)~\cite{chord,kademlia}, an algorithmic approach that enables constant on-chain overhead.
 On the other hand, replication within neighborhoods incurs non-scalable storage volume.
 The neighborhood size is limited by practical redundancy level, leading to small neighborhoods vulnerable to Byzantine nodes.
 Swarm further employs a cross-neighborhood erasure-coding layer.

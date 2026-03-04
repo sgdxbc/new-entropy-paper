@@ -1,21 +1,21 @@
 \section{Introduction}
 \label{sec:intro}
 
-Decentralized storage networks (DSNs) are emerging as a reliable and cost-effective approach to long-term blockchain data storage.
+Decentralized storage networks (DSNs)~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn,swarm} are emerging as a reliable and cost-effective approach to long-term blockchain data storage.
 \xxx{Replace the following with real world examples.}
 Blockchain ecosystems generate large volumes of data.
 Consensus protocols produce blocks of historical transactions at high rates.
 These blocks must be archived for future analysis and auditing.
 In addition, blockchain applications store multimedia data for digital assets with real economic value, so data loss can directly cause financial loss.
 
-DSNs address the need for reliable storage under strict trust assumptions in which no single participant is trusted.
+DSNs address the need for reliable storage under strict trust assumptions in which no single participant is trusted~\cite{bar}.
 \lijl{Given that the reviewers might not be familiar with the concept, we should elaborate on the motivation of DSN.}\sgd{Done.}
 Whereas centralized storage systems focus on tolerating failures of resources operated by a single organization, DSNs assume that organizations themselves may be untrusted and must also tolerate organization-level failures, such as service shutdowns or censorship of stored data.
 Consequently, DSNs rely on resources contributed by many permissionless providers and coordinated by distributed protocols such as smart contracts executed on blockchains.
 Providers can join and leave the network at any time.
 DSNs can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
 As a result, users need not trust any single provider for availability while retaining confidence that their data remain reliably stored.
-DSNs are also cost effective because no single provider can monopolize storage resources.
+DSNs are also cost-effective because no single provider can monopolize storage resources.
 
 As in centrally managed distributed storage, the central task in DSNs is to determine how data are placed across nodes.
 Each data block is stored redundantly on multiple nodes so that individual node failures do not cause data loss.
@@ -33,9 +33,9 @@ For example, nodes can be required to provide proofs of retrievability~\cite{por
 \sgd{Reworked.}
 Data placement in DSNs is particularly challenging because of Byzantine nodes.
 Byzantine nodes may behave arbitrarily and are potentially malicious.
-Adversaries may attempt to induce data loss and can ignore the economic incentives that motivate rational nodes to follow protocol.
+Adversaries may attempt to induce data loss and can ignore the economic incentives that motivate rational nodes to follow protocol~\cite{bar}.
 In the context of placement, Byzantine nodes are especially dangerous because they can create correlated failures.
-Byzantine nodes within the same placement group can collude and discard their stored redundancy simultaneously.
+Byzantine nodes within the same placement group can collude and discard their stored redundancy simultaneously~\cite{ipfs-attack,bittorrent-attack}.
 As a result, placement groups may experience larger simultaneous failures than expected under independent failures, because Byzantine nodes can deliberately amplify the failure scale.
 A placement group designed to tolerate $m$ simultaneous failures can fail when just more than $m-f$ non-Byzantine failures occur if the group contains $f$ Byzantine nodes.
 Although prior DSN designs have focused mainly on enforcing correct storage by rational nodes and efficiently detecting storage failures~\cite{por}, they largely overlook attacks on data placement, in which no visible failure occurs before data are already lost.
@@ -50,8 +50,8 @@ Many DSNs incentivize uniform placement-group sizes to balance redundancy.
 As the number of Byzantine nodes in a group increases, the number of rational nodes decreases, and the group eventually becomes vulnerable.
 
 \sgd{Reworked.}
-For many DSNs, the only defense against Byzantine clustering in a single placement group is to enlarge groups so that rational nodes outnumber Byzantine nodes.
-To tolerate a Byzantine fraction commonly assumed in permissionless systems (e.g., \nicefrac{1}{3}), such large groups impose impractical on-chain footprint or constrain total storage volume.
+For many DSNs~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave}, the only defense against Byzantine clustering in a single placement group is to enlarge groups so that rational nodes outnumber Byzantine nodes.
+To tolerate a Byzantine fraction commonly assumed in permissionless systems (e.g., \nicefrac{1}{3})~\cite{bar}, such large groups impose impractical on-chain footprint or constrain total storage volume.
 We review limitations of prior DSNs in \cref{sec:motivation:review}.
 In summary, prior DSNs do not simultaneously achieve scalable storage volume, low on-chain footprint, and tolerance to a constant Byzantine fraction.
 

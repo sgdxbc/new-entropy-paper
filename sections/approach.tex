@@ -4,7 +4,7 @@
 \subsection{Preliminary}
 \label{sec:approach:preliminary}
 
-\paragraph{Verifiable random function (VRF)\@.}
+\paragraph{Verifiable random function (VRF)~\cite{vrf,vrf-rfc}.}
 A VRF provides two algorithms, $\VRFGen$ and $\VRFVerify$.
 $\VRFGen$ takes a secret key $\sk$ and an input $x$, and outputs a pseudorandom value $y$ and a proof $\pi$.
 $\VRFVerify$ takes a public key $\pk$, an input $x$, a value $y$, and a proof $\pi$, and outputs a boolean indicating whether $y$ is the correct VRF output for $x$ under $\pk$.
@@ -50,7 +50,7 @@ Our key principle is to \emph{isolate} the incentives of \emph{every} node from 
 This sampling is protected by a VRF, making the outcome pseudorandom and publicly verifiable.
 We say that sampled placement groups \emph{endorse} the node, and the node is expected to store data for all endorsed groups and receive rewards from them.
 
-Now we detail the sampling scheme in \sys.
+Now we detail the sampling scheme in \sys, inspired by Algorand~\cite{algorand}.
 Given a data block, every node runs $\VRFGen$ with its secret key and the data hash as the input $x$ and obtains the pseudorandom output $y$.
 The node is endorsed for the placement group if $\nicefrac{y}{Y}<p$, where $p$ is a public target sampling rate; endorsed nodes are eligible to store redundancy and earn rewards in that placement group.
 In other words, for a data block with hash $h$, the placement group $\mathcal{P}$ is
