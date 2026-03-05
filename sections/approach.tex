@@ -76,11 +76,18 @@ Thus, sampling-based data placement can achieve both strong resiliency and scala
 \subsection{Sampling for Erasure Coding}
 \label{sec:approach:ec}
 
-In \sys, each placement group contains a dynamic set of nodes that continuously join and leave.
-To ensure recoverability of data over time, we need to assign every encoded fragment \lijl{We haven't discussed encoding yet.} to at least one node in the placement group, and the fragment assigned to new nodes must be dynamically determined according to the previous failures.
-Storing the assignment of fragments to nodes on-chain would lead to large on-chain overhead.
+Now we examine the last goal of \sys{}: achieve scalable storage volume that increases with the total storage supply and is independent to the placement group size.
+This requires us to employ erasure coding (EC)~\cite{rs-code} in placement groups to bound redundancy level regardless of placement group size.
+In prior DSNs which employ EC~\cite{filecoin,sia,shelby,walrus}, the assignment of encoded fragments is recorded on-chain.
+The data blocks are encoded into fixed number of fragments and their commitments and assigned nodes are stored with on-chain state.
+The endorsed nodes then store the assigned fragments and prove their storage against on-chain commitments.
+Storing the assignment of fragments to nodes on-chain would lead to large on-chain overhead~\cite{filecoin,sia,shelby} or fixed membership~\cite{walrus}, so we demand an algorithmic approach in \sys.
+
+Algorithmically assign fragments for dynamic placement groups in \sys is challenging.
+To ensure recoverability of data over time, we must always assign every endorsed node distinct encoded fragments \lijl{We haven't discussed encoding yet.} \sgd{Discussed}, so that any combination of $k$ rational nodes can recover the data blocks, where $k$ is the repair threshold of employed EC scheme.
+Since the nodes fail randomly in nondeterministic order, the fragment assigned to new nodes must be dynamically determined according to the previous failures.
 It is infeasible for nodes to coordinate this assignment off-chain, because a Byzantine majority could manipulate the assignment to induce data loss.
-\lijl{We should define the problem and the desired properties clearly. Data is encoded into some fragments (fixed number?). Each endorsed node stores some fragments. Need to ensure the number of unique fragments on non-faulty nodes to exceed a certain number, without storing extra metadata on-chain.}
+\lijl{We should define the problem and the desired properties clearly. Data is encoded into some fragments (fixed number?). Each endorsed node stores some fragments. Need to ensure the number of unique fragments on non-faulty nodes to exceed a certain number, without storing extra metadata on-chain.} \sgd{Clarified.}
 
 We propose to also use the sampling approach to assign random encoded fragments to the endorsed nodes.
 The hash of proof $\pi$ is interpreted as a seed for sampling the encoded fragment to store.
@@ -88,15 +95,14 @@ Every node can independently compute its assigned fragment from the proof, and t
 However, this assignment is not guaranteed to be injective, so multiple nodes may be assigned the same fragment, and some fragments may not be assigned at all.
 We solve this problem by sampling multiple fragments for each node to ensure that every fragment is assigned to at least one node with high probability.
 
-We further optimize the sampling approach for erasure coding by leveraging the rateless property of verifiable rateless EC~\cite{verify-rateless-ec}.
-\lijl{Should first explain what we are optimizing by using rateless code.}
+We further optimize space efficiency of the sampling approach for EC by leveraging the rateless property of verifiable rateless EC~\cite{verify-rateless-ec}.
+\lijl{Should first explain what we are optimizing by using rateless code.} \sgd{Done.}
 A rateless EC can generate an unbounded number of encoded fragments from the original data block, whose content can be interpreted as the XOR of sampled encoded fragments, using different sampling distributions to ensure recoverability.
-This allows us to assign distinct fragments to nodes with high probability by directly interpreting the hash of the proof $\pi$ as fragment index.
-Rateless EC also allows recovery of the original data block from the encoded fragments stored by $k$ nodes, and it improves space efficiency by eliminating the need to sample multiple fragments per node.
+This allows us to assign single distinct fragments to nodes with high probability by directly interpreting the hash of the proof $\pi$ as fragment index, thus eliminating the need to sample multiple fragments per node and reduce space overhead.
 
-Last but not least, the verifiable rateless EC provides a $\ECVerify$ algorithm to validate the integrity of an encoded fragment from the hash of the original data block and the fragment index, which is essential for the smart contract to verify the correct storage of potentially infinite different fragments.
-\lijl{Is this only a challenge for rateless EC? Or also for other coding scheme if being used in our context?}
-Only the hash of the original data block needs to be stored on-chain.
+\lijl{Is this only a challenge for rateless EC? Or also for other coding scheme if being used in our context?} \sgd{Done.}
+However, the rateless property also means there are infinite different fragments potentially stored by the endorsed nodes, whose storage cannot be proved with on-chain commitment since that would lead to infinite commitments to persist.
+The verifiable rateless EC provides a $\ECVerify$ algorithm to validate the integrity of an encoded fragment from the hash of the original data block and the fragment index, enabling the smart contract to only store the hash of the original data blocks on-chain and verify storage of all possible fragments with it~\cite{verify-rateless-ec}.
 To prove correct storage of an assigned fragment, a node submits the fragment together with its VRF output and proof.
 The smart contract first runs $\VRFVerify$ to validate endorsement, then derives the assigned index from the proof and runs $\ECVerify$ to validate fragment integrity.
 The node will be rewarded if both checks are passed.
