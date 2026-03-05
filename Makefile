@@ -1,7 +1,7 @@
 .PHONY: FORCE
 
 paper.pdf: FORCE
-	./bin/latexrun paper.tex
+	./bin/latexrun -W no-balance paper.tex
 
 .PHONY: clean
 clean:
