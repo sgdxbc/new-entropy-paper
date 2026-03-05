@@ -6,6 +6,8 @@
 
 Decentralized storage networks (DSNs) provide blob storage services backed by resources collectively contributed by permissionless nodes.
 Some nodes are rational and aim to generate profit with their storage supply, while others are Byzantine, behaving arbitrarily and potentially maliciously~\cite{bar}.
+For simplicity, we assume nodes with uniform storage supply.
+\sys can support heterogeneous nodes via virtual nodes~\cite{chord}, in which case tolerating a fraction of Byzantine nodes means tolerating a fraction of storage resources controlled by Byzantine identities.
 \lijl{Somewhere, maybe here, clarify what Byzantine nodes can do in this context.} \sgd{Done.}
 In this work, we focus on DSN data placement: which nodes should store redundant fragments for each data block, and what form that redundancy (i.e., replication or erasure coding~\cite{rs-code}) should take.
 
@@ -119,7 +121,7 @@ The neighborhood size is limited by practical redundancy level, leading to small
 Swarm further employs a cross-neighborhood erasure-coding layer.
 Each data block is erasure-coded and redundantly stored in multiple neighborhoods.
 Even if a fraction of neighborhoods is compromised by $O(N)$ Byzantine nodes, the remaining encoded fragments can still recover the original data block.
-We discuss Swarm's shortcomings and the insights they provide in \cref{sec:approach:sample}.
+The downside is that Swarm cannot automate repairing redundancy loss from failed neighborhoods and the extra redundancy brought by the erasure-coded layer.
 
 \iffalse
 \paragraph{Explicit on-chain placement.}
