@@ -18,9 +18,9 @@
 \end{figure}
 
 We present preliminary simulation results for \sys.
-Our simulation uses $N=100$K nodes, a benign failure rate of $f'=\XXX$, and a 10-year time horizon.
+Our simulation uses $N=100$K nodes, a benign failure rate of $f'=4$ per year, i.e., the number of benign failures in a year is expected to be $4\times$ the number of rational nodes, and a 10-year time horizon.
 \sys is configured with code parameter $k=32$ and varying target endorsement counts $N_e$.
-In \cref{fig:time-alive}, we track a single data block and plot the number of its encoded fragments stored by rational nodes over time under a Byzantine fraction of \XXX.
+In \cref{fig:time-alive}, we track a single data block and plot the number of its encoded fragments stored by rational nodes over time under a Byzantine fraction of \nicefrac{1}{3}.
 \sys preserves more than 32 fragments throughout the simulation when $N_e=80$.
 Increasing $N_e$ to 100 provides additional safety margin without significant storage overhead, with redundancy remaining near $2\times$.
 
