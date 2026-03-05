@@ -20,98 +20,33 @@ DSNs are also cost-effective because no single provider can monopolize storage r
 As in centrally managed distributed storage, the central task in DSNs is to determine how data are placed across nodes.
 Each data block is stored redundantly on multiple nodes so that individual node failures do not cause data loss.
 For each block, the selected set of storing nodes is the placement group.
-\sgd{Reworked the rest of this paragraph.}
-This placement metadata must be preserved reliably throughout the lifetime of each block to support retrieval and repair.
-In some DSNs, smart contracts act similarly to metadata servers in centrally managed storage by maintaining placement state on chain, whereas other DSNs use algorithmic placement and determine placement groups through deterministic algorithms or network protocols.
-\iffalse
-DSNs must determine placement groups consistently \lijl{``consistently'' here is a bit vague} over the entire lifetime of each block so that data remain retrievable at any time and storage audits \lijl{the concept of auditing has not been introduced} can be executed continuously.
-Placement groups must also be large enough to tolerate correlated failures and Byzantine nodes, which requires replacing failed group members promptly when failures occur.
-Most importantly, DSNs must provide incentives for rational nodes to follow the protocol and store data correctly.
-For example, nodes can be required to provide proofs of retrievability~\cite{por}, which prevents them from claiming storage without actually retaining the data.
-\fi
+\sgd{Reworked the rest of this section from here.}
+This placement metadata must remain reliable throughout each block's lifetime to support retrieval and repair.
+Some DSNs maintain placement state on chain through smart contracts, whereas others derive placement groups algorithmically through deterministic rules or protocols.
+However, placement is particularly challenging under Byzantine behavior: malicious nodes can ignore incentives~\cite{bar}, collude within a placement group, and discard redundancy simultaneously~\cite{ipfs-attack,bittorrent-attack}, creating correlated failures that violate independent-failure assumptions.
+% Consequently, a placement group designed to tolerate $m$ simultaneous failures can still fail after just more than $m-f$ additional non-Byzantine failures when the group contains $f$ Byzantine nodes.
+% Among placement groups of equal size, those with fewer rational nodes and more Byzantine nodes are less robust.
+We define the \emph{effective placement group} of a data block as the subset of rational nodes in its DSN-determined placement group; data remain available only when this effective group is large enough to tolerate simultaneous failures.
+In this sense, the effective placement group is the DSN counterpart of the placement group in centrally managed storage.
+Yet DSNs cannot directly identify Byzantine nodes and therefore cannot directly measure effective group size, while Byzantine nodes can move across and cluster within selected placement groups, making nominally uniform group sizes increasingly vulnerable.
+Although prior DSN designs focus on enforcing correct storage by rational nodes and efficiently detecting storage failures~\cite{por}, they largely overlook placement attacks, where data may be lost before any visible failure signal appears.
 
-\sgd{Reworked.}
-Data placement in DSNs is particularly challenging because of Byzantine nodes.
-Byzantine nodes may behave arbitrarily and are potentially malicious.
-Adversaries may attempt to induce data loss and can ignore the economic incentives that motivate rational nodes to follow protocol~\cite{bar}.
-In the context of placement, Byzantine nodes are especially dangerous because they can create correlated failures.
-Byzantine nodes within the same placement group can collude and discard their stored redundancy simultaneously~\cite{ipfs-attack,bittorrent-attack}.
-As a result, placement groups may experience larger simultaneous failures than expected under independent failures, because Byzantine nodes can deliberately amplify the failure scale.
-A placement group designed to tolerate $m$ simultaneous failures can fail when just more than $m-f$ non-Byzantine failures occur if the group contains $f$ Byzantine nodes.
-Although prior DSN designs have focused mainly on enforcing correct storage by rational nodes and efficiently detecting storage failures~\cite{por}, they largely overlook attacks on data placement, in which no visible failure occurs before data are already lost.
-
-\sgd{Reworked.}
-Among placement groups of equal size, groups with fewer rational nodes and more Byzantine nodes are less effective at tolerating failures.
-We define the \emph{effective placement group} of a data block as the subset of rational nodes within its DSN-determined placement group.
-Data remain available only when this effective placement group is large enough to tolerate simultaneous failures; therefore, in DSNs, the effective placement group is conceptually closer to the placement group in centrally managed storage than the nominal placement group itself.
-Unfortunately, DSNs cannot identify Byzantine nodes within placement groups and thus cannot determine effective group size directly.
-Moreover, Byzantine nodes can strategically choose which placement groups to join and cluster in selected targets.
-Many DSNs incentivize uniform placement-group sizes to balance redundancy.
-As the number of Byzantine nodes in a group increases, the number of rational nodes decreases, and the group eventually becomes vulnerable.
-
-\sgd{Reworked.}
-For many DSNs~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave}, the only defense against Byzantine clustering in a single placement group is to enlarge groups so that rational nodes outnumber Byzantine nodes.
-To tolerate a Byzantine fraction commonly assumed in permissionless systems (e.g., \nicefrac{1}{3})~\cite{bar}, such large groups impose impractical on-chain footprint or constrain total storage volume.
 We review limitations of prior DSNs in \cref{sec:motivation:review}.
-In summary, prior DSNs do not simultaneously achieve scalable storage volume, low on-chain footprint, and tolerance to a constant Byzantine fraction.
+These DSNs suffer from limited and non-scalable storage volume~\cite{permacoin,retricoin,arweave,walrus,bft-dsn,swarm}, on-chain footprint~\cite{filecoin,sia,shelby} and/or Byzantine fault tolerance~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn}.
+We identify the root cause of these limitations as an incentive mismatch: Byzantine nodes can distribute arbitrarily and concentrate attacks on selected placement groups, whereas incentives are rigidly bound to specific data blocks and their associated groups.
+As a result, each placement group must overprovision as if it were defending against the full Byzantine budget, leading to redundant defensive effort across the DSN.
+To improve efficiency, DSNs should defend against Byzantine behavior globally rather than independently within each placement group, and should distribute defensive effort across groups according to attack concentration so that no group is compromised.
 
-\iffalse
-Compared with traditional distributed storage, DSNs face unique challenges in data placement because of their decentralized infrastructure.
-First, a fraction of network nodes is assumed to be Byzantine.
-The placement strategy must therefore tolerate Byzantine nodes within placement groups without introducing excessive redundancy.
-Second, most DSNs rely on blockchains to govern data placement in order to avoid dependence on any single party.
-\sgd{May mention Storj as an exception if we want to.}
-DSNs must operate under limited on-chain storage capacity and high on-chain operation costs.
-Accordingly, they must keep the on-chain metadata overhead of data placement low, even when placement groups are large enough to tolerate high failure rates.
-
-Prior DSN designs have focused mainly on enforcing correct behavior by rational nodes, while largely overlooking the efficiency and scalability of placement strategies under Byzantine faults.
-Filecoin and Sia rely on storage contracts to govern placement, which introduces substantial on-chain storage overhead.
-This overhead limits placement group size and therefore reduces tolerance to Byzantine nodes.
-Arweave and Permacoin do not support erasure coding and do not enforce explicit data placement.
-As a result, they must store copies on a large fraction of all nodes to tolerate Byzantine behavior, which yields unscalable redundancy.
-In addition, Walrus remains vulnerable to Byzantine behavior under its committee based design and underutilizes the storage capacity of non selected nodes, while Swarm must replicate data to many nodes to tolerate Byzantine joining attacks.
-In summary, existing DSNs do not simultaneously achieve storage efficiency and scalably low on-chain overhead while tolerating a Byzantine fraction of nodes.
-We discuss these DSNs in more detail in \cref{sec:motivation:review}.
-\fi
-
-\sgd{Reworked.}
-We identify the key factor for efficiently tolerating Byzantine nodes in DSN data placement.
-In permissionless decentralized storage, Byzantine nodes can strategically move across placement groups to attack placement outcomes.
-Many DSNs defend against this adversarial capability independently within each placement group, similar to how they and centrally managed systems handle benign failures, leading to repeated defensive effort and unfavorable trade-offs.
-Instead, a placement mechanism should recognize that the attacker is the \emph{same} Byzantine set across the entire system, with limited total attack capacity that can affect only a limited number of groups at a time.
-DSNs can exploit this insight by determining placement groups holistically so that the groups collectively defend against Byzantine concentration.
-
-\sgd{Reworked.}
+In this work, we propose a novel design principle of DSNs: a node-centric approach that allows defense to ``track'' Byzantine nodes across placement groups.
+Unlike prior data-centric approaches, in which placement groups are paid for persisting specific data, our approach pays nodes directly for placement-group participation, regardless of which groups they join.
+Therefore, rewards received by nodes storing a data block need not match the payment made by the client storing that block.
+Under this node-centric model, the behavior of rational nodes is insensitive to Byzantine distribution because their profits remain unaffected by where Byzantine nodes cluster.
+At the same time, DSNs can no longer rely on uniform per-data payouts to balance rational nodes across groups, so the data placement scheme must explicitly ensure that each placement group contains a sufficient number of rational nodes.
 Following this idea, we design \sys, a DSN in which nodes are randomly sampled into each placement group\footnotemark.
 \footnotetext{The name \sys reflects this randomization principle.}
-\sys employs a verifiable random function (VRF)~\cite{vrf,vrf-rfc} to enable publicly verifiable sampling, which we call endorsement, while restricting the expected number of groups that endorse each node.
-Although Byzantine nodes in \sys can still choose among their sampled groups and, for example, cluster in a single target, the total number of endorsements received by all Byzantine nodes across all groups is VRF-controlled and remains probabilistically bounded.
-Exploiting this property, \sys allocates incentives per endorsement rather than per placement group.
-When Byzantine nodes cluster in target groups, those groups receive more reward, and the reward received by endorsed rational nodes is unaffected by the Byzantine composition of their groups, so rational nodes remain incentivized to stay.
-Consequently, effective placement groups remain stable regardless of how Byzantine nodes distribute themselves, allowing us to analyze data availability using methods similar to those for centrally managed storage in \cref{sec:design:analysis}.
-\sys employs erasure coding to ensure scalable storage volume.
-We use random sampling again to address encoded-fragment assignment in highly dynamic placement groups with continuous node arrivals and departures.
-We adopt verifiable rateless erasure coding~\cite{verify-rateless-ec} to further optimize for space efficiency and enable verifiable storage.
-
-\iffalse
-In this work, we propose \sys, a DSN design with efficient and scalable data placement strategy.
-\sys uses erasure coding to distribute redundancy across large placement groups while maintaining low redundancy.
-It stores only a global parameter and one data hash per block \lijl{what is a block?} on-chain to determine placement groups.
-% It also assigns new nodes efficiently to the placement groups that require repair.
-\lijl{VRF seems a concrete design option. Can give a higher level design idea first.}
-The core technique in \sys is a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for determining data placement.
-A VRF is a cryptographic primitive that maps an input to a pseudorandom output together with a proof of correctness.
-The output is unpredictable to anyone without the secret key, yet efficiently verifiable by anyone with the corresponding public key.
-Using VRF, \sys determines placement in a manner that adversaries cannot predict or manipulate, without requiring additional consistent on-chain state.
-\sys further employs verifiable rateless erasure coding~\cite{verify-rateless-ec} to achieve storage efficiency without incurring additional on-chain overhead.
-\lijl{Similar to the previous point, should explain the higher level rationale first, before giving the concrete solution.}
-The VRF output determines the encoded symbols assigned to each node in a placement group.
-Rateless erasure coding generates an unbounded stream of encoded symbols from each original block, so symbols assigned by VRF are distinct with high probability.
-These symbols are verifiable using only the data hash and the VRF proof, which enables \sys to audit storage and incentivize nodes accordingly.
-
-We present the complete design of \sys around this novel data placement strategy, including the network protocols for storing and retrieving data, auditing storage, and repairing lost redundancy.
-The repairing in \sys only happens when new nodes joining the network and in the rare case of a shrinking network, so it is efficient and does not involve heavyweight on-chain maintenance routines.
-\fi
+\sys employs a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for publicly verifiable sampling, which we call endorsement, while controlling the expected number of groups that endorse each node.
+\sys realizes the node-centric approach by rewarding per endorsement and isolating rewards across nodes through independent endorsements.
+\XXX
 
 In \cref{sec:design}, we present the full design of \sys around this sampling-based placement solution.
 We then report preliminary simulation results in \cref{sec:eval}.
