@@ -24,6 +24,7 @@ In DSNs with $O(P)$ fault tolerance, each placement group is formed independentl
 There is no correlation across placement groups: these DSNs can be viewed as many unrelated micro-networks that happen to share the same node pool, and each group must repeatedly defend against the full adversarial power.
 Consequently, overall system resilience is bounded by the resilience of an individual placement group, which is largely determined by placement-group size.
 If the group is too small, the system is under-resilient; if it is too large, the system over-defends and incurs undesirable trade-offs.
+\lijl{The writing here is still not very clear. I think the key point is that placement groups in prior systems are formed independently. To ensure safety, each group needs to independently defend against potentially $f$ Byzantine nodes in the group. This is, however, an overkill. The attacks across groups are not independent. If one group is compromised with $f$ nodes, the other groups will have no Byzantine participants. This is our key insight. The challenge is how to form groups that take this Byzantine correlation into account.}
 
 What if we form placement groups holistically?
 Among previous DSNs, Swarm is the only one to tolerate $O(N)$ Byzantine nodes thanks to its disjoint neighborhoods.
@@ -34,6 +35,7 @@ Unlike in DSNs with $O(P)$ fault tolerance, in Swarm no placement group needs to
 However, sacrificing placement groups is never ideal.
 Redundancy loss caused by failed placement groups can only be repaired manually, if repair is possible at all.
 It also requires an additional erasure-coding layer, even if Swarm were to employ erasure coding within neighborhoods, and Swarm currently does not do so, incurring high replication overhead.
+\lijl{I assume the discussion above is about the weaknesses of Swarm? The current text is not very clear. I suggest making the points more direct and concise. Also, not sure if here is the best place to discuss Swarm weaknesses.}
 We wonder: can we go one step further and ensure availability of all placement groups via holistic formation?
 This is not possible with Swarm's disjoint neighborhoods because no placement group can defend against Byzantine nodes on its own without growing to an impractical size.
 To summarize, our data placement solution
@@ -49,6 +51,8 @@ Instead of asking which nodes should be assigned to each placement group, we ask
 Our key principle is to \emph{isolate} the incentives of \emph{every} node from each other by independently \emph{sampling} placement groups for each node to join.
 This sampling is protected by a VRF, making the outcome pseudorandom and publicly verifiable.
 We say that sampled placement groups \emph{endorse} the node, and the node is expected to store data for all endorsed groups and receive rewards from them.
+\lijl{After reading this paragraph, still feel that there are some missing logical steps.
+Why isolated incentives lead to secure placement groups? Some explanations are provided later, but the readers will be puzzled reading until here, where we discuss the main design principle.}
 
 Now we detail the sampling scheme in \sys, inspired by Algorand~\cite{algorand}.
 Given a data block, every node runs $\VRFGen$ with its secret key and the data hash as the input $x$ and obtains the pseudorandom output $y$.
@@ -64,6 +68,8 @@ This property allows us to allocate incentives per endorsement rather than per p
 In other words, all placement groups absorb Byzantine influence through a shared incentive loss.
 As a result, rational nodes can expect guaranteed profit from each placement group that endorses them, independently of Byzantine behavior, and are therefore incentivized to remain in all endorsed groups.
 As we later show in \cref{sec:design:analysis}, the sampling approach enables \sys to tolerate $O(N)$ Byzantine nodes.
+
+\lijl{One way to formulate the principle: prior solutions use a ``group-centric'' approach, meaning for each group, the system selects a set of nodes to join, independent of other groups, and incentives are given per-group. We are ``node-centric'', i.e., for each node, the system selects which group this node belongs to, independent of other nodes, and incentives are given per-node. Then, we just need to explain why node-centric approach can provide the properties we want.}
 
 \subsection{Sampling for Erasure Coding}
 \label{sec:approach:ec}
