@@ -1,3 +1,5 @@
+==== Literature review ====
+
 @misc{walrus,
       title={Walrus: An Efficient Decentralized Storage Network}, 
       author={George Danezis and Giacomo Giuliari and Eleftherios Kokoris Kogias and Markus Legner and Jean-Pierre Smith and Alberto Sonnino and Karl Wüst},
@@ -30,7 +32,8 @@
 @misc{sia,
   title={Sia: Simple Decentralized Storage},
   author={Vorick, David and Champine, Luke},
-  year={2014}
+  year={2014},
+  howpublished={\url{https://sia.tech/whitepaper.pdf}},
 }
 
 @inproceedings{swarm,
@@ -74,6 +77,19 @@ keywords = {bilinear pairings, bitcoin, mining pool, proofs of retrievability},
 location = {Singapore, Singapore},
 series = {ICDCN '16}
 }
+
+@misc{shelby,
+      title={Shelby: Decentralized Storage Designed to Serve}, 
+      author={Guy Goren and Andrew Hariri and Timothy D. R. Hartley and Ravi Kappiyoor and Alexander Spiegelman and David Zmick},
+      year={2025},
+      eprint={2506.19233},
+      archivePrefix={arXiv},
+      primaryClass={cs.DC},
+      url={https://arxiv.org/abs/2506.19233}, 
+}
+
+
+==== Referred by this work as context ====
 
 @article{por,
 author="Shacham, Hovav and Waters, Brent",
@@ -167,13 +183,21 @@ URL = {https://doi.org/10.1137/0108018},
 eprint = {https://doi.org/10.1137/0108018}
 }
 
-
 @inproceedings{algorand,
-  title={Algorand: Scaling byzantine agreements for cryptocurrencies},
-  author={Gilad, Yossi and Hemo, Rotem and Micali, Silvio and Vlachos, Georgios and Zeldovich, Nickolai},
-  booktitle={Proceedings of the 26th symposium on operating systems principles},
-  pages={51--68},
-  year={2017}
+author = {Gilad, Yossi and Hemo, Rotem and Micali, Silvio and Vlachos, Georgios and Zeldovich, Nickolai},
+title = {Algorand: Scaling Byzantine Agreements for Cryptocurrencies},
+year = {2017},
+isbn = {9781450350853},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3132747.3132757},
+doi = {10.1145/3132747.3132757},
+abstract = {Algorand is a new cryptocurrency that confirms transactions with latency on the order of a minute while scaling to many users. Algorand ensures that users never have divergent views of confirmed transactions, even if some of the users are malicious and the network is temporarily partitioned. In contrast, existing cryptocurrencies allow for temporary forks and therefore require a long time, on the order of an hour, to confirm transactions with high confidence.Algorand uses a new Byzantine Agreement (BA) protocol to reach consensus among users on the next set of transactions. To scale the consensus to many users, Algorand uses a novel mechanism based on Verifiable Random Functions that allows users to privately check whether they are selected to participate in the BA to agree on the next set of transactions, and to include a proof of their selection in their network messages. In Algorand's BA protocol, users do not keep any private state except for their private keys, which allows Algorand to replace participants immediately after they send a message. This mitigates targeted attacks on chosen participants after their identity is revealed.We implement Algorand and evaluate its performance on 1,000 EC2 virtual machines, simulating up to 500,000 users. Experimental results show that Algorand confirms transactions in under a minute, achieves 125x Bitcoin's throughput, and incurs almost no penalty for scaling to more users.},
+booktitle = {Proceedings of the 26th Symposium on Operating Systems Principles},
+pages = {51–68},
+numpages = {18},
+location = {Shanghai, China},
+series = {SOSP '17}
 }
 
 note={Defines the "Vertical Attack" specifically targeting data infohashes.}
@@ -194,45 +218,6 @@ note={Demonstrates how ID clustering is used to censor specific CIDs in IPFS.}
   author={Marques, Danny and Hafid, Abdelhakim and Garc{\'\i}a, L},
   booktitle={Proceedings of the Network and Distributed System Security Symposium (NDSS)},
   year={2024},
-}
-
-
-@article{bft-dsn,
-  author={Guo, Hechuan and Xu, Minghui and Zhang, Jiahao and Liu, Chunchi and Ranjan, Rajiv and Yu, Dongxiao and Cheng, Xiuzhen},
-  journal={IEEE Transactions on Computers}, 
-  title={BFT-DSN: A Byzantine Fault-Tolerant Decentralized Storage Network}, 
-  year={2024},
-  volume={73},
-  number={5},
-  pages={1300-1312},
-  keywords={Encoding;Fault tolerant systems;Fault tolerance;Resilience;Consensus algorithm;Codes;Computers;Decentralized storage networks;consortium blockchain;Byzantine fault tolerance;erasure codes},
-  doi={10.1109/TC.2024.3365953}}
-
-@article{oceanstore,
-  title={Oceanstore: An architecture for global-scale persistent storage},
-  author={Kubiatowicz, John and Bindel, David and Chen, Yan and Czerwinski, Steven and Eaton, Patrick and Geels, Dennis and Gummadi, Ramakrishna and Rhea, Sean and Weatherspoon, Hakim and Weimer, Westley and others},
-  journal={ACM SIGOPS Operating Systems Review},
-  volume={34},
-  number={5},
-  pages={190--201},
-  year={2000},
-  publisher={ACM New York, NY, USA}
-}
-
-@article{shelby,
-  title={Shelby: Decentralized storage designed to serve},
-  author={Goren, Guy and Hariri, Andrew and Hartley, Timothy DR and Kappiyoor, Ravi and Spiegelman, Alexander and Zmick, David},
-  journal={arXiv preprint arXiv:2506.19233},
-  year={2025},
-  url={https://arxiv.org/abs/2506.19233}
-}
-
-@inproceedings{ceph,
-  title={Ceph: A scalable, high-performance distributed file system},
-  author={Weil, Sage and Brandt, Scott A and Miller, Ethan L and Long, Darrell DE and Maltzahn, Carlos},
-  booktitle={Proceedings of the 7th Conference on Operating Systems Design and Implementation (OSDI'06)},
-  pages={307--320},
-  year={2006}
 }
 
 @article{chord,
@@ -263,4 +248,37 @@ address="Berlin, Heidelberg",
 pages="53--65",
 abstract="We describe a peer-to-peer distributed hash table with provable consistency and performance in a fault-prone environment. Our system routes queries and locates nodes using a novel XOR-based metric topology that simplifies the algorithm and facilitates our proof. The topology has the property that every message exchanged conveys or reinforces useful contact information. The system exploits this information to send parallel, asynchronous query messages that tolerate node failures without imposing timeout delays on users.",
 isbn="978-3-540-45748-0"
+}
+
+
+==== Related works ====
+
+@article{bft-dsn,
+  author={Guo, Hechuan and Xu, Minghui and Zhang, Jiahao and Liu, Chunchi and Ranjan, Rajiv and Yu, Dongxiao and Cheng, Xiuzhen},
+  journal={IEEE Transactions on Computers}, 
+  title={BFT-DSN: A Byzantine Fault-Tolerant Decentralized Storage Network}, 
+  year={2024},
+  volume={73},
+  number={5},
+  pages={1300-1312},
+  keywords={Encoding;Fault tolerant systems;Fault tolerance;Resilience;Consensus algorithm;Codes;Computers;Decentralized storage networks;consortium blockchain;Byzantine fault tolerance;erasure codes},
+  doi={10.1109/TC.2024.3365953}}
+
+@article{oceanstore,
+  title={Oceanstore: An architecture for global-scale persistent storage},
+  author={Kubiatowicz, John and Bindel, David and Chen, Yan and Czerwinski, Steven and Eaton, Patrick and Geels, Dennis and Gummadi, Ramakrishna and Rhea, Sean and Weatherspoon, Hakim and Weimer, Westley and others},
+  journal={ACM SIGOPS Operating Systems Review},
+  volume={34},
+  number={5},
+  pages={190--201},
+  year={2000},
+  publisher={ACM New York, NY, USA}
+}
+
+@inproceedings{ceph,
+  title={Ceph: A scalable, high-performance distributed file system},
+  author={Weil, Sage and Brandt, Scott A and Miller, Ethan L and Long, Darrell DE and Maltzahn, Carlos},
+  booktitle={Proceedings of the 7th Conference on Operating Systems Design and Implementation (OSDI'06)},
+  pages={307--320},
+  year={2006}
 }
