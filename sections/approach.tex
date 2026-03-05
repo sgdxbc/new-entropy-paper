@@ -75,9 +75,10 @@ As we later show in \cref{sec:design:analysis}, the sampling approach enables \s
 \label{sec:approach:ec}
 
 In \sys, each placement group contains a dynamic set of nodes that continuously join and leave.
-To ensure recoverability of data over time, we need to assign every encoded fragment to at least one node in the placement group, and the fragment assigned to new nodes must be dynamically determined according to the previous failures.
+To ensure recoverability of data over time, we need to assign every encoded fragment \lijl{We haven't discussed encoding yet.} to at least one node in the placement group, and the fragment assigned to new nodes must be dynamically determined according to the previous failures.
 Storing the assignment of fragments to nodes on-chain would lead to large on-chain overhead.
 It is infeasible for nodes to coordinate this assignment off-chain, because a Byzantine majority could manipulate the assignment to induce data loss.
+\lijl{We should define the problem and the desired properties clearly. Data is encoded into some fragments (fixed number?). Each endorsed node stores some fragments. Need to ensure the number of unique fragments on non-faulty nodes to exceed a certain number, without storing extra metadata on-chain.}
 
 We propose to also use the sampling approach to assign random encoded fragments to the endorsed nodes.
 The hash of proof $\pi$ is interpreted as a seed for sampling the encoded fragment to store.
@@ -86,11 +87,13 @@ However, this assignment is not guaranteed to be injective, so multiple nodes ma
 We solve this problem by sampling multiple fragments for each node to ensure that every fragment is assigned to at least one node with high probability.
 
 We further optimize the sampling approach for erasure coding by leveraging the rateless property of verifiable rateless EC~\cite{verify-rateless-ec}.
+\lijl{Should first explain what we are optimizing by using rateless code.}
 A rateless EC can generate an unbounded number of encoded fragments from the original data block, whose content can be interpreted as the XOR of sampled encoded fragments, using different sampling distributions to ensure recoverability.
 This allows us to assign distinct fragments to nodes with high probability by directly interpreting the hash of the proof $\pi$ as fragment index.
 Rateless EC also allows recovery of the original data block from the encoded fragments stored by $k$ nodes, and it improves space efficiency by eliminating the need to sample multiple fragments per node.
 
 Last but not least, the verifiable rateless EC provides a $\ECVerify$ algorithm to validate the integrity of an encoded fragment from the hash of the original data block and the fragment index, which is essential for the smart contract to verify the correct storage of potentially infinite different fragments.
+\lijl{Is this only a challenge for rateless EC? Or also for other coding scheme if being used in our context?}
 Only the hash of the original data block needs to be stored on-chain.
 To prove correct storage of an assigned fragment, a node submits the fragment together with its VRF output and proof.
 The smart contract first runs $\VRFVerify$ to validate endorsement, then derives the assigned index from the proof and runs $\ECVerify$ to validate fragment integrity.
