@@ -17,58 +17,58 @@ A VRF satisfies the following properties:
     \item \textbf{Verifiability:} Given the public key $\pk$, input $x$, output $y$, and proof $\pi$, anyone can efficiently verify that $y$ is the correct VRF output for $x$ under $\pk$ using $\VRFVerify$.
 \end{itemize}
 
-\subsection{Sampling for Globally Defend Byzantine Nodes}
+\subsection{Sampling to Defend Against Byzantine Nodes Globally}
 \label{sec:approach:sample}
 
 \lijl{The writing here is still not very clear. I think the key point is that placement groups in prior systems are formed independently. To ensure safety, each group needs to independently defend against potentially $f$ Byzantine nodes in the group. This is, however, an overkill. The attacks across groups are not independent. If one group is compromised with $f$ nodes, the other groups will have no Byzantine participants. This is our key insight. The challenge is how to form groups that take this Byzantine correlation into account.} \sgd{Cannot simply put it as ``the other groups will have no Byzantine participants'' because we don't restrict each node to join at most one group (not like Swarm). So reworked without this exact statement.}
-We observe a common pattern of DSNs with $O(P)$ fault tolerance.
-In these DSNs, the placement groups are formed independently, and the fault tolerance reasoning is local to each placement group, somewhat resemble to the centrally managed storage practice.
-While this approach is effective on handling simultaneous failures of the rational nodes, it falls short after introducing Byzantine nodes.
-Unlike the benign failures, which can be considered as bound to specific placement groups, the Byzantine nodes are global attacking power that may arbitrarily distribute across the placement groups.
-In those DSNs, every placement group is secured against Byzantine nodes independently, and an $O(N)$ placement group size can actually defend Byzantine nodes to attack every placement group at the same time, which is an obvious overkill and leads to various undesirable trade-offs.
-To tolerate Byzantine nodes more efficiently, the data placement solution must eliminate the redundant defending efforts by defending the Byzantine nodes globally rather than individually from placement groups.
+We observe a common pattern in DSNs with $O(P)$ fault tolerance.
+In these systems, placement groups are formed independently, and fault tolerance is analyzed locally for each group, resembling centrally managed storage practice.
+This approach is effective for simultaneous failures of rational nodes, but it becomes inadequate in the presence of Byzantine nodes.
+Unlike benign failures, which are tied to specific placement groups, Byzantine adversarial power is global and can be distributed arbitrarily across groups.
+In such DSNs, each placement group is secured against Byzantine behavior independently, which leads to redundant defense.
+In fact, to tolerate attacks on individual groups, these DSNs have to enlarge placement groups so that they can even tolerate an attack that targets all groups simultaneously, which is clear overprovisioning with undesirable trade-offs.
+To tolerate Byzantine nodes more efficiently, data placement must defend against Byzantine power globally rather than independently within each placement group.
 
-Among previous DSNs, Swarm is the only one to tolerate $O(N)$ Byzantine nodes thanks to its disjoint neighborhoods.
-The disjoint structure of placement groups is the key to defending against Byzantine nodes globally: a Byzantine node can only reside in one neighborhood at a time.
-Therefore, assuming \nicefrac{1}{3} Byzantine nodes globally, at most \nicefrac{1}{3} of placement groups are compromised regardless of how Byzantine nodes are distributed.
-Unlike in DSNs with $O(P)$ fault tolerance, in Swarm no placement group needs to defend the entire attacking power, so the placement group size does not need to scale with the total number of nodes.
+Among prior DSNs, Swarm is the only system that tolerates $O(N)$ Byzantine nodes, enabled by its disjoint neighborhoods.
+This disjointness is key to global defense: a Byzantine node can reside in only one neighborhood at a time.
+Therefore, with \nicefrac{1}{3} Byzantine nodes globally, at most \nicefrac{1}{3} of placement groups are compromised, regardless of the adversarial distribution.
+Unlike DSNs with $O(P)$ fault tolerance, Swarm does not require each placement group to withstand the full adversarial budget, so the group size need not scale with the total number of nodes.
 
 However, sacrificing placement groups is never ideal.
-As discussed in \cref{sec:motivation:review}, redundancy loss caused by failed placement groups can only be repaired manually, if possible at all.
-It also requires an additional erasure-coding layer, which adds more storage overhead on top of the already costly replication within neighborhoods.
+As discussed in \cref{sec:motivation:review}, redundancy loss from failed placement groups can be repaired only manually, if it can be repaired at all.
+It also requires an additional erasure-coding layer, which introduces extra storage overhead on top of already costly in-neighborhood replication.
 \lijl{I assume the discussion above is about the weaknesses of Swarm? The current text is not very clear. I suggest making the points more direct and concise. Also, not sure if here is the best place to discuss Swarm weaknesses.} \sgd{Clarified. This is a recap of Swarm's weaknesses so should be fine.}
-To avoid these pitfalls, we must have each of our placement group to be able to defend all Byzantine nodes and never compromise.
-With our data placement solution, the shared defending effort of Byzantine nodes should be able to be flexibly distributed across placement groups just as the attacking power of Byzantine nodes.
-The placement groups will receive dynamic defending effort matching the attacking power applied to them.
-As the attacking concentrate on individual groups, the DSN also concentrate its fault tolerance on them to ensure they are not compromised.
+To avoid these pitfalls, each placement group in our system must remain uncompromised even under global Byzantine pressure.
+Our data placement solution allows defensive effort to be distributed across groups as flexibly as Byzantine attacking power.
+Each placement group receives a level of defense that dynamically matches the attack it faces.
+When attacks concentrate on specific groups, the DSN correspondingly concentrates fault tolerance on those groups to ensure their safety.
 
-To realize this goal, our key principle is to switch from a data-centric approach to a node-centric one.
-In prior DSNs, incentive belongs to data blocks and their placement groups: it originates from the client storing the data and is received by the nodes participated into storing it.
-This idea is straightforward but forbid placement groups to share defensive efforts because they are driven by different incentives.
-In \sys, incentive paid for all stored data is pooled and directly distributed to nodes.
-The nodes are uniformly rewarded based on the number of placement groups they participate, regardless of which specific placement groups are those.
-The node-centric incentive allocation perfectly achieve our goal.
-The (wasted) incentive received by the Byzantine nodes can be treated as the global defensive effort and will ``track down'' the Byzantine nodes throughout the system no matter which placement groups they stay in.
-By ensuring every node having its own incentive isolated to the others, the incentive received by each node in the same placement group does not interfere with each other anymore, so as nodes' behavior: no matter how many additional Byzantine nodes clustering in a placement group, the rational nodes of the group receive unaffected incentive and will remain in the group.
-Thus, the placement groups will stay effective, and the data availability is secured.
+To realize this goal, we shift from a data-centric approach to a node-centric one.
+In prior DSNs, incentives are tied to data blocks and their placement groups: payment originates from the client storing the data and is distributed to participating nodes.
+Although this model is straightforward, it prevents placement groups from sharing defensive effort because each group is governed by a separate incentive fund.
+In \sys, incentives paid for all stored data are pooled and distributed directly to nodes.
+Nodes are rewarded uniformly according to the number of placement groups they participate in, regardless of which specific groups they join.
+This node-centric allocation is exactly what we need.
+The incentive captured by Byzantine nodes can be interpreted as a global defensive budget that effectively ``tracks'' Byzantine behavior across groups.
+Because each node's incentive is independent of others, the reward of a rational node in a placement group is unaffected by additional Byzantine nodes joining that same group.
+As a result, rational nodes remain in place, placement groups remain effective, and data availability is preserved.
 
-Our node-centric approach brings new challenges.
-The benefit of data-centric approach is that rational nodes are automatically balanced across placement groups driven by incentive, as fair incentive of each data block will attract fair number of nodes.
-With node-centric design, the rational nodes will not balance themselves, and the responsibility shifts to the data placement solution.
-The data placement solution must assign certain number of rational nodes to each data block with incentive.
-In another word, the nodes are only rewarded for storing the assigned data blocks.
-We employ VRF to randomly sample nodes for the placement groups, which we call endorse the nodes, to enable a uniform and publicly verifiable assignment.
-Under this random sampling, every node is independently endorsed and rewarded, thus enable node-centric incentive.
-Thanks to VRF, the endorsement can be validated on-chain, so the nodes can only make profit from placement groups endorsing them, and the rational nodes will maximize their rewards by participating all of them.
-The number of rational nodes in the placement groups will be uniform and can be tuned according to their failure rate by configuring the sampling rate.
+Our node-centric approach introduces new challenges.
+A key benefit of the data-centric approach is that incentives naturally balance rational nodes across placement groups, since each data block offers comparable rewards and attracts a comparable number of nodes.
+Under a node-centric design, this self-balancing no longer occurs, so balancing becomes the responsibility of the data placement mechanism.
+The mechanism must assign an appropriate number of rational nodes to each data block.
+We use VRFs to randomly sample nodes for placement groups, and we refer to sampled nodes as endorsed nodes, yielding a uniform and publicly verifiable assignment.
+Under this sampling process, each node is endorsed and rewarded independently, which enables node-centric incentives.
+Because VRF outputs are verifiable on-chain, nodes can profit only from placement groups that endorse them, and rational nodes maximize rewards by participating in all such groups.
+The expected number of rational nodes per placement group is uniform and can be tuned through the sampling rate according to node failure rates.
 
-Now we detail the sampling scheme in \sys, inspired by Algorand~\cite{algorand}.
-Given a data block, every node runs $\VRFGen$ with its secret key and the data hash as the input $x$ and obtains the pseudorandom output $y$.
+We now detail the sampling scheme in \sys, inspired by Algorand~\cite{algorand}.
+Given a data block, each node runs $\VRFGen$ with its secret key and the data hash as input $x$, obtaining pseudorandom output $y$.
 The node is endorsed for the placement group if $\nicefrac{y}{Y}<p$, where $p$ is a public target sampling rate; endorsed nodes are eligible to store redundancy and earn rewards in that placement group.
 In other words, for a data block with hash $h$, the placement group $\mathcal{P}$ is
 $$\mathcal{P}(h)=\left\{n\in\mathcal{N}\mid\frac{\VRFGen(\sk_n,h)}{Y}<p\right\}$$
 where $\mathcal{N}$ is the set of all nodes and $Y$ is the maximum VRF output.
-Besides scalable fault tolerance, this approach is also algorithmic: the only consistent state it requires is the target sampling rate $p$, which can be inferred from blockchain history, analogous to Bitcoin difficulty.
+Beyond scalable fault tolerance, this approach is also algorithmic: the only consistent state it requires is the target sampling rate $p$, which can be inferred from blockchain history, analogous to Bitcoin difficulty.
 Thus, sampling-based data placement can achieve both strong resiliency and scalable on-chain footprint.
 
 \lijl{One way to formulate the principle: prior solutions use a ``group-centric'' approach, meaning for each group, the system selects a set of nodes to join, independent of other groups, and incentives are given per-group. We are ``node-centric'', i.e., for each node, the system selects which group this node belongs to, independent of other nodes, and incentives are given per-node. Then, we just need to explain why node-centric approach can provide the properties we want.} \sgd{Revised.}
