@@ -1,284 +1,250 @@
-==== Literature review ====
+% ==== Literature review ====
 
 @misc{walrus,
-      title={Walrus: An Efficient Decentralized Storage Network}, 
-      author={George Danezis and Giacomo Giuliari and Eleftherios Kokoris Kogias and Markus Legner and Jean-Pierre Smith and Alberto Sonnino and Karl Wüst},
-      year={2026},
-      eprint={2505.05370},
-      archivePrefix={arXiv},
-      primaryClass={cs.DC},
-      url={https://arxiv.org/abs/2505.05370}, 
+  title        = {Walrus: An Efficient Decentralized Storage Network}, 
+  author       = {George Danezis and Giacomo Giuliari and Eleftherios Kokoris Kogias and Markus Legner and Jean-Pierre Smith and Alberto Sonnino and Karl Wüst},
+  year         = {2026},
+  howpublished = {\url{https://arxiv.org/abs/2505.05370}}, 
 }
 
-@article{arweave,
-  title={Arweave: A protocol for economically sustainable information permanence},
-  author={Williams, Sam and Diordiiev, Viktor and Berman, Lev and Uemlianin, Ivan},
-  journal={Arweave Yellow Paper},
-  volume={67},
-  year={2019}
+@misc{arweave,
+  title        = {{Arweave}: A protocol for economically sustainable information permanence},
+  author       = {Williams, Sam and Diordiiev, Viktor and Berman, Lev and Uemlianin, Ivan},
+  howpublished = {\url{https://www.arweave.org/yellow-paper.pdf}},
+  year         = {2019}
 }
 
 @inproceedings{filecoin,
-  author={Psaras, Yiannis and Dias, David},
-  booktitle={2020 50th Annual IEEE-IFIP International Conference on Dependable Systems and Networks-Supplemental Volume (DSN-S)}, 
-  title={The InterPlanetary File System and the Filecoin Network}, 
-  year={2020},
-  volume={},
-  number={},
-  pages={80-80},
-  keywords={Protocols;File systems;Peer-to-peer computing;Tutorials;Open source software;Routing;Linked data},
-  doi={10.1109/DSN-S50200.2020.00043}}
+  author       = {Psaras, Yiannis and Dias, David},
+  booktitle    = {Proceedings of the 50th Annual IEEE/IFIP International Conference on Dependable Systems and Networks Supplemental Volume (DSN-S)}, 
+  title        = {The {InterPlanetary} File System and the {Filecoin} Network}, 
+  year         = {2020},
+  pages        = {80--80},
+  publisher    = {IEEE},
+  address      = {Valencia, Spain},
+  doi          = {10.1109/DSN-S50200.2020.00043}
+}
 
 @misc{sia,
-  title={Sia: Simple Decentralized Storage},
-  author={Vorick, David and Champine, Luke},
-  year={2014},
-  howpublished={\url{https://sia.tech/whitepaper.pdf}},
+  title        = {{Sia}: Simple Decentralized Storage},
+  author       = {Vorick, David and Champine, Luke},
+  year         = {2014},
+  howpublished = {\url{https://sia.tech/whitepaper.pdf}},
 }
 
 @inproceedings{swarm,
-  author={Hartman, J.H. and Murdock, I. and Spalink, T.},
-  booktitle={Proceedings. 19th IEEE International Conference on Distributed Computing Systems (Cat. No.99CB37003)}, 
-  title={The Swarm scalable storage system}, 
-  year={1999},
-  volume={},
-  number={},
-  pages={74-81},
-  keywords={File servers;Network servers;Access protocols;File systems;Computer science;Costs;Prototypes;Fault tolerance;Clustering algorithms;Control systems},
-  doi={10.1109/ICDCS.1999.776508}}
-
+  author       = {Hartman, J.H. and Murdock, I. and Spalink, T.},
+  booktitle    = {Proceedings of the 19th IEEE International Conference on Distributed Computing Systems (ICDCS)}, 
+  title        = {The {Swarm} scalable storage system}, 
+  year         = {1999},
+  pages        = {74--81},
+  publisher    = {IEEE Computer Society},
+  address      = {Austin, TX, USA},
+  doi          = {10.1109/ICDCS.1999.776508}
+}
 
 @inproceedings{permacoin,
-  author={Miller, Andrew and Juels, Ari and Shi, Elaine and Parno, Bryan and Katz, Jonathan},
-  booktitle={2014 IEEE Symposium on Security and Privacy}, 
-  title={Permacoin: Repurposing Bitcoin Work for Data Preservation}, 
-  year={2014},
-  volume={},
-  number={},
-  pages={475-490},
-  keywords={Online banking;Peer-to-peer computing;Data mining;Investment;Public key;Outsourcing},
-  doi={10.1109/SP.2014.37}}
-
+  author       = {Miller, Andrew and Juels, Ari and Shi, Elaine and Parno, Bryan and Katz, Jonathan},
+  booktitle    = {Proceedings of the 2014 IEEE Symposium on Security and Privacy (SP)}, 
+  title        = {{Permacoin}: Repurposing {Bitcoin} Work for Data Preservation}, 
+  year         = {2014},
+  pages        = {475--490},
+  publisher    = {IEEE Computer Society},
+  address      = {San Jose, CA, USA},
+  doi          = {10.1109/SP.2014.37}
+}
 
 @inproceedings{retricoin,
-author = {Sengupta, Binanda and Bag, Samiran and Ruj, Sushmita and Sakurai, Kouichi},
-title = {Retricoin: Bitcoin based on compact proofs of retrievability},
-year = {2016},
-isbn = {9781450340328},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/2833312.2833317},
-doi = {10.1145/2833312.2833317},
-abstract = {Bitcoin [24] is a fully decentralized electronic cash system. The generation of the proof-of-work in Bitcoin requires large amount of computing resources. However, this huge amount of energy is wasted as one cannot make something useful out of it. In this paper, we propose a scheme called Retricoin which replaces the heavy computational proof-of-work of Bitcoin by proofs of retrievability that have practical benefits. To guarantee the availability of an important but large file, we distribute the segments of the file among the users in the Bitcoin network. Every user who wants to mine Bitcoins must store a considerable portion of this file and prove her storage to other peers in the network using proofs of retrievability. The file can be constructed at any point of time from the users storing their respective segments untampered. Retricoin is more efficient than the existing Permacoin scheme [23] in terms of storage overhead and network bandwidth required to broadcast the proof to the Bitcoin network. The verification time in our scheme is comparable to that of Permacoin and reasonable for all practical purposes. We also design an algorithm to let the miners in a group (or pool) mine collectively.},
-booktitle = {Proceedings of the 17th International Conference on Distributed Computing and Networking},
-articleno = {14},
-numpages = {10},
-keywords = {bilinear pairings, bitcoin, mining pool, proofs of retrievability},
-location = {Singapore, Singapore},
-series = {ICDCN '16}
+  author       = {Sengupta, Binanda and Bag, Samiran and Ruj, Sushmita and Sakurai, Kouichi},
+  title        = {{Retricoin}: {Bitcoin} based on compact proofs of retrievability},
+  year         = {2016},
+  publisher    = {ACM},
+  address      = {Singapore},
+  doi          = {10.1145/2833312.2833317},
+  booktitle    = {Proceedings of the 17th International Conference on Distributed Computing and Networking (ICDCN)},
+  numpages     = {10}
 }
 
 @misc{shelby,
-      title={Shelby: Decentralized Storage Designed to Serve}, 
-      author={Guy Goren and Andrew Hariri and Timothy D. R. Hartley and Ravi Kappiyoor and Alexander Spiegelman and David Zmick},
-      year={2025},
-      eprint={2506.19233},
-      archivePrefix={arXiv},
-      primaryClass={cs.DC},
-      url={https://arxiv.org/abs/2506.19233}, 
+  title        = {{Shelby}: Decentralized Storage Designed to Serve}, 
+  author       = {Guy Goren and Andrew Hariri and Timothy D. R. Hartley and Ravi Kappiyoor and Alexander Spiegelman and David Zmick},
+  year         = {2025},
+  howpublished = {\url{https://arxiv.org/abs/2506.19233}}, 
 }
 
+% ==== Referred by this work as context ====
 
-==== Referred by this work as context ====
-
-@article{por,
-author="Shacham, Hovav and Waters, Brent",
-editor="Pieprzyk, Josef",
-title="Compact Proofs of Retrievability",
-booktitle="Advances in Cryptology - ASIACRYPT 2008",
-year="2008",
-publisher="Springer Berlin Heidelberg",
-address="Berlin, Heidelberg",
-pages="90--107",
-abstract="In a proof-of-retrievability system, a data storage center convinces a verifier that he is actually storing all of a client's data. The central challenge is to build systems that are both efficient and provably secure---that is, it should be possible to extract the client's data from any prover that passes a verification check. In this paper, we give the first proof-of-retrievability schemes with full proofs of security against arbitrary adversaries in the strongest model, that of Juels and Kaliski. Our first scheme, built from BLS signatures and secure in the random oracle model, has the shortest query and response of any proof-of-retrievability with public verifiability. Our second scheme, which builds elegantly on pseudorandom functions (PRFs) and is secure in the standard model, has the shortest response of any proof-of-retrievability scheme with private verifiability (but a longer query). Both schemes rely on homomorphic properties to aggregate a proof into one small authenticator value.",
-isbn="978-3-540-89255-7"
+@inproceedings{por,
+  author       = {Shacham, Hovav and Waters, Brent},
+  title        = {Compact Proofs of Retrievability},
+  booktitle    = {Advances in Cryptology -- ASIACRYPT 2008},
+  year         = {2008},
+  publisher    = {Springer},
+  address      = {Melbourne, Australia},
+  pages        = {90--107}
 }
 
 @inproceedings{bar,
-author = {Aiyer, Amitanand S. and Alvisi, Lorenzo and Clement, Allen and Dahlin, Mike and Martin, Jean-Philippe and Porth, Carl},
-title = {BAR fault tolerance for cooperative services},
-year = {2005},
-isbn = {1595930795},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/1095810.1095816},
-doi = {10.1145/1095810.1095816},
-abstract = {This paper describes a general approach to constructing cooperative services that span multiple administrative domains. In such environments, protocols must tolerate both Byzantine behaviors when broken, misconfigured, or malicious nodes arbitrarily deviate from their specification and rational behaviors when selfish nodes deviate from their specification to increase their local benefit. The paper makes three contributions: (1) It introduces the BAR (Byzantine, Altruistic, Rational) model as a foundation for reasoning about cooperative services; (2) It proposes a general three-level architecture to reduce the complexity of building services under the BAR model; and (3) It describes an implementation of BAR-B the first cooperative backup service to tolerate both Byzantine users and an unbounded number of rational users. At the core of BAR-B is an asynchronous replicated state machine that provides the customary safety and liveness guarantees despite nodes exhibiting both Byzantine and rational behaviors. Our prototype provides acceptable performance for our application: our BAR-tolerant state machine executes 15 requests per second, and our BAR-B backup service can back up 100MB of data in under 4 minutes.},
-booktitle = {Proceedings of the Twentieth ACM Symposium on Operating Systems Principles},
-pages = {45–58},
-numpages = {14},
-keywords = {byzantine fault tolerance, game theory, peer to peer, reliable systems},
-location = {Brighton, United Kingdom},
-series = {SOSP '05}
+  author       = {Aiyer, Amitanand S. and Alvisi, Lorenzo and Clement, Allen and Dahlin, Mike and Martin, Jean-Philippe and Porth, Carl},
+  title        = {{BAR} fault tolerance for cooperative services},
+  year         = {2005},
+  publisher    = {ACM},
+  address      = {Brighton, UK},
+  doi          = {10.1145/1095810.1095816},
+  booktitle    = {Proceedings of the 20th ACM Symposium on Operating Systems Principles (SOSP)},
+  pages        = {45--58}
 }
 
 @misc{vrf-rfc,
-  author = {Goldberg, S. and Reyzin, L. and Papadopoulos, D. and Vcelak, J.},
-  title = {Verifiable Random Functions (VRFs)},
+  author       = {Goldberg, S. and Reyzin, L. and Papadopoulos, D. and Vcelak, J.},
+  title        = {Verifiable Random Functions ({VRFs})},
   howpublished = {\url{https://datatracker.ietf.org/doc/html/rfc9381}},
-  year = {2023},
-  publisher = {RFC Editor},
-  series = {Request for Comments},
-  number = {9381}
+  year         = {2023},
+  publisher    = {RFC Editor},
+  number       = {9381}
 }
 
-@INPROCEEDINGS{vrf,
-  author={Micali, S. and Rabin, M. and Vadhan, S.},
-  booktitle={40th Annual Symposium on Foundations of Computer Science (Cat. No.99CB37039)}, 
-  title={Verifiable random functions}, 
-  year={1999},
-  volume={},
-  number={},
-  pages={120-130},
-  keywords={Polynomials;Laboratories;Computer science;Testing;Contracts;Postal services;Uniform resource locators;US Department of Defense;Electrical capacitance tomography;Terminology},
-  doi={10.1109/SFFCS.1999.814584}
+@inproceedings{vrf,
+  author       = {Micali, S. and Rabin, M. and Vadhan, S.},
+  booktitle    = {Proceedings of the 40th Annual Symposium on Foundations of Computer Science (FOCS)}, 
+  title        = {Verifiable random functions}, 
+  year         = {1999},
+  pages        = {120--130},
+  publisher    = {IEEE Computer Society},
+  address      = {New York, NY, USA},
+  doi          = {10.1109/SFFCS.1999.814584}
 }
 
 @inproceedings{verify-rateless-ec,
-  title={On-the-fly verification of rateless erasure codes for efficient content distribution},
-  author={Krohn, Maxwell N and Freedman, Michael J and Mazieres, David},
-  booktitle={IEEE Symposium on Security and Privacy, 2004. Proceedings. 2004},
-  pages={226--240},
-  year={2004},
-  organization={IEEE}
+  author       = {Krohn, M.N. and Freedman, M.J. and Mazieres, D.},
+  booktitle    = {Proceedings of the 2004 IEEE Symposium on Security and Privacy (SP)}, 
+  title        = {On-the-fly verification of rateless erasure codes for efficient content distribution}, 
+  year         = {2004},
+  pages        = {226--240},
+  publisher    = {IEEE Computer Society},
+  address      = {Berkeley, CA, USA},
+  doi          = {10.1109/SECPRI.2004.1301326}
 }
 
 @inproceedings{verify-ec,
-  title={Verifying distributed erasure-coded data},
-  author={Hendricks, James and Ganger, Gregory R and Reiter, Michael K},
-  booktitle={Proceedings of the twenty-sixth annual ACM symposium on Principles of distributed computing},
-  pages={139--146},
-  year={2007}
+  title        = {Verifying distributed erasure-coded data},
+  author       = {Hendricks, James and Ganger, Gregory R and Reiter, Michael K},
+  booktitle    = {Proceedings of the 26th Annual ACM Symposium on Principles of Distributed Computing (PODC)},
+  pages        = {139--146},
+  year         = {2007},
+  publisher    = {ACM},
+  address      = {Portland, OR, USA}
 }
 
 @inproceedings{cross-checksum,
-  title={Securely replicating authentication services},
-  author={Gong, Li},
-  booktitle={[1989] Proceedings. The 9th International Conference on Distributed Computing Systems},
-  pages={85--91},
-  year={1989},
-  organization={IEEE}
+  title        = {Securely replicating authentication services},
+  author       = {Gong, Li},
+  booktitle    = {Proceedings of the 9th International Conference on Distributed Computing Systems (ICDCS)},
+  pages        = {85--91},
+  year         = {1989},
+  publisher    = {IEEE Computer Society},
+  address      = {Newport Beach, CA, USA}
 }
 
 @article{rs-code,
-author = {Reed, I. S. and Solomon, G.},
-title = {Polynomial Codes Over Certain Finite Fields},
-journal = {Journal of the Society for Industrial and Applied Mathematics},
-volume = {8},
-number = {2},
-pages = {300-304},
-year = {1960},
-doi = {10.1137/0108018},
-URL = {https://doi.org/10.1137/0108018},
-eprint = {https://doi.org/10.1137/0108018}
+  author       = {Reed, I. S. and Solomon, G.},
+  title        = {Polynomial Codes Over Certain Finite Fields},
+  journal      = {Journal of the Society for Industrial and Applied Mathematics},
+  volume       = {8},
+  number       = {2},
+  pages        = {300--304},
+  year         = {1960},
+  doi          = {10.1137/0108018}
 }
 
 @inproceedings{algorand,
-author = {Gilad, Yossi and Hemo, Rotem and Micali, Silvio and Vlachos, Georgios and Zeldovich, Nickolai},
-title = {Algorand: Scaling Byzantine Agreements for Cryptocurrencies},
-year = {2017},
-isbn = {9781450350853},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/3132747.3132757},
-doi = {10.1145/3132747.3132757},
-abstract = {Algorand is a new cryptocurrency that confirms transactions with latency on the order of a minute while scaling to many users. Algorand ensures that users never have divergent views of confirmed transactions, even if some of the users are malicious and the network is temporarily partitioned. In contrast, existing cryptocurrencies allow for temporary forks and therefore require a long time, on the order of an hour, to confirm transactions with high confidence.Algorand uses a new Byzantine Agreement (BA) protocol to reach consensus among users on the next set of transactions. To scale the consensus to many users, Algorand uses a novel mechanism based on Verifiable Random Functions that allows users to privately check whether they are selected to participate in the BA to agree on the next set of transactions, and to include a proof of their selection in their network messages. In Algorand's BA protocol, users do not keep any private state except for their private keys, which allows Algorand to replace participants immediately after they send a message. This mitigates targeted attacks on chosen participants after their identity is revealed.We implement Algorand and evaluate its performance on 1,000 EC2 virtual machines, simulating up to 500,000 users. Experimental results show that Algorand confirms transactions in under a minute, achieves 125x Bitcoin's throughput, and incurs almost no penalty for scaling to more users.},
-booktitle = {Proceedings of the 26th Symposium on Operating Systems Principles},
-pages = {51–68},
-numpages = {18},
-location = {Shanghai, China},
-series = {SOSP '17}
+  author       = {Gilad, Yossi and Hemo, Rotem and Micali, Silvio and Vlachos, Georgios and Zeldovich, Nickolai},
+  title        = {{Algorand}: Scaling Byzantine Agreements for Cryptocurrencies},
+  year         = {2017},
+  publisher    = {ACM},
+  address      = {Shanghai, China},
+  doi          = {10.1145/3132747.3132757},
+  booktitle    = {Proceedings of the 26th ACM Symposium on Operating Systems Principles (SOSP)},
+  pages        = {51--68}
 }
 
-note={Defines the "Vertical Attack" specifically targeting data infohashes.}
+% Defines the "Vertical Attack" specifically targeting data infohashes.
 @inproceedings{bittorrent-attack,
-  author={Wang, Liang and Kangasharju, Jussi},
-  booktitle={2012 IEEE Global Communications Conference (GLOBECOM)}, 
-  title={Real-world sybil attacks in BitTorrent mainline DHT}, 
-  year={2012},
-  volume={},
-  number={},
-  pages={826-832},
-  keywords={Peer-to-peer computing;Routing;Protocols;Privacy;Particle measurements;Atmospheric measurements;Viruses (medical);Time measurement;Switches;Standards},
-  doi={10.1109/GLOCOM.2012.6503215}}
-
-note={Demonstrates how ID clustering is used to censor specific CIDs in IPFS.}
-@inproceedings{ipfs-attack,
-  title={Content Censorship in the InterPlanetary File System},
-  author={Marques, Danny and Hafid, Abdelhakim and Garc{\'\i}a, L},
-  booktitle={Proceedings of the Network and Distributed System Security Symposium (NDSS)},
-  year={2024},
+  author       = {Wang, Liang and Kangasharju, Jussi},
+  booktitle    = {Proceedings of the 2012 IEEE Global Communications Conference (GLOBECOM)}, 
+  title        = {Real-world sybil attacks in {BitTorrent} mainline {DHT}}, 
+  year         = {2012},
+  pages        = {826--832},
+  publisher    = {IEEE},
+  address      = {Anaheim, CA, USA},
+  doi          = {10.1109/GLOCOM.2012.6503215},
 }
 
-@article{chord,
-author = {Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M. Frans and Balakrishnan, Hari},
-title = {Chord: A scalable peer-to-peer lookup service for internet applications},
-year = {2001},
-isbn = {1581134118},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/383059.383071},
-doi = {10.1145/383059.383071},
-abstract = {A fundamental problem that confronts peer-to-peer applications is to efficiently locate the node that stores a particular data item. This paper presents Chord, a distributed lookup protocol that addresses this problem. Chord provides support for just one operation: given a key, it maps the key onto a node. Data location can be easily implemented on top of Chord by associating a key with each data item, and storing the key/data item pair at the node to which the key maps. Chord adapts efficiently as nodes join and leave the system, and can answer queries even if the system is continuously changing. Results from theoretical analysis, simulations, and experiments show that Chord is scalable, with communication cost and the state maintained by each node scaling logarithmically with the number of Chord nodes.},
-booktitle = {Proceedings of the 2001 Conference on Applications, Technologies, Architectures, and Protocols for Computer Communications},
-pages = {149–160},
-numpages = {12},
-location = {San Diego, California, USA},
-series = {SIGCOMM '01}
+% Demonstrates how ID clustering is used to censor specific CIDs in IPFS.
+@inproceedings{ipfs-attack,
+  title        = {Content Censorship in the {InterPlanetary} File System},
+  author       = {Sridhar, Srivatsan and Ascigil, Onur and Keizer, Navin and Genon, Fran{\c{c}}ois and Pierre, S{\'e}bastien and Psaras, Yiannis and Rivi{\`e}re, Etienne and Kr{\'o}l, Micha{\l}},
+  booktitle    = {Proceedings of the Network and Distributed System Security Symposium (NDSS)},
+  publisher    = {Internet Society},
+  address      = {San Diego, CA, USA},
+  numpages     = {17},
+  year         = {2024},
+}
+
+@inproceedings{chord,
+  author       = {Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M. Frans and Balakrishnan, Hari},
+  title        = {{Chord}: A scalable peer-to-peer lookup service for internet applications},
+  year         = {2001},
+  publisher    = {ACM},
+  address      = {San Diego, CA, USA},
+  doi          = {10.1145/383059.383071},
+  booktitle    = {Proceedings of the 2001 Conference on Applications, Technologies, Architectures, and Protocols for Computer Communications (SIGCOMM)},
+  pages        = {149--160}
 }
 
 @inproceedings{kademlia,
-author="Maymounkov, Petar and Mazi{\`e}res, David",
-editor="Druschel, Peter and Kaashoek, Frans and Rowstron, Antony",
-title="Kademlia: A Peer-to-Peer Information System Based on the XOR Metric",
-booktitle="Peer-to-Peer Systems",
-year="2002",
-publisher="Springer Berlin Heidelberg",
-address="Berlin, Heidelberg",
-pages="53--65",
-abstract="We describe a peer-to-peer distributed hash table with provable consistency and performance in a fault-prone environment. Our system routes queries and locates nodes using a novel XOR-based metric topology that simplifies the algorithm and facilitates our proof. The topology has the property that every message exchanged conveys or reinforces useful contact information. The system exploits this information to send parallel, asynchronous query messages that tolerate node failures without imposing timeout delays on users.",
-isbn="978-3-540-45748-0"
+  author       = {Maymounkov, Petar and Mazi{\`e}res, David},
+  title        = {{Kademlia}: A Peer-to-Peer Information System Based on the {XOR} Metric},
+  booktitle    = {Revised Papers from the First International Workshop on Peer-to-Peer Systems (IPTPS)},
+  year         = {2002},
+  publisher    = {Springer},
+  address      = {Cambridge, MA, USA},
+  pages        = {53--65}
 }
 
-
-==== Related works ====
+% ==== Related works ====
 
 @article{bft-dsn,
-  author={Guo, Hechuan and Xu, Minghui and Zhang, Jiahao and Liu, Chunchi and Ranjan, Rajiv and Yu, Dongxiao and Cheng, Xiuzhen},
-  journal={IEEE Transactions on Computers}, 
-  title={BFT-DSN: A Byzantine Fault-Tolerant Decentralized Storage Network}, 
-  year={2024},
-  volume={73},
-  number={5},
-  pages={1300-1312},
-  keywords={Encoding;Fault tolerant systems;Fault tolerance;Resilience;Consensus algorithm;Codes;Computers;Decentralized storage networks;consortium blockchain;Byzantine fault tolerance;erasure codes},
-  doi={10.1109/TC.2024.3365953}}
+  author       = {Guo, Hechuan and Xu, Minghui and Zhang, Jiahao and Liu, Chunchi and Ranjan, Rajiv and Yu, Dongxiao and Cheng, Xiuzhen},
+  journal      = {IEEE Transactions on Computers}, 
+  title        = {{BFT-DSN}: A Byzantine Fault-Tolerant Decentralized Storage Network}, 
+  year         = {2024},
+  volume       = {73},
+  number       = {5},
+  pages        = {1300--1312},
+  publisher    = {IEEE},
+  address      = {New York, NY, USA},
+  doi          = {10.1109/TC.2024.3365953}
+}
 
 @article{oceanstore,
-  title={Oceanstore: An architecture for global-scale persistent storage},
-  author={Kubiatowicz, John and Bindel, David and Chen, Yan and Czerwinski, Steven and Eaton, Patrick and Geels, Dennis and Gummadi, Ramakrishna and Rhea, Sean and Weatherspoon, Hakim and Weimer, Westley and others},
-  journal={ACM SIGOPS Operating Systems Review},
-  volume={34},
-  number={5},
-  pages={190--201},
-  year={2000},
-  publisher={ACM New York, NY, USA}
+  title        = {{Oceanstore}: An architecture for global-scale persistent storage},
+  author       = {Kubiatowicz, John and Bindel, David and Chen, Yan and Czerwinski, Steven and Eaton, Patrick and Geels, Dennis and Gummadi, Ramakrishna and Rhea, Sean and Weatherspoon, Hakim and Weimer, Westley and others},
+  journal      = {ACM SIGOPS Operating Systems Review},
+  volume       = {34},
+  number       = {5},
+  pages        = {190--201},
+  year         = {2000},
+  publisher    = {ACM},
+  address      = {New York, NY, USA}
 }
 
 @inproceedings{ceph,
-  title={Ceph: A scalable, high-performance distributed file system},
-  author={Weil, Sage and Brandt, Scott A and Miller, Ethan L and Long, Darrell DE and Maltzahn, Carlos},
-  booktitle={Proceedings of the 7th Conference on Operating Systems Design and Implementation (OSDI'06)},
-  pages={307--320},
-  year={2006}
+  title        = {{Ceph}: A scalable, high-performance distributed file system},
+  author       = {Weil, Sage and Brandt, Scott A and Miller, Ethan L and Long, Darrell DE and Maltzahn, Carlos},
+  booktitle    = {Proceedings of the 7th USENIX Symposium on Operating Systems Design and Implementation (OSDI)},
+  publisher    = {USENIX Association},
+  address      = {Seattle, WA, USA},
+  pages        = {307--320},
+  year         = {2006}
 }
