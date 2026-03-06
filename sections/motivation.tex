@@ -121,8 +121,10 @@ The neighborhood size is limited by practical redundancy level, leading to small
 Swarm further employs a cross-neighborhood erasure-coding layer.
 Each data block is erasure-coded and redundantly stored in multiple neighborhoods.
 Even if a fraction of neighborhoods is compromised by $O(N)$ Byzantine nodes, the remaining encoded fragments can still recover the original data block.
-The downside is that Swarm cannot automate repairing redundancy loss from failed neighborhoods and the extra redundancy brought by the erasure-coded layer.
+The downside of this approach is that the redundancy loss from failed placement groups can be repaired only manually.
+It also requires an additional erasure-coding layer, which introduces extra storage overhead on top of already costly in-neighborhood replication.
 
+% ==== backup materials for full paper ====
 \iffalse
 \paragraph{Explicit on-chain placement.}
 In Filecoin and Sia, users control placement of their data.

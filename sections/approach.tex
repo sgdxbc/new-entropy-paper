@@ -33,16 +33,43 @@ This disjointness is key to global defense: a Byzantine node can reside in only 
 Therefore, with \nicefrac{1}{3} Byzantine nodes globally, at most \nicefrac{1}{3} of placement groups are compromised, regardless of the adversarial distribution.
 Unlike DSNs with $O(P)$ fault tolerance, Swarm does not require each placement group to withstand the full adversarial budget, so the group size need not scale with the total number of nodes.
 
-However, sacrificing placement groups is never ideal.
-As discussed in \cref{sec:motivation:review}, redundancy loss from failed placement groups can be repaired only manually, if it can be repaired at all.
-It also requires an additional erasure-coding layer, which introduces extra storage overhead on top of already costly in-neighborhood replication.
+However, sacrificing placement groups demands manual redundancy repair across placement groups and additional redundancy, as discussed in \cref{sec:motivation:review}.
+% As discussed in \cref{sec:motivation:review}, redundancy loss from failed placement groups can be repaired only manually, if it can be repaired at all.
+% It also requires an additional erasure-coding layer, which introduces extra storage overhead on top of already costly in-neighborhood replication.
 To avoid these pitfalls, each placement group in our system must remain uncompromised even under global Byzantine pressure.
 Our data placement solution allows defensive effort to be distributed across groups as flexibly as Byzantine attacking power.
 Each placement group receives a level of defense that dynamically matches the attack it faces.
 When attacks concentrate on specific groups, the DSN correspondingly concentrates fault tolerance on those groups to ensure their safety.
-\lijl{I still feel that discussing Swarm here is a little distracting. Maybe move to related work?}
+\lijl{I still feel that discussing Swarm here is a little distracting. Maybe move to related work?} \sgd{Moved.}
 
-To realize this goal, we shift from a data-centric approach to a node-centric one.
+\begin{figure}
+    \centering
+    \begin{minipage}[t]{0.49\columnwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\linewidth]{figures/approach-data-centric}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.49\columnwidth}
+        \vspace{0pt}
+        \centering
+        \includegraphics[width=\linewidth]{figures/approach-node-centric}
+    \end{minipage}
+    \caption{
+        Incentive allocation approaches of DSNs.
+        Left: data-centric, right: node-centric.
+        The red nodes are Byzantine and clustering in one placement group (PG).
+    }
+    \label{fig:approach}
+    \ifacm
+    \Description{
+        Two side-by-side diagrams comparing incentive allocation in DSN placement.
+        The left diagram shows a data-centric model where incentives are tied to individual placement groups.
+        The right diagram shows a node-centric model where incentives are allocated per node across placement groups.
+    }
+    \fi
+\end{figure}
+
+To realize this goal, we shift from a data-centric approach to a node-centric one, illustrated in \cref{fig:approach}.
 In prior DSNs, incentives are tied to data blocks and their placement groups: payment originates from the client storing the data and is distributed to participating nodes.
 Although this model is straightforward, it prevents placement groups from sharing defensive effort because each group is governed by a separate incentive fund.
 In \sys, incentives paid for all stored data are pooled and distributed directly to nodes.
@@ -51,7 +78,7 @@ This node-centric allocation is exactly what we need.
 The incentive captured by Byzantine nodes can be interpreted as a global defensive budget that effectively ``tracks'' Byzantine behavior across groups.
 Because each node's incentive is independent of others, the reward of a rational node in a placement group is unaffected by additional Byzantine nodes joining that same group.
 As a result, rational nodes remain in place, placement groups remain effective, and data availability is preserved.
-\lijl{I think I can get the idea from reading this paragraph, but reviewers might still be confused. Maybe adding an illustration to help the reader understand the difference between data-centric and node-centric?}
+\lijl{I think I can get the idea from reading this paragraph, but reviewers might still be confused. Maybe adding an illustration to help the reader understand the difference between data-centric and node-centric?} \sgd{Done.}
 
 Our node-centric approach introduces new challenges.
 A key benefit of the data-centric approach is that incentives naturally balance rational nodes across placement groups, since each data block offers comparable rewards and attracts a comparable number of nodes.
