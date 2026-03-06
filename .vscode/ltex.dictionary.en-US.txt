@@ -19,3 +19,4 @@ statelessly
 Algorand
 verifiability
 Chernoff
+VRFs
