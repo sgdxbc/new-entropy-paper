@@ -20,13 +20,12 @@ A VRF satisfies the following properties:
 \subsection{Sampling to Defend Against Byzantine Nodes Globally}
 \label{sec:approach:sample}
 
-\lijl{The writing here is still not very clear. I think the key point is that placement groups in prior systems are formed independently. To ensure safety, each group needs to independently defend against potentially $f$ Byzantine nodes in the group. This is, however, an overkill. The attacks across groups are not independent. If one group is compromised with $f$ nodes, the other groups will have no Byzantine participants. This is our key insight. The challenge is how to form groups that take this Byzantine correlation into account.} \sgd{Cannot simply put it as ``the other groups will have no Byzantine participants'' because we don't restrict each node to join at most one group (not like Swarm). So reworked without this exact statement.}
 We observe a common pattern in DSNs with $O(P)$ fault tolerance.
 In these systems, placement groups are formed independently, and fault tolerance is analyzed locally for each group, resembling centrally managed storage practice.
 This approach is effective for simultaneous failures of rational nodes, but it becomes inadequate in the presence of Byzantine nodes.
 Unlike benign failures, which are tied to specific placement groups, Byzantine adversarial power is global and can be distributed arbitrarily across groups.
 In such DSNs, each placement group is secured against Byzantine behavior independently, which leads to redundant defense.
-In fact, to tolerate attacks on individual groups, these DSNs have to enlarge placement groups so that they can even tolerate an attack that targets all groups simultaneously, which is clear overprovisioning with undesirable trade-offs.
+In fact, to tolerate attacks on individual groups, these DSNs have to enlarge placement groups so that they can even tolerate an attack that targets all groups simultaneously, which is clear over-provisioning with undesirable trade-offs.
 To tolerate Byzantine nodes more efficiently, data placement must defend against Byzantine power globally rather than independently within each placement group.
 
 Among prior DSNs, Swarm is the only system that tolerates $O(N)$ Byzantine nodes, enabled by its disjoint neighborhoods.
@@ -37,11 +36,11 @@ Unlike DSNs with $O(P)$ fault tolerance, Swarm does not require each placement g
 However, sacrificing placement groups is never ideal.
 As discussed in \cref{sec:motivation:review}, redundancy loss from failed placement groups can be repaired only manually, if it can be repaired at all.
 It also requires an additional erasure-coding layer, which introduces extra storage overhead on top of already costly in-neighborhood replication.
-\lijl{I assume the discussion above is about the weaknesses of Swarm? The current text is not very clear. I suggest making the points more direct and concise. Also, not sure if here is the best place to discuss Swarm weaknesses.} \sgd{Clarified. This is a recap of Swarm's weaknesses so should be fine.}
 To avoid these pitfalls, each placement group in our system must remain uncompromised even under global Byzantine pressure.
 Our data placement solution allows defensive effort to be distributed across groups as flexibly as Byzantine attacking power.
 Each placement group receives a level of defense that dynamically matches the attack it faces.
 When attacks concentrate on specific groups, the DSN correspondingly concentrates fault tolerance on those groups to ensure their safety.
+\lijl{I still feel that discussing Swarm here is a little distracting. Maybe move to related work?}
 
 To realize this goal, we shift from a data-centric approach to a node-centric one.
 In prior DSNs, incentives are tied to data blocks and their placement groups: payment originates from the client storing the data and is distributed to participating nodes.
@@ -52,6 +51,7 @@ This node-centric allocation is exactly what we need.
 The incentive captured by Byzantine nodes can be interpreted as a global defensive budget that effectively ``tracks'' Byzantine behavior across groups.
 Because each node's incentive is independent of others, the reward of a rational node in a placement group is unaffected by additional Byzantine nodes joining that same group.
 As a result, rational nodes remain in place, placement groups remain effective, and data availability is preserved.
+\lijl{I think I can get the idea from reading this paragraph, but reviewers might still be confused. Maybe adding an illustration to help the reader understand the difference between data-centric and node-centric?}
 
 Our node-centric approach introduces new challenges.
 A key benefit of the data-centric approach is that incentives naturally balance rational nodes across placement groups, since each data block offers comparable rewards and attracts a comparable number of nodes.
@@ -71,8 +71,6 @@ where $\mathcal{N}$ is the set of all nodes and $Y$ is the maximum VRF output.
 Beyond scalable fault tolerance, this approach is also algorithmic: the only consistent state it requires is the target sampling rate $p$, which can be inferred from blockchain history, analogous to Bitcoin difficulty.
 Thus, sampling-based data placement can achieve both strong resiliency and scalable on-chain footprint.
 
-\lijl{One way to formulate the principle: prior solutions use a ``group-centric'' approach, meaning for each group, the system selects a set of nodes to join, independent of other groups, and incentives are given per-group. We are ``node-centric'', i.e., for each node, the system selects which group this node belongs to, independent of other nodes, and incentives are given per-node. Then, we just need to explain why node-centric approach can provide the properties we want.} \sgd{Revised.}
-
 \subsection{Sampling for Erasure Coding}
 \label{sec:approach:ec}
 
@@ -84,10 +82,9 @@ Endorsed nodes then store the assigned fragments and prove storage against those
 In \sys, we instead require an algorithmic approach, because storing fragment-to-node assignments on-chain leads to either high on-chain overhead~\cite{filecoin,sia,shelby} or fixed membership~\cite{walrus}.
 
 Algorithmically assigning fragments in dynamic placement groups of \sys is challenging.
-To ensure long-term recoverability, each endorsed node must be assigned distinct encoded fragments, \lijl{We haven't discussed encoding yet.} \sgd{Discussed} so that any set of $k$ rational nodes can recover the data block, where $k$ is the repair threshold of the EC scheme.
+To ensure long-term recoverability, each endorsed node must be assigned distinct encoded fragments, so that any set of $k$ rational nodes can recover the data block, where $k$ is the repair threshold of the EC scheme.
 Because node failures are random and occur in nondeterministic order, assignments for newly joined nodes must adapt to previous failures.
 Off-chain coordination of this assignment is infeasible, because a Byzantine majority could manipulate assignments to induce data loss.
-\lijl{We should define the problem and the desired properties clearly. Data is encoded into some fragments (fixed number?). Each endorsed node stores some fragments. Need to ensure the number of unique fragments on non-faulty nodes to exceed a certain number, without storing extra metadata on-chain.} \sgd{Clarified.}
 
 We therefore also use sampling to assign encoded fragments to endorsed nodes.
 The hash of proof $\pi$ is interpreted as a seed for sampling the fragment to be stored.
@@ -96,11 +93,9 @@ However, this assignment is not guaranteed to be injective, so multiple nodes ma
 We solve this problem by sampling multiple fragments for each node to ensure that every fragment is assigned to at least one node with high probability.
 
 We further improve the space efficiency of this sampling approach by leveraging the rateless property of verifiable rateless EC~\cite{verify-rateless-ec}.
-\lijl{Should first explain what we are optimizing by using rateless code.} \sgd{Done.}
 A rateless EC can generate an unbounded number of encoded fragments from an original data block, where each fragment can be interpreted as the XOR of sampled source fragments under recoverability-preserving sampling distributions.
 This property lets us assign one distinct fragment to each node with high probability by directly interpreting the hash of proof $\pi$ as the fragment index, thereby eliminating the need to sample multiple fragments per node and reducing storage overhead.
 
-\lijl{Is this only a challenge for rateless EC? Or also for other coding scheme if being used in our context?} \sgd{Revised.}
 However, the rateless property also implies a potentially unbounded set of fragments stored by endorsed nodes.
 Their storage cannot be proven through conventional on-chain fragment commitments, because that would require maintaining an unbounded number of commitments.
 Verifiable rateless EC provides an $\ECVerify$ algorithm that validates a fragment using the original data-block hash and the fragment index~\cite{verify-rateless-ec}.
