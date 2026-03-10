@@ -20,3 +20,6 @@ Algorand
 verifiability
 Chernoff
 VRFs
+Solana
+Polkadot
+HackerNoon
