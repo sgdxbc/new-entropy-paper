@@ -1,4 +1,4 @@
-\section{Introduction}
+data availability guarantees\section{Introduction}
 \label{sec:intro}
 
 Decentralized storage networks (DSNs)~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn,swarm} are emerging as a reliable and cost-effective approach to long-term data storage for blockchains and beyond.
@@ -11,7 +11,7 @@ Nowadays, the top DSNs host more than Exabyte of data~\cite{filecoin-size}.
 DSNs address the need for reliable storage under strict trust assumptions in which no single participant is trusted~\cite{bar}.
 Whereas centralized storage systems focus on tolerating failures of resources operated by a single organization, DSNs assume that organizations themselves may be untrusted.
 DSNs also tolerate organization-level failures, such as service shutdowns or censorship of stored data.
-Consequently, DSNs rely on resources contributed by permissionless providers and apply distributed protocols such as smart contracts executed on blockchains.
+Consequently, DSNs rely on resources contributed by permissionless providers, usually through incentive mechanisms, and apply distributed protocols such as smart contracts executed on blockchains.
 Providers can join and leave the network at any time.
 DSNs can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
 As a result, users need not trust any single provider for availability while retaining confidence that their data remain reliably stored.
@@ -29,10 +29,15 @@ Such attacks could violate the data availability guarantees.
 % Consequently, a placement group designed to tolerate $m$ simultaneous failures can still fail after just more than $m-f$ additional non-Byzantine failures when the group contains $f$ Byzantine nodes.
 % Among placement groups of equal size, those with fewer rational nodes and more Byzantine nodes are less robust.
 
-We define the \emph{effective placement group} of a data block as the subset of rational nodes in its DSN-determined placement group; data remain available only when this effective group is large enough to tolerate simultaneous failures.
-In this sense, the effective placement group is the DSN counterpart of the placement group in centrally managed storage.
-Yet DSNs cannot directly identify Byzantine nodes and therefore cannot directly measure effective group size, while Byzantine nodes can move across and cluster within selected placement groups, making nominally uniform group sizes increasingly vulnerable.
-Although prior DSN designs focus on enforcing correct storage by rational nodes and efficiently detecting storage failures~\cite{por}, they largely overlook placement attacks, where data may be lost before any visible failure signal appears.
+%We define the \emph{effective placement group} of a data block as the subset of rational nodes in its DSN-determined placement group; data remain available only when this effective group is large enough to tolerate simultaneous failures.
+%In this sense, the effective placement group is the DSN counterpart of the placement group in centrally managed storage.
+%Yet DSNs cannot directly identify Byzantine nodes and therefore cannot directly measure effective group size, while Byzantine nodes can move across and cluster within selected placement groups, making nominally uniform group sizes increasingly vulnerable.
+%Although prior DSN designs focus on enforcing correct storage by rational nodes and efficiently detecting storage failures~\cite{por}, they largely overlook placement attacks, where data may be lost before any visible failure signal appears.
+We identify a fundamental challenge in forming placement groups in DSNs, regardless of the approach.
+Given that Byzantine nodes can discard stored data at any time, a placement group can only rely on sufficient non-Byzantine nodes to maintain data availability.
+We term the set of non-Byzantine nodes in a placement group the \emph{effective placement group}.
+However, it is generally impossible to identify Byzantine nodes.
+Accurately determining the effective placement group size, therefore, remains an infeasible task.
 
 We review limitations of prior DSNs in \cref{sec:motivation:review}.
 These DSNs suffer from limited and non-scalable storage volume~\cite{permacoin,retricoin,arweave,walrus,bft-dsn,swarm}, on-chain footprint~\cite{filecoin,sia,shelby} and/or Byzantine fault tolerance~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn}.
