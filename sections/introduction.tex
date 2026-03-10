@@ -47,14 +47,17 @@ They suffer from limited and non-scalable storage capacity~\cite{permacoin,retri
 Our key insight is that the root cause shared by existing designs is their \emph{data-centric} placement approach.
 That is, each data placement group is formed and incentivized independently.
 Since Byzantine nodes cannot be reliably identified, a system needs to provision each group separately to defend against adversarial power.
-The approach leads to a fundamental trade-off: either over-provision all groups for potential attacks, or sacrifice data availability of some groups.
+The approach leads to a fundamental trade-off: either over-provision all groups for potential Byzantine attacks, or sacrifice data availability of some groups.
 
-In this work, we propose a novel design principle of DSNs: a \emph{node-centric} approach that allows defense to ``track'' Byzantine nodes across placement groups.
-Unlike prior data-centric approaches, in which placement groups are paid for persisting specific data, our approach pays nodes directly for placement-group participation, regardless of which groups they join.
-Therefore, rewards received by nodes storing a data block need not match the payment made by the client storing that block.
-Under this node-centric model, the behavior of rational nodes is insensitive to Byzantine distribution because their profits remain unaffected by where Byzantine nodes cluster.
-At the same time, DSNs can no longer rely on uniform per-data payouts to balance rational nodes across groups, so the data placement scheme must explicitly ensure that each placement group contains a sufficient number of rational nodes.
-Following this idea, we design \sys, a DSN in which nodes are randomly sampled into each placement group\footnotemark.
+In this work, we propose a novel design principle of DSNs: a \emph{node-centric} approach that allows efficient Byzantine fault tolerance across placement groups.
+Unlike prior data-centric approaches, in which each placement group is incentivized separately, our approach incentivizes each node directly for contributing storage, regardless of which groups they join.
+%Therefore, rewards received by nodes storing a data block need not match the payment made by the client storing that block.
+Under this node-centric model, the rational honest nodes are no longer influenced by Byzantine distribution because their rewards only depend on their storage contribution.
+
+Node-centric incentivization alone is insufficient to provide data availability;
+a DSN still needs to ensure enough honest nodes join each placement group.
+%At the same time, DSNs can no longer rely on uniform per-data payouts to balance rational nodes across groups, so the data placement scheme must explicitly ensure that each placement group contains a sufficient number of rational nodes.
+To address this challenge, we design \sys, a DSN in which nodes are randomly sampled into each placement group\footnotemark.
 \footnotetext{The name \sys reflects this randomization principle.}
 \sys employs a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for publicly verifiable sampling, which we call endorsement, while controlling the expected number of groups that endorse each node.
 \sys realizes the node-centric approach by rewarding per endorsement and isolating rewards across nodes through independent endorsements.
