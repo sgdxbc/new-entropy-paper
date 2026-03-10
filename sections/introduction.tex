@@ -39,11 +39,14 @@ We term the set of non-Byzantine nodes in a placement group the \emph{effective 
 However, it is generally impossible to identify Byzantine nodes.
 Accurately determining the effective placement group size, therefore, remains an infeasible task.
 
-We review limitations of prior DSNs in \cref{sec:motivation:review}.
-These DSNs suffer from limited and non-scalable storage volume~\cite{permacoin,retricoin,arweave,walrus,bft-dsn,swarm}, on-chain footprint~\cite{filecoin,sia,shelby} and/or Byzantine fault tolerance~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn}.
-We identify the root cause of these limitations as an incentive mismatch: Byzantine nodes can distribute arbitrarily and concentrate attacks on selected placement groups, whereas incentives are rigidly bound to specific data blocks and their associated groups.
-As a result, each placement group must overprovision as if it were defending against the full Byzantine budget, leading to redundant defensive effort across the DSN.
-To improve efficiency, DSNs should defend against Byzantine behavior globally rather than independently within each placement group, and should distribute defensive effort across groups according to attack concentration so that no group is compromised.
+We review how prior DSNs form placement groups in \cref{sec:motivation:review}.
+They suffer from limited and non-scalable storage capacity~\cite{permacoin,retricoin,arweave,walrus,bft-dsn,swarm}, on-chain footprint~\cite{filecoin,sia,shelby} and/or Byzantine fault tolerance~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn}.
+%We identify the root cause of these limitations as an incentive mismatch: Byzantine nodes can distribute arbitrarily and concentrate attacks on selected placement groups, whereas incentives are rigidly bound to specific data blocks and their associated groups.
+%As a result, each placement group must overprovision as if it were defending against the full Byzantine budget, leading to redundant defensive effort across the DSN.
+%To improve efficiency, DSNs should defend against Byzantine behavior globally rather than independently within each placement group, and should distribute defensive effort across groups according to attack concentration so that no group is compromised.
+Our key insight is that the root cause shared by existing designs is their \emph{data-centric} placement approach.
+That is, each data placement group is formed and incentivized independently.
+Since Byzantine behavior cannot be reliably identified, a system needs to provision each group to defend against adversarial power from potentially all Byzantine nodes.
 
 In this work, we propose a novel design principle of DSNs: a node-centric approach that allows defense to ``track'' Byzantine nodes across placement groups.
 Unlike prior data-centric approaches, in which placement groups are paid for persisting specific data, our approach pays nodes directly for placement-group participation, regardless of which groups they join.
