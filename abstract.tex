@@ -1,3 +1,12 @@
 \begin{abstract}
-    This work is awesome.
+Decentralized storage networks (DSNs) are storage systems powered by permissionless nodes.
+Data placement in DSNs must tolerate not only storage-device failures but also adversarial behavior that targets data availability.
+Byzantine nodes introduce unique challenges because they may collude and distribute themselves arbitrarily across data-block placement groups.
+They can target specific data blocks by clustering within a block's placement group, reducing the number of rational nodes and weakening failure tolerance.
+In this work, we propose a global defense against Byzantine nodes across all placement groups.
+We introduce a node-centric approach that guarantees stable incentives for rational nodes regardless of the number of Byzantine nodes in their placement groups.
+Building on this approach, we design \sys, a DSN that uses sampling-based data placement with verifiable randomness.
+Compared with prior DSNs, this placement strategy allows \sys to scale simultaneously in storage volume, on-chain footprint, and Byzantine tolerance.
+We present the full design of \sys and preliminary simulation results.
+The results show that \sys achieves the desired availability with scalable storage overhead while maintaining scalable fault tolerance.
 \end{abstract}
