@@ -2,30 +2,33 @@
 \label{sec:intro}
 
 Decentralized storage networks (DSNs)~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn,swarm} are emerging as a reliable and cost-effective approach to long-term data storage for blockchains and beyond.
-60\% of all Web3 dApps utilize the IPFS/Filecoin~\cite{filecoin} stack for off-chain metadata and front-end asset storage~\cite{filecoin-web3}.
-Arweave~\cite{arweave} is in charge of storing historical ledger data of Solana, Avalanche, Polkadot, Cosmos and NEAR Protocol~\cite{arweave-solana,arweave-blockchains}.
+60\% of all decentralized applications utilize the IPFS/Filecoin~\cite{filecoin} stack for off-chain metadata and front-end asset storage~\cite{filecoin-web3}.
+Arweave~\cite{arweave} stores historical ledger data of Solana, Avalanche, Polkadot, Cosmos and NEAR Protocol~\cite{arweave-solana,arweave-blockchains}.
 Besides blockchain ecosystems, the government of Bermuda uploads public datasets to Filecoin~\cite{filecoin-bermuda}.
 Sia~\cite{sia} secured a major partnership with HackerNoon to back up its entire publishing archive\footnote{\url{https://sia.hackernoon.com/}}~\cite{sia-hackermoon}.
-Nowadays, the top DSNs host more than Exabyte of data for various applications and clients~\cite{filecoin-size}.
+Nowadays, the top DSNs host more than Exabyte of data~\cite{filecoin-size}.
 
 DSNs address the need for reliable storage under strict trust assumptions in which no single participant is trusted~\cite{bar}.
-\lijl{Given that the reviewers might not be familiar with the concept, we should elaborate on the motivation of DSN.}\sgd{Done.}
-Whereas centralized storage systems focus on tolerating failures of resources operated by a single organization, DSNs assume that organizations themselves may be untrusted and must also tolerate organization-level failures, such as service shutdowns or censorship of stored data.
-Consequently, DSNs rely on resources contributed by many permissionless providers and coordinated by distributed protocols such as smart contracts executed on blockchains.
+Whereas centralized storage systems focus on tolerating failures of resources operated by a single organization, DSNs assume that organizations themselves may be untrusted.
+DSNs also tolerate organization-level failures, such as service shutdowns or censorship of stored data.
+Consequently, DSNs rely on resources contributed by permissionless providers and apply distributed protocols such as smart contracts executed on blockchains.
 Providers can join and leave the network at any time.
 DSNs can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
 As a result, users need not trust any single provider for availability while retaining confidence that their data remain reliably stored.
 DSNs are also cost-effective because no single provider can monopolize storage resources.
+\lijl{This paragraph can be further shortened.}
 
-As in centrally managed distributed storage, the central task in DSNs is to determine how data are placed across nodes.
-Each data block is stored redundantly on multiple nodes so that individual node failures do not cause data loss.
-For each block, the selected set of storing nodes is the placement group.
-\sgd{Reworked the rest of this section from here.}
-This placement metadata must remain reliable throughout each block's lifetime to support retrieval and repair.
-Some DSNs maintain placement state on chain through smart contracts, whereas others derive placement groups algorithmically through deterministic rules or protocols.
-However, placement is particularly challenging under Byzantine behavior: malicious nodes can ignore incentives~\cite{bar}, collude within a placement group, and discard redundancy simultaneously~\cite{ipfs-attack,bittorrent-attack}, creating correlated failures that violate independent-failure assumptions.
+Similar to centrally managed distributed storage, a critical task in DSNs is \emph{data placement}.
+Each data block is stored redundantly on a set of nodes called the \emph{placement group}.
+A placement group needs to tolerate simultaneous node failures to prevent data losses.
+%This placement metadata must remain reliable throughout each block's lifetime to support retrieval and repair.
+Existing DSNs either maintain placement metadata on chain through smart contracts, or derive placement groups algorithmically through deterministic rules or protocols.
+Compared to centralized storage, DSNs face new challenges in data placement due to adversarial behaviors:
+Malicious nodes can ignore incentives~\cite{bar}, collude within a placement group, and discard redundancy simultaneously~\cite{ipfs-attack,bittorrent-attack}.
+Such attacks could violate the data availability guarantees.
 % Consequently, a placement group designed to tolerate $m$ simultaneous failures can still fail after just more than $m-f$ additional non-Byzantine failures when the group contains $f$ Byzantine nodes.
 % Among placement groups of equal size, those with fewer rational nodes and more Byzantine nodes are less robust.
+
 We define the \emph{effective placement group} of a data block as the subset of rational nodes in its DSN-determined placement group; data remain available only when this effective group is large enough to tolerate simultaneous failures.
 In this sense, the effective placement group is the DSN counterpart of the placement group in centrally managed storage.
 Yet DSNs cannot directly identify Byzantine nodes and therefore cannot directly measure effective group size, while Byzantine nodes can move across and cluster within selected placement groups, making nominally uniform group sizes increasingly vulnerable.
