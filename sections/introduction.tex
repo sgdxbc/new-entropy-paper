@@ -1,4 +1,4 @@
-data availability guarantees\section{Introduction}
+\section{Introduction}
 \label{sec:intro}
 
 Decentralized storage networks (DSNs)~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn,swarm} are emerging as a reliable and cost-effective approach to long-term data storage for blockchains and beyond.
@@ -16,7 +16,6 @@ Providers can join and leave the network at any time.
 DSNs can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
 As a result, users need not trust any single provider for availability while retaining confidence that their data remain reliably stored.
 DSNs are also cost-effective because no single provider can monopolize storage resources.
-\lijl{This paragraph can be further shortened.}
 
 Similar to centrally managed distributed storage, a critical task in DSNs is \emph{data placement}.
 Each data block is stored redundantly on a set of nodes called the \emph{placement group}.
@@ -54,14 +53,16 @@ Unlike prior data-centric approaches, in which each placement group is incentivi
 %Therefore, rewards received by nodes storing a data block need not match the payment made by the client storing that block.
 Under this node-centric model, the rational honest nodes are no longer influenced by Byzantine distribution because their rewards only depend on their storage contribution.
 
-Node-centric incentivization alone is insufficient to provide data availability;
+Node-centric incentivization alone is insufficient to guarantee data availability;
 a DSN still needs to ensure enough honest nodes join each placement group.
 %At the same time, DSNs can no longer rely on uniform per-data payouts to balance rational nodes across groups, so the data placement scheme must explicitly ensure that each placement group contains a sufficient number of rational nodes.
-To address this challenge, we design \sys, a DSN in which nodes are randomly sampled into each placement group\footnotemark.
-\footnotetext{The name \sys reflects this randomization principle.}
+To address this challenge, we design \sys, a DSN in which nodes are randomly sampled into each placement group. %\footnotemark.
+%\footnotetext{The name \sys reflects this randomization principle.}
 \sys employs a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for publicly verifiable sampling, which we call endorsement, while controlling the expected number of groups that endorse each node.
-\sys realizes the node-centric approach by rewarding per endorsement and isolating rewards across nodes through independent endorsements.
-\XXX
+%\sys realizes the node-centric approach by rewarding per endorsement and isolating rewards across nodes through independent endorsements.
+The sampling-based design ensures each group contains sufficient honest nodes with overwhelmingly high probability, regardless of Byzantine node distribution.
+Combined with our node-centric incentivization, enough honest redundancy remains within each group to maintain data availability.
+We also extend the sampling approach to apply robust erasure coding within each group without any coordination.
 
 In \cref{sec:design}, we present the full design of \sys around this sampling-based placement solution.
 We then report preliminary simulation results in \cref{sec:eval}.
