@@ -6,7 +6,7 @@ We assume the existence of a token that is economically favorable to rational no
 For example, storage costs are more than compensated by storage rewards denominated in this token.
 For simplicity, we omit data expiration and removal, and the incentive for data retrieval.
 
-\subsection{On-chain Control Plane}
+\subsection{Design Overview}
 
 The smart contract in \sys maintains two on-chain states: the current set of staking nodes and the current set of stored data hashes.
 The former determines the number of nodes, which in turn determines the current sample rate $p$.
@@ -19,7 +19,7 @@ If the sampled node is endorsed in the data placement group, it can submit a pro
 The smart contract validates the node and data hash in the transaction, then runs $\VRFVerify$ and $\ECVerify$ as described in \cref{sec:approach:ec}.
 If validation succeeds, the submitting node receives token rewards.
 
-\subsection{Client Operations}
+% \subsection{Client Operations}
 
 To store a data block, a client submits a storing transaction with the data hash and the token payment for storage.
 When nodes process the storing transaction, they run $\VRFGen$ locally with their $\sk$ and the current sample rate $p$ to determine whether they are endorsed.
@@ -31,7 +31,7 @@ To retrieve a data block, a client sends a gossip message to \sys to discover en
 Nodes that store relevant fragments return them to the client.
 The client validates these fragments in a manner similar to proving transactions and decodes the data block from the validated fragments.
 
-\subsection{Node Bootstrapping}
+% \subsection{Node Bootstrapping}
 
 Redundancy repair typically occurs naturally when new nodes bootstrap into \sys.
 After synchronizing the smart-contract state, a node runs $\VRFGen$ against the current set of stored data hashes.
@@ -57,6 +57,7 @@ For simplicity, we let $N$ denote the minimum number of bootstrapped nodes of al
 This assumption means that, when node failures occur, there will be sufficient new nodes finish bootstrapping before the next time unit so that the number of bootstrapped nodes does not drop below $N$.
 This assumption exempts us from cross-time-unit analysis, and we only need to consider simultaneous failures within each time unit.
 
+\iffalse
 For a random data hash, the placement-group definition (\cref{sec:approach:sample}) implies that each of the $(1-f)N$ rational nodes is endorsed independently with probability $p$.
 (Byzantine nodes may deliberately choose $\sk$ to bias their endorsement probability upward or downward.
 Also, their behavior after endorsement is not reliable, we exclude them from this analysis.)
@@ -81,9 +82,15 @@ $$
 \binom{N_e}{i}(f')^i(1-f')^{N_e-i}
 $$
 Finally, the data loss probability is bounded by
+\fi
+
+We define $N_e$ as the target minimum number of endorsed rational nodes in a placement group.
+The data loss probability is bounded by
 $$\varepsilon\leq \varepsilon_1+(1-\varepsilon_1)\varepsilon_2$$
+$$\varepsilon_1\le e^{-N_e/8},\quad \varepsilon_2=\sum_{i=N_e-k+1}^{N_e}\binom{N_e}{i}(f')^i(1-f')^{N_e-i}$$
 and the sample rate should be configured to
 $$p=\frac{2N_e}{(1-f)N}$$
+We defer the detailed derivation of $\varepsilon$ to full paper due to space limit.
 We can first choose $N_e$ offline to meet a desired $\varepsilon$, and then configure $p$ online from $N_e$ and the other parameters.
 For example, choose $N_e=80$ with a typical parameter set $k=32$ and $f'=0.1$, which means each rational node has a 10\% probability to fail during one day.
 The bound above yields $\varepsilon\le 4.54\times 10^{-5}$, corresponding to a mean time to data loss of more than $2.20\times 10^{4}$ days (about 60.3 years).
