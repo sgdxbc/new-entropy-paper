@@ -62,8 +62,13 @@ In summary, we seek DSN data placement solutions that satisfy the following goal
 \label{sec:motivation:review}
 
 \begin{table}[t]
-\centering
 % \renewcommand{\arraystretch}{1.5}
+\caption{
+    Comparison of data placement solutions in DSNs.
+    $N$ indicates the total number of nodes, $S$ indicates the storage supply of each node (assuming uniform nodes), $D$ indicates the number of stored data blocks, and $P$ indicates placement-group size.
+    The on-chain footprints exclude $O(N)$ staking states common to all DSNs.
+}
+\centering
 \begin{minipage}{\columnwidth}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X c c c}
 \toprule
@@ -81,11 +86,6 @@ Neighborhood~\cite{swarm}
 \bottomrule
 \end{tabularx}
 \end{minipage}
-\caption{
-    Comparison of data placement solutions in DSNs.
-    $N$ indicates the total number of nodes, $S$ indicates the storage supply of each node (assuming uniform nodes), $D$ indicates the number of stored data blocks, and $P$ indicates placement-group size.
-    The on-chain footprints exclude $O(N)$ staking states common to all DSNs.
-}
 \label{tab:dsn}
 \end{table}
 
