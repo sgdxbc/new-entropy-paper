@@ -1,10 +1,9 @@
 \section{Approach}
 \label{sec:approach}
-
-\subsection{Preliminary}
+% \subsection{Preliminary}
 \label{sec:approach:preliminary}
 
-\paragraph{Verifiable random function (VRF)~\cite{vrf,vrf-rfc}.}
+\paragraph{Preliminary on verifiable random function (VRF)~\cite{vrf,vrf-rfc}.}
 A VRF provides two algorithms, $\VRFGen$ and $\VRFVerify$.
 $\VRFGen$ takes a secret key $\sk$ and an input $x$, and outputs a pseudorandom value $y$ and a proof $\pi$.
 $\VRFVerify$ takes a public key $\pk$, an input $x$, a value $y$, and a proof $\pi$, and outputs a boolean indicating whether $y$ is the correct VRF output for $x$ under $\pk$.

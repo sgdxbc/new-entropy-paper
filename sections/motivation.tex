@@ -7,8 +7,9 @@
 Decentralized storage networks (DSNs) provide blob storage services backed by resources collectively contributed by permissionless nodes.
 Some nodes are rational and aim to generate profit with their storage supply, while others are Byzantine, behaving arbitrarily and potentially maliciously~\cite{bar}.
 For simplicity, we assume nodes with uniform storage supply.
-% \sys can support heterogeneous nodes via virtual nodes~\cite{chord}, in which case tolerating a fraction of Byzantine nodes means tolerating a fraction of storage resources controlled by Byzantine identities.
+\sys can support heterogeneous nodes via virtual nodes~\cite{chord}, in which case tolerating a fraction of Byzantine nodes means tolerating a fraction of storage resources controlled by Byzantine identities.
 \lijl{Somewhere, maybe here, clarify what Byzantine nodes can do in this context.} \sgd{Done.}
+
 In this work, we focus on DSN data placement: which nodes should store redundant fragments for each data block, and what form that redundancy (i.e., replication or erasure coding~\cite{rs-code}) should take.
 Byzantine nodes can attack DSNs by exploiting their data placement policies~\cite{ipfs-attack,bittorrent-attack}.
 % Even when a data block appears to be securely replicated, it can become irrecoverable if too few nodes in its placement group are rational and Byzantine nodes deliberately fail as soon as they observe sufficiently many simultaneous failures of rational nodes.
@@ -54,7 +55,7 @@ Keeping on-chain overhead low is crucial for DSNs to scale and manage large data
 In summary, we seek DSN data placement solutions that satisfy the following goals:
 \begin{itemize}
     \item Tolerate up to a target fraction of Byzantine nodes;
-    \item Keep storage volume scalable with the total storage supply;
+    \item Scale storage volume with the total storage supply;
     \item Keep the on-chain state footprint scalable and independent of placement-group size.
 \end{itemize}
 
@@ -65,7 +66,7 @@ In summary, we seek DSN data placement solutions that satisfy the following goal
 % \renewcommand{\arraystretch}{1.5}
 \caption{
     Comparison of data placement solutions in DSNs.
-    $N$ indicates the total number of nodes, $S$ indicates the storage supply of each node (assuming uniform nodes), $D$ indicates the number of stored data blocks, and $P$ indicates placement-group size.
+    $N$: the total number of nodes, $S$: the storage supply of each node (assuming uniform nodes), $D$: the number of stored data blocks, $P$: placement-group size.
     The on-chain footprints exclude $O(N)$ staking states common to all DSNs.
 }
 \centering
@@ -91,7 +92,7 @@ Neighborhood~\cite{swarm}
 
 We summarize previous DSNs in \cref{tab:dsn}, comparing them along three dimensions: storage volume, on-chain footprint, and fault tolerance.
 Higher storage volume and fault tolerance are preferable, while lower on-chain footprint is desirable.
-Next, we explain how their limitations relate to their data placement solutions.
+% Next, we explain how their limitations relate to their data placement solutions.
 
 \iffalse
 Filecoin~\cite{filecoin}, Sia~\cite{sia} and Shelby~\cite{shelby} achieve scalable storage volume but must trade off between on-chain footprint and fault tolerance.
