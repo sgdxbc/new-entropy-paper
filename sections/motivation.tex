@@ -14,7 +14,7 @@ In this work, we focus on DSN data placement: which nodes should store redundant
 Byzantine nodes can attack DSNs by exploiting their data placement policies~\cite{ipfs-attack,bittorrent-attack}.
 Even when a data block appears to be securely replicated, it can become irrecoverable if too few nodes in its placement group are rational and Byzantine nodes deliberately fail as soon as they observe sufficiently many simultaneous failures of rational nodes.
 In practice, a placement group can tolerate failures only through its \emph{effective} portion, namely, its rational members.
-Moreover, Byzantine nodes may strategically join specific groups to reduce their effective reliability.
+Moreover, Byzantine nodes may strategically join specific groups to reduce their effective reliability~\cite{ouroboros,elastico}.
 As Byzantine participation dilutes rewards, rational nodes may leave, which further weakens those groups even when their nominal sizes still appear sufficient.
 This kind of ``silent'' attack cannot be detected prior to actual data loss with widely studied techniques such as proof of retrievability~\cite{por}.
 
