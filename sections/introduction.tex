@@ -45,7 +45,7 @@ They suffer from limited and non-scalable storage capacity~\cite{permacoin,retri
 %To improve efficiency, DSNs should defend against Byzantine behavior globally rather than independently within each placement group, and should distribute defensive effort across groups according to attack concentration so that no group is compromised.
 Our key insight is that the root cause shared by existing designs is their \emph{data-centric} placement approach.
 That is, each data placement group is formed and incentivized independently.
-Since Byzantine nodes cannot be reliably identified, a system needs to provision each group separately to defend against adversarial power.
+Since Byzantine nodes cannot be reliably identified, a system needs to provision each group to defend against adversarial power.
 The approach leads to a fundamental trade-off: either over-provision all groups for potential Byzantine attacks, or sacrifice data availability of some groups.
 
 In this work, we propose a novel design principle of DSNs: a \emph{node-centric} approach that allows efficient Byzantine fault tolerance across placement groups.
