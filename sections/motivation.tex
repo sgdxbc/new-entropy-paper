@@ -52,12 +52,7 @@ Keeping on-chain overhead low is crucial for DSNs to scale and manage large data
 \fi
 
 \sgd{Maybe propose these goals after literature review?}
-In summary, we seek DSN data placement solutions that satisfy the following goals:
-\begin{itemize}
-    \item Tolerate up to a target fraction of Byzantine nodes;
-    \item Scale storage volume with the total storage supply;
-    \item Keep the on-chain state footprint scalable and independent of placement-group size.
-\end{itemize}
+In summary, we seek DSN data placement solutions that 1) tolerate up to a target fraction of Byzantine nodes, 2) scale storage volume with the total storage supply, and 3) keep the on-chain state footprint scalable and independent of placement-group size.
 
 \subsection{Previous DSNs and Their Limitations}
 \label{sec:motivation:review}
@@ -90,7 +85,7 @@ Neighborhood~\cite{swarm}
 \label{tab:dsn}
 \end{table}
 
-We summarize previous DSNs in \cref{tab:dsn}, comparing them along three dimensions: storage volume, on-chain footprint, and fault tolerance.
+We summarize prior work in \cref{tab:dsn}, comparing them along three dimensions: storage volume, on-chain footprint, and fault tolerance.
 Higher storage volume and fault tolerance are preferable, while lower on-chain footprint is desirable.
 % Next, we explain how their limitations relate to their data placement solutions.
 
@@ -121,18 +116,18 @@ These fixed, small groups cannot scale with the network, so a fraction of Byzant
 Permacoin~\cite{permacoin}, Retricoin~\cite{retricoin}, and Arweave~\cite{arweave} achieve constant on-chain footprint but trade storage volume against fault tolerance.
 They rely on incentives rather than mandatory placement, which precludes erasure coding and forces replication, so tolerating a global Byzantine fraction requires each data segment to be replicated across a number of nodes proportional to the total population, yielding non-scalable storage volume.
 Walrus~\cite{walrus} uses algorithmic placement via a hash function over a permissioned committee of the top 1000 staked nodes, yielding a scalable on-chain footprint and efficient erasure-coded storage.
-However, its storage volume is bounded by those 1000 nodes, and at sufficient system scale a fraction of Byzantine nodes can overwhelm the fixed committee and cause data loss.
+However, its storage volume is bounded by those 1000 nodes, and a fraction of Byzantine nodes can overwhelm the fixed committee and cause data loss at scale.
 
-Swarm~\cite{swarm} achieves both scalable on-chain footprint and Byzantine tolerance, but falls short in storage volume.
+Swarm~\cite{swarm} achieves both scalable on-chain footprint and Byzantine tolerance, but falls short in scalable storage volume.
 Swarm divides nodes into disjoint neighborhoods.
-The nodes in the same neighborhoods replicate the same set of data and share rewards, so nodes are incentivized to shift to less-populated neighborhoods and automatically repair redundancy for their data.
-Each data block is routed to a random neighborhood for storage with the help of a distributed hash table (DHT)~\cite{chord,kademlia}, an algorithmic approach that enables constant on-chain overhead.
+Nodes within a neighborhood replicate the same set of data and share rewards, so they are incentivized to shift to less-populated neighborhoods and automatically repair redundancy for their data.
+Each data block is routed to a random neighborhood for storage using a distributed hash table (DHT)~\cite{chord,kademlia}, an algorithmic approach that enables constant on-chain overhead.
 On the other hand, replication within neighborhoods incurs non-scalable storage volume.
 The neighborhood size is limited by practical redundancy level, leading to small neighborhoods vulnerable to Byzantine nodes.
 Swarm further employs a cross-neighborhood erasure-coding layer.
 Each data block is erasure-coded and redundantly stored in multiple neighborhoods.
 Even if a fraction of neighborhoods is compromised by $O(N)$ Byzantine nodes, the remaining encoded fragments can still recover the original data block.
-The downside of this approach is that the redundancy loss from failed placement groups can be repaired only manually.
+However, redundancy loss from failed placement groups needs manual repair.
 It also requires an additional erasure-coding layer, which introduces extra storage overhead on top of already costly in-neighborhood replication.
 
 % ==== backup materials for full paper ====
