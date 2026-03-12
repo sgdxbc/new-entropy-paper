@@ -121,7 +121,8 @@ However, its storage volume is bounded by those 1000 nodes, and a fraction of By
 Swarm~\cite{swarm} achieves both scalable on-chain footprint and Byzantine tolerance, but falls short in scalable storage volume.
 Swarm divides nodes into disjoint neighborhoods.
 Nodes within a neighborhood replicate the same set of data and share rewards, so they are incentivized to shift to less-populated neighborhoods and automatically repair redundancy for their data.
-Each data block is routed to a random neighborhood for storage using a distributed hash table (DHT)~\cite{chord,kademlia}, an algorithmic approach that enables constant on-chain overhead.
+Each data block is routed to a random neighborhood for storage using a distributed hash table (DHT)~\cite{chord,kademlia}.
+%, an algorithmic approach that enables constant on-chain overhead.
 On the other hand, replication within neighborhoods incurs non-scalable storage volume.
 The neighborhood size is limited by practical redundancy level, leading to small neighborhoods vulnerable to Byzantine nodes.
 Swarm further employs a cross-neighborhood erasure-coding layer.
