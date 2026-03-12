@@ -19,24 +19,25 @@ A VRF satisfies the following properties:
 \subsection{Sampling to Defend Against Byzantine Nodes Globally}
 \label{sec:approach:sample}
 
-We observe a common pattern in DSNs with $O(P)$ fault tolerance.
+We observe a common pattern in many prior DSNs.
+% with $O(P)$ fault tolerance.
 In these systems, placement groups are formed independently, and fault tolerance is analyzed locally for each group, resembling centrally managed storage practice.
 This approach is effective for simultaneous failures of rational nodes, but it becomes inadequate in the presence of Byzantine nodes.
-Unlike benign failures, which are tied to specific placement groups, Byzantine adversarial power is global and can be distributed arbitrarily across groups.
-In such DSNs, each placement group is secured against Byzantine behavior independently, which leads to redundant defense.
-In fact, to tolerate attacks on individual groups, these DSNs have to enlarge placement groups so that they can even tolerate an attack that targets all groups simultaneously, which is clear over-provisioning with undesirable trade-offs.
+Unlike benign failures, which are tied to specific placement groups, Byzantine adversarial power is global and can adapt to group formations.
+To guarantee data availability, these DSNs secure each placement group independently against worst-case Byzantine behavior.
+Consequently, the placement groups are over-provisioned which tolerate full Byzantine attacks on all groups simultaneously, which is an overkill.
 To tolerate Byzantine nodes more efficiently, data placement must defend against Byzantine power globally rather than independently within each placement group.
 
 Among prior DSNs, Swarm is the only system that tolerates $O(N)$ Byzantine nodes, enabled by its disjoint neighborhoods.
 This disjointness is key to global defense: a Byzantine node can reside in only one neighborhood at a time.
 Therefore, with \nicefrac{1}{3} Byzantine nodes globally, at most \nicefrac{1}{3} of placement groups are compromised, regardless of the adversarial distribution.
-Unlike DSNs with $O(P)$ fault tolerance, Swarm does not require each placement group to withstand the full adversarial budget, so the group size need not scale with the total number of nodes.
+Unlike DSNs with $O(P)$ fault tolerance, Swarm does not require each placement group to withstand the full adversarial power, so the group size need not scale with the total number of nodes.
 
 However, sacrificing placement groups demands manual redundancy repair across placement groups and additional redundancy, as discussed in \cref{sec:motivation:review}.
 % As discussed in \cref{sec:motivation:review}, redundancy loss from failed placement groups can be repaired only manually, if it can be repaired at all.
 % It also requires an additional erasure-coding layer, which introduces extra storage overhead on top of already costly in-neighborhood replication.
-To avoid these pitfalls, each placement group in our system must remain uncompromised even under global Byzantine pressure.
-Our data placement solution allows defensive effort to be distributed across groups as flexibly as Byzantine attacking power.
+To avoid these pitfalls, each placement group in our system must remain secure even under global Byzantine attacks.
+Our data placement solution allows defensive effort to be distributed across groups as flexibly as Byzantine attack power.
 Each placement group receives a level of defense that dynamically matches the attack it faces.
 When attacks concentrate on specific groups, the DSN correspondingly concentrates fault tolerance on those groups to ensure their safety.
 
