@@ -1,0 +1,74 @@
+\section{Implementation}
+\label{sec:impl}
+
+% We implement \sys atop the open-source libp2p-rust library~\cite{libp2p}.
+% We use TCP as the transport layer and apply a multiplex protocol to reuse connection to peers.
+% The security layer comprises the Noise protocol framework~\cite{noise} for negotiation, and encryption channels established using 25519 DH, ChaChaPoly cipher, and SHA256 hash functions.
+
+% Our implementation uses libp2p's \texttt{identify} protocol to exchange peer information, e.g., public key and listening addresses.
+% libp2p's \texttt{kademlia} serves as our DHT, and we leverage the same protocol to bootstrap the peers.
+% Certain DHT operations, such as \texttt{FIND\_CLOSEST} and \texttt{STORE\_RECORD}, require logarithmic steps in the size of the  network.
+% Consequently, performing an unbounded number of DHT operations in parallel would negatively impact the system performance.
+% We therefore throttle the number of concurrently issued DHT operations based on average message latency.
+
+% Request processing listed in \autoref{sec:protocol} are implemented using the \texttt{request-response} protocol in libp2p.
+% Notably, certain message types like \mtype{RepairRequest} require no responses by definition.
+% To conform with libp2p, a dummy response is sent.
+% All messages are serialized using Protocol Buffers~\cite{protobuf}.
+
+% We implement \sys peer node as HTTP server and client,
+% atop the open-source actix-web HTTP server framework~\cite{actix-web} and its client library awc.
+% The verifiable random selection proof and persistence claim's signature use ed25519 curve.
+% All messages are serialized using bincode~\cite{bincode}.
+
+% Nodes send HTTP requests using asynchronous messaging.
+% The requests are handled with an immediate dummy \texttt{200 OK} response,
+% and any further reply will be sent as a reversed HTTP request.
+% This ensures the system can tolerance arbitrary network delay and node slow down.
+
+% The node is implemented using a single-thread server and a worker thread pool.
+% All long-running tasks, either blocking or non-blocking (e.g., coding, making request and file system operations),
+% are offloaded from server thread and submitted to worker thread pool.
+% This keeps the node to be responsive; the design is also scalable by fully exploiting the  available parallelism.
+
+%Our \sys implementation consists of two components: peer node and client.
+%During \store, the client performs outer layer encoding and then sends encoded chunks to arbitrary chosen peer nodes, which is accessible to (and by) the DHT network and push the fragments of the chunks to selected peers according to the peer selection protocol.
+%The peer nodes then response client with a proof of the chunk has been stored by sufficient number of peers, i.e. a certification that is signed with peers' signatures.
+%The client persists secrets of generated chunks between \store and \query.
+%On \query client send requests to arbitrary chosen online peers, who will perform the inner layer decoding and response client with chunks.
+%Client then performs outer layer decoding and recover the data.
+
+In our implementation, client and peer nodes exchange chunks through HTTP endpoints, similar to IPFS's \texttt{add} and \texttt{cat} RPC APIs.
+Peers use plain TCP to communicate with each other, with designated public-key signatures on messages when necessary.
+The TCP sockets are multiplexed among \sys and DHT's peer discovery service, while fragments are transferred through a bulk transfer service with dedicated connections, isolating from latency-incentive messaging.
+
+The peer selection protocol requires DHT to discover large amount of peers near a chunk hash, e.g. 40-160 in our evaluation.
+To cooperate such demand, the concurrency level of contacting peers (\ie, $\alpha$ in Kademlia) has been increased to 30 from its typical setting, \ie, 3.
+This configuration can reduce peer discovery latency in a worldwide P2P network, as shown in our evaluation.
+
+We use wirehair \cite{wirehair}, an $O(1)$ time rateless erasure code implementation, as our coding option.
+Wirehair not only attains high performance, it can also recover the original data with an expected $k + 0.02$ fragments.
+
+We deploy Tokio~\cite{tokio} as our asynchronous IO runtime and user-space scheduler.
+Tokio facilitates highly concurrent IO and efficient parallel encoding.
+Our overall implementation is written in 6447 lines of Rust code.
+
+% Our implementation attempts more than $R$ encoding indices for each \texttt{PUT} operation, in anticipation of unsuccessful peer selection for some indices.
+% This approach brings additional latency benefit.
+% %Also, the peer selection relays on iterative DHT operations, which makes its tail latency suboptimal.
+% Given the long tail latency distribution of DHT operations, by sending extra fragments and waiting for the first $R$, latency of \texttt{PUT} becomes more predictable.
+% The extra fragments are later garbage collected by the protocol.
+
+%\paragraph{Select parameters.}
+%A fixed $B$ is given such that at most $BN$ nodes are faulty where $N$ is the total number of nodes.
+%A proper repair threshold $k_0$
+%\sgd{$k_0$ is analog to $n$ in typical $(n, k, r)$ code. Should we use symbol $n$ instead?}
+%should be selected, and the VRF should be configured as
+%(a) it selects at least $k_0$ peers for each epoch with high probability, so the peers do not observe unhealthy objects by false positive and repair too soon, and
+%(b) it selects at most $k_0/B$ peers for each epoch with high probability, so there's no more than $k_0$ faulty peers get selected in every epoch and ensure safety.
+%This implies $k_0$ should be sufficiently large so the range between (a) and (b) is large enough to make is possible to configure the VRF.
+%Finally, the $k$ should be selected so that
+%(a) $k + \epsilon \le (1 - B - \beta)k_0$ where $\beta$ is determined based on a conservative estimation of AFR, and
+%(b) $1 - k/k_0 \le \alpha$ where $\alpha$ is the desired storage redundant rate.
+%In practice, we found that \XXX selection of parameters can work well when $B$ is no more than \XXX and AFR is no more than \XXX, which is expected in our deployment.
+%

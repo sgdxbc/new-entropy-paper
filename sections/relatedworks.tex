@@ -1,0 +1,55 @@
+\section{Related Works}
+\label{sec:rel}
+
+\paragraph{Distributed Storage Systems.}
+As mentioned in \autoref{sec:motivation}, our work is related to a long line of research and production systems in distributed storage~\cite{ceph,gfs,bigtable,dynamo,liquid,amazon-s3,amazon-glacier,google-storage,google-cloudstore,google-coldline}.
+Unlike \sys, all those systems are centrally managed by a single administrative entity, and all participants are assumed to be non-Byzantine.
+Our object store interface is similar to Amazon S3~\cite{amazon-s3} and Google Cloud Storage~\cite{google-cloudstore}.
+Many prior systems deploy a centralized service to manage storage metadata~\cite{gfs,bigtable}, while metadata management is fully decentralized in \sys.
+Dynamo~\cite{dynamo} uses consistent hashing~\cite{chash} to assign keys to nodes, similar to our DHT-based approach.
+Object-to-server mapping in Ceph~\cite{ceph} is done through a distribution function CRUSH~\cite{crush} which maps each object to a placement group based on the object hash.
+\ifspace
+Our approach of using rateless erasure code is inspired by liquid storage~\cite{liquid}.
+Other erasure codes such as local reconstruction codes~\cite{lrcode}, regenerating codes~\cite{rcode}, and traditional MDS codes have also been used in distributed storage.
+\fi
+
+\paragraph{Decentralized Storage.}
+Building reliable storage systems in a fully decentralized environment has been explored extensively~\cite{xfs,farsite,oceanstore,filecoin,arweave}.
+Farsite~\cite{farsite} uses BFT replication for directory metadata and CFT replication for file data.
+Membership management is done through trusted certificate authorities.
+\sys reduces storage redundancy by using erasure coding, and avoids centralized trust through PoS and verifiable random peer selection.
+Most closely related to our work is the deep archival storage in OceanStore which stores erasure coded fragments over multiple failure domains.
+However, OceanStore makes centralized placement decisions and relies on trusted, centralized nodes to perform repairs.
+As detailed in \autoref{sec:motivation}, IPFS~\cite{filecoin} uses DHT to store publisher record without centralization, but offers no mechanism to reliably store objects.
+Filecoin~\cite{filecoin} and Arweave~\cite{arweave} both use tokens to incentivize nodes to store objects longer, but has weak durability guarantees in the presence of failures.
+
+\ifspace
+\paragraph{BFT Protocols.}
+There exists a long line of research on replication protocols that tolerant Byzantine failures~\cite{pbft,algorand,hotstuff,bitcoin}.
+These protocols, however, require data to be replicated on all participants, sacrificing storage efficiency.
+Our peer selection protocol using verifiable random function is inspired by Algorand~\cite{algorand} and Sleepy Consensus~\cite{sleepyconsensus}.
+Our proof-of-stake based approach to defend Sybil attacks is similar to the ones used in Ethereum~\cite{ethereum} and Algorand~\cite{algorand}.
+\fi
+
+\iffalse
+
+\textbf{Rateless erasure coding.} RaptorQ (IETF spec) performs well with large range of $k$.
+
+\textbf{Gossip protocols.} Floodsub by libp2p.
+Gossipsub by libp2p limits maximum outbound degree to avoid congestion on dense-connected peers.
+Kadcast selects mesh from Kademlia buckets.
+
+\textbf{Other usage of VRF.} Algorand.
+
+\textbf{Distributed algorithm for locating data objects.} CRUSH by Ceph.
+
+\sgd{Include this if we have discussion part.} \textbf{Aggressive attacking.}
+In this work we mainly discuss on how to achieve long-term unpredictable;
+however, in short term attacker may predict the next responsible peers by observing peers pulling fragment (which involves exchanging Kleroterion proof which attacker can also verify).
+If the attacker can compromise the peer before it become responsible and send out first gossip, the safety invariant breaks.
+Notice that the lazy fetching optimization previously described in \XXX can effectively shorten attacking time window.
+With active redundancy reduction (\autoref{sec:implementation}), the attacking is also mitigated.
+There could be more than enough number of nodes fetching fragments, where many of them silently discard the fragment later and make the attacking meaningless.
+This will increase the cost of a successful attacking significantly.
+
+\fi

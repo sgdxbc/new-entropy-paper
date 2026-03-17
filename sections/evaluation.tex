@@ -1,30 +1,292 @@
-\section{Preliminary Results}
+\section{Evaluation}
 \label{sec:eval}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.95\columnwidth]{figures/time-alive}
-    \caption{Number of available fragments over 10 years.}
-    \label{fig:time-alive}
-    \ifacm\Description{}\fi
-\end{figure}
+We use two types of experiments to evaluate \sys: discrete event simulation and physical deployment on geo-distributed EC2 virtual machines.
+Unless otherwise specified, we use $\kin = 32, R = 80$ for the inner code,
+% We implement the outer code using rateless erasure code with randomly generated indices.
+and the outer code uses $\kout = 8$ and 10 chunks are generated for each object.
+All objects are 1 GB in size.
+%By default k = 64, persistence parameter $k_p = 1.2k$, select rate $K = 2k$
+%\sgd{This description assumes single-stack nodes.}
+% In our physical deployment, \store operations return only when $1.6k$ persistence proofs are received through gossip.
+% This safeguard policy improves system stability without introducing significant overhead.
+
+\sgd{TODO turn this into an IPFS-based setup.}
+
+When evaluating physical deployments, we compare \sys to a private IPFS~\cite{filecoin} network.
+When working with IPFS, we reuse our client from \sys implementation, and send chunks to IPFS peers instead of \sys peer nodes.
+Each chunk is sent to three randomly-chosen IPFS peers for \store operation.
+For \query operation, client contacts one random IPFS peer per chunk,  and the chunk will first be transferred from one of the three storing peers to that contacted peer, then get back to client, similar to the interaction with \sys peer node.
+
+% We only slightly modified IPFS in the following way: When storing an object, we transfer the object to a random peer instead of storing locally.
+% Note that IPFS (and our modified version) by default only stores a single copy of the object, therefore offering no durability guarantee.
+% Second, we also evaluate against the Ceph~\cite{ceph} distributed storage system.
+
+\subsection{Simulations}
+
+We first use discrete event simulation to evaluate the repair overhead and fault tolerance guarantees of \sys.
+The simulated network contains a total of 100K nodes.
+For simplicity, we parametrize one churn rate for all nodes.
+Node failures (including permanently leaving the system) follow a Poisson distribution according to the churn.
+%Each node periodically gossips until it fails.
+%Then after gossip timeout, next responsible peers will notice and may choose to start to repair.
+We use data object size as the basic unit for repair traffic.
+The overall storage capacity which \sys occupies is also recorded.
+%Notice redundancy reduction is not simulated, so the redundancy is more than result from deployed environment.
+We run each simulation 10 times with different seed values and take the average.
+
+Besides \sys, we also simulate a Ceph-like replicated storage system.
+This system replicates each object on 3 randomly selected peers, and performs object repair immediately after one of the replicas fails.
+%This is similar to datacenter-level distributed storage.
+Such replication scheme is commonly employed in data center settings, and we use it as a baseline to compare to our decentralized protocol.
 
 \begin{figure}
-    \centering
-    \includegraphics[width=0.95\columnwidth]{figures/faulty-lost}
-    \caption{Fraction of data lost under different Byzantine-node fractions.}
-    \label{fig:faulty-lost}
-    \ifacm\Description{}\fi
+    \addgraph{churn-repair}
+    \addgraph{object-repair}
+    \caption{Repair traffic over increasing number of objects and churn rate.
+    The subscript number indicates duration in hours until the chunk cache is cleared.}
+    \Description{TODO}
+    \label{fig:repair}
 \end{figure}
 
-We present preliminary simulation results for \sys.
-Our simulation uses $N=100$K nodes, a benign failure rate of $f'=4$ per year, i.e., the number of benign failures in a year is expected to be $4\times$ the number of rational nodes, and a 10-year time horizon.
-\sys is configured with code parameter $k=32$ and varying target endorsement counts $N_e$.
-In \cref{fig:time-alive}, we track a single data block and plot the number of its encoded fragments stored by rational nodes over time under a Byzantine fraction of \nicefrac{1}{3}.
-\sys preserves more than 32 fragments throughout the simulation when $N_e=80$.
-Increasing $N_e$ to 100 provides additional safety margin without significant storage overhead, with redundancy remaining near $2\times$.
+\paragraph{Repair traffic.}
+We first simulate how much fragment repair traffic \sys generates, and compare it to the baseline replication approach.
+%We record the total number of repairing in the first year.
+\autoref{fig:repair} shows the total repair traffic (in units of data object sizes) incurred in the first year of system deployment.
+As discussed in \autoref{sec:impl}, \sys nodes can optionally cache chunk data to reduce repair traffic.
+We therefore also simulate \sys with varying chunk cache expiration time in hours.
+%The different lines of \sys indicate the percentage of nodes that regenerate encoding fragment using the booster optimization.
+As expected, repair traffic for \sys and the baseline system both increase linearly with increasing number of data objects.
+\sys pays a higher repair cost compared to the baseline, as constructing a new fragment requires transmitting $\kin$ existing fragments.
+By hitting the chunk cache, repair traffic for each fragment is reduced by $\kin$ times, making it comparable to the replication system.
+%When booster peers cache object perfectly, every repair only transfers $1/k$ of data object size, so the overall repair traffic is comparable to the replicated system.
+%However, when booster hit rate decreases, there is a sudden jump in the repair traffic due to the high ``cache miss'' penalty.
+Concretely, repair traffic is decreased by 6X when the cache duration increases to 48 hours.
+%Beyond that, repair traffic only doubled from 75\% hit rate to 50\%, and doubled again when the booster optimization is turned off.
+This demonstrates that our chunk cache optimization is effective.
+As such, incentives should be provided to encourage nodes to cache for a longer time to reduce repair traffic.
+Fortunately, as shown later, most repairs finish quickly, so a short caching period can lead to good overall cache hit rate.
 
-In a second simulation, we store 100 data blocks for 10 years under different Byzantine fractions and report the final data-loss rate in \cref{fig:faulty-lost}.
-\sys tolerates more than 30\% Byzantine nodes when $N_e=80$, and this tolerance increases to around 50\% when $N_e=120$.
-We also compare \sys with a 3-way replication baseline that incurs redundancy similar to \sys with $N_e=120$.
-The replication baseline loses all data with fewer than 5\% Byzantine nodes, indicating that it does not tolerate Byzantine populations that scale with total network size.
+\autoref{fig:repair} also shows total repair traffic in the first year with increasing node churn rate.
+In both \sys and the replicated system, repair traffic grows at the same rate with increasing churn.
+This is expected as higher churn results in more frequent repair.
+The result demonstrates that \sys responds well to the change in the system's average churn rate.
+Another implication is that \sys scales well with an increase in churn, i.e., the overhead per node failure remains constant.
+As with the previous experiment, longer chunk cache effectively reduces the repair traffic.
+The drop in repair traffic at high churn is caused by more frequent cache refreshes.
+
+\begin{figure}
+    \addgraph{time-alive}
+    \caption{Number of fragments stored on alive \sys honest nodes over time. The two lines are for different inner code configurations with different redundancy.}
+    \Description{TODO}
+    \label{fig:time}
+\end{figure}
+
+\paragraph{Repair and redundancy over time.}
+In the next simulation, we run \sys and trace one encoded chunk for a duration of 10 years.
+\autoref{fig:time} plots the number of fragments stored on honest \sys nodes over time, and the two lines are deployments with different inner code parameters.
+Recoverability of the chunk requires at least 32 fragments survived on honest nodes.
+The number of survived fragments fluctuates over time due to node churn (decrease) and repair (increase).
+However, neither of the configurations drops below 32 survived fragments, indicating that the chunk is recoverable.
+As expected, the configuration with higher redundancy (and therefore a higher threshold $R$) maintains a wider margin to the safety critical level.
+
+%\autoref{fig:time} plots the raw capacity, i.e., the aggregated encoding size, a single data object occupies in the whole system.
+%As a reference point, capacity of a 3-way replication system is kept constant at 3.
+%\sys incurs less redundancy most of the time.
+%The short interval in which \sys incurs larger redundancy can be further reduced by aggressive redundancy reducing introduced in \autoref{sec:implementation}.
+%Note that although \sys deploys lazy repairing, comparing to the overall simulation time (10 years), the repair delay is still appears instantaneous.
+%
+%The lower subplot of \autoref{fig:time} shows the accumulated repair traffic over 10 years.
+%The number of step increases taken by \sys is less than the replicated system.
+%This serves as a strong evidence that \sys performs repair more lazily than a replication system, and thus relies less on synchrony in the system.
+%As a comparison, \sys using an alternative parameter $k_{repair} = 1.6k$, thus tolerating 25\% more faulty peers, is also plotted in the graph.
+%Compared to the default parameter, object repairs happen more frequently, but still less than that of a replicated system.
+
+\begin{figure}
+    \addgraph{faulty-lost}
+    % \addgraph{targeted-lost}
+    \caption{Percentage of lost objects in the presence of Byzantine faulty peers.
+    \sys runs with three inner and outer code configurations respectively for the simulation.}
+    \Description{TODO}
+    \label{fig:faulty}
+\end{figure}
+
+\paragraph{Fault tolerance.}
+To evaluate how well \sys tolerates adversaries, we simulate a network with Byzantine faulty nodes.
+Byzantine nodes participate correctly in all \sys protocols; however, they do not store any encoding fragment.
+A data object is consider permanently lost when less than $\kout$ of its encoded chunks are irrecoverable (for \sys) or no replicas are left (for the replicated system).
+The \autoref{fig:faulty} shows the percentage of lost objects in a one-year trace.
+This simulation validates that a simple replication system does not tolerance strong adversaries: The baseline system loses all of its objects when less than 5\% of the nodes are faulty.
+On the other hand, \sys can tolerate a significant fraction of faulty nodes without losing data.
+The degree of tolerance depends on the inner code parameters.
+Using the default parameter, \sys can tolerate around the targeted 33\% faulty nodes, while a more conservative configuration can improve tolerance further at the expense of increased redundancy.
+
+% We also evaluate \sys{}'s tolerance against targeted adversaries, and show the object lost rate in the lower subplot of \autoref{fig:faulty}.
+% Once again, the baseline replication system shows weak fault tolerance, losing all objects when less than 2\% of the nodes were attacked.
+% In contrast, our outer layer coding approach effectively defends against targeted adversaries.
+% With a (14, 8) coding configuration, no object is lost until more than 20\% of the nodes are being attacked.
+
+\subsection{Physical Deployment}
+
+%\sgd{Add this explanation to somewhere if necessary.}
+%Every peer is limited to single thread because of limited number of machines.
+%This results in sequentially generation of all fragments.
+%In practice, it could be parallelized and improve \store performance.
+
+Next, we evaluate \sys using our implementation.
+We deploy 10,000 \sys nodes on Amazon EC2 in 5 AWS zones (us-west, ap-east, eu-central, sa-east, af-south) across 5 continents.
+We launch 20 m5.4xlarge instances with 16 vCPU, 64GiB of memory and up to 10Gbps network bandwidth in each zone, and run 100 peers on each instance.
+
+% As mentioned earlier, we implemented an IPFS-like decentralized storage system using Kademlia DHT as a comparison system.
+% %This Kademlia-based system serves as a state-of-the-art decentralized storage baseline.
+% We directly use Kademlia's \texttt{PUT\_RECORD} interface to store the data object, and set the replication factor to 3 to match the redundancy of \sys.
+% Each data object is split into $\kin \cdot \kout$ records.
+% This splitting scheme ensures good storage load balancing across nodes in the system.
+As mentioned earlier, we compared \sys with a IPFS network that paired with \sys client.
+Each data object is split into $\kout$ chunks, replicated three times and stored into IPFS network.
+
+% Note that erasure coding, unfortunately, cannot be easily adapted into Kademlia.
+%We also deployed a Ceph cluster with one replication pool and one erasure coding pool, all with the stock configuration.
+%The cluster contains 5 servers, one in each region.
+%The Ceph cluster serves as a reference distributed storage system design.
+
+% In every run of the evaluation, to remove any caching effect, we spawn a fresh node as client.
+% Once the node successfully connects to the network, it issues a \store with a randomly generated object.
+% After the \store returns an object ID, another fresh node is spawned to issue a \query with the returned ID to retrieve the object.
+In the evaluation of \store and \query operation, we spawn a client to perform \store in one of the five regions.
+After the \store finished with chunk secrets, another client is immediately spawned in another random region to issue a \query with the secret to retrieve the object.
+The node performs sanity check to make sure the object is properly retrieved.
+
+% In the evaluation of repairing, we trigger a special command to force nodes to evict the oldest member that stores the chunk.
+% This is equivalent to the member being disconnected from the network.
+% The remaining group members locate a new member to replace the evicted one.
+% We report the latency between the eviction and the instant when the new member is known to successfully store the chunk.
+
+% We evaluate the system with a simulated DHT routing system that provides node discovery in constant time.
+% This simplification mitigates the effect of DHT routing performance on the result, and focus on the performance differences between the protocols.
+
+\paragraph{Latency Results.}
+
+\begin{figure}
+    \addgraph{latency}
+    \caption{Latency of \store and \query operation in a world-wide deployment.}
+    \Description{TODO}
+    \label{fig:latency}
+\end{figure}
+
+We measure end-to-end latency of \store and \query operations for each system, and show the results in \autoref{fig:latency}.
+% For \query in \sys, we measure both the case that the client linearly searches the encoding stream for fragments ($slot\_get$), and the case where it directly locates the peers in DHT.
+% For smaller outer and inner code combinations, \sys attains virtually equivalent \store latency as the baseline replication system.
+% As the coding parameter increases, \sys requires selecting and contacting more peers to store the larger number of fragments.
+% This is reflected in the longer \sys $\store$ latency.
+% \query shows similar latency trend when \sys client linearly searches for fragments.
+% By implementing the DHT record optimization, \query latency of \sys remains constant regardless of coding parameters, and is comparable to the baseline performance.
+IPFS has better \store performance, while its \query performance is dramatically affected by outer code.
+\sys on the other hand, manages to maintain the latency on a steady state across different code setup.
+
+%For the default object size of 64 MiB, \sys outperforms both Kademlia and Ceph by a wide margin in latency.
+%Moreover, \sys also enjoys a much lower latency variance compared to Kademlia.
+%The better performance of \sys comes from its large code design.
+%In \sys, encoding fragments are uniformly distributed across many peers.
+%Fragment transfers thus can be done in parallel, utilizing the network bandwidth more efficiently.
+%Kademlia, in the contrary, requires the object to be sequentially transmitted to the remote peer.
+%The latency is therefore highly limited by bottleneck link bandwidth between the two peers.
+%
+%The benefit of \sys's design is even more obvious with larger objects.
+%When we increase data object size by 16 times to 1 GiB, the latency is only doubled.
+%Kademlia, on the other hand, takes more than 120s to finish one operation due to sequential transmission.
+%We also measure a \sys variant with slightly reduced $k_p = 1.2k$ which tolerance less faulty peers on \store operations.
+%Its latency when storing 1 GiB objects is even close to Kademlia but with 64 MiB object size.
+
+%\paragraph{Latency breakdown.}
+%Compared to Kademlia, \sys requires less sequential peer communication, but performs extra encoding/decoding for an object.
+%Thanks to highly-optimized fountain code library, the coding latency overhead is surprisingly small: for 1GiB object, it takes only 4.2s from receiving the pull request from the first responsible peer, to send out all $k_p$ encoding fragments.
+%More than half of the duration is waiting for gossip dissemination, rather than generating fragment.
+%Fragment decoding latency is negligible, and after the node collects enough fragments to recover, actual object recovery only takes 1.2s.
+%For a comparison, computing SHA256 hash for a 1 GiB object takes 4.7s.
+%Actually, SHA256 hash computation is the major source of the additional latency when switching from 64 MiB to 1 GiB objects.
+%The good support provided by the library not only make operations blazing fast, but also makes it feasible to regularly recover tons of whole objects among the peers without worrying about performance overhead.
+
+%Future work. Monitor cpu usage and network bandwidth usage.
+
+\paragraph{Concurrent operations.}
+
+\begin{figure}
+    \addgraph{concurrent-put-get}
+    % \addgraph{concurrent-repair}
+    \caption{Latency of concurrent \store and \query operation.}
+    \Description{TODO}
+    \label{fig:concurrent}
+\end{figure}
+
+To measure our system capacity, we perform multiple \store and \query loops concurrently from different random nodes.
+The latency result is shown in \autoref{fig:concurrent}.
+\sys maintains its performance even up to 100 concurrent \store and \query operations, and is able to support more than 600 concurrent repairing.
+We can derive that \sys can support more than 400K \store and 720K \query per day, and can tolerance over 13M daily object repairs.
+This suggests that \sys is capable to handle massive real-world workload.
+
+\paragraph{Scalability.}
+
+\begin{figure}
+    \addgraph{peer}
+    \caption{Latency of \store and \query operation with varying number of nodes.}
+    \Description{TODO}
+    \label{fig:scale}
+\end{figure}
+
+We also evaluate \sys with increasing system size, i.e., the number participants in the system.
+The scalability result is shown in \autoref{fig:scale}.
+Similar to IPFS, \sys is able to maintain near-constant performance regardless of the system's scale.
+
+\paragraph{Micro-benchmarks.}
+
+\begin{figure}
+    \addgraph{coding-time-outer}
+    \addgraph{coding-time-inner}
+    \caption{Micro-benchmarks showing the utilized CPU time for clients to encode and decode a data object (top plot), and for repairing a fragment in a chunk group.}
+    \Description{TODO}
+    \label{fig:coding-time}
+\end{figure}
+
+Lastly, we run micro-benchmarks to evaluate the performance of object encoding and decoding.
+In the first experiment, we run a single client who applies both the outer layer and inner layer erasure code to encodes a 1 GB object into fragments.
+Then, the client takes the generated fragments, and uses the decoding function in both erasure codes to recover the original object.
+Lastly, we set up one peer node to generate a fragment from $\kin$ existing fragments.
+As shown in \autoref{fig:coding-time}, the time to encode and decode a large object is relatively stable across various coding parameters.
+A direct implication of this result is that the latency increase in \autoref{fig:latency} is caused by DHT operations, not object encoding/decoding.
+Chunk repair incurs significantly less CPU overhead, as it only involves the inner code.
+
+%\begin{figure}
+%    \addgraph{coding-traffic}
+%    \addgraph{coding-cpu}
+%    \caption{Total traffic and CPU time spent for running different protocols in certain long term.}
+%    \label{fig:coding-time}
+%\end{figure}
+
+%The long term evaluation runs the system in a "fast forward" fashion for 10 minutes.
+%In the first 2 minutes, a data object is stored into the system similar to latency evaluation.
+%Then, each node randomly churns a peer with Possion-distributed random interval, and the average interval is 10 second.
+%This effectively models a decentralized system with churn rate 7884.
+%DHT's ping interval and re-publication interval are adjusted accordingly to ensure the peer discovery can make use of relatively up-to-date information.
+%In \sys, the data object will be repaired many times, and in Kademlia the data object will be re-replicated for many times.
+%Finally, we accumulated the total outbound traffic and the CPU time from each peer at the end of the 10 minutes period.
+%We also measured the result of an idle system that does not store any data, only maintain DHT information and regular heartbeat.
+%All data shows in the figure has been subtracted by this baseline.
+
+\iffalse
+\subsection{Discussion}
+
+\lijl{We can include this discussion in the submission if there is space.}
+
+As our evaluation results have shown, \sys incurs higher performance overhead and management complexity compared to centralized deployments and prior best-effort systems.
+However, we believe there exists inherent trade-offs between performance and security guarantees (e.g., anti-censorship and strong adversary tolerance).
+As we demonstrated earlier (\autoref{sec:intro} and \autoref{sec:background}), these properties are more critical than performance for our target deployment scenarios.
+
+\ifspace
+We also note that \sys is not the only decentralized system that pays this price.
+Both Bitcoin and Ethereum require around one hour to confirm a transaction.
+And it has been proved that the long confirmation time is critical to their safety guarantees in a permissionless setting.
+Algorand~\cite{algorand} takes 13 message steps to commit in the presence of adversaries, and relies on randomized peer selection for security.
+\fi
+
+\fi

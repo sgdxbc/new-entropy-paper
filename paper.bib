@@ -72,27 +72,18 @@
   howpublished = {\url{https://arxiv.org/abs/2506.19233}}, 
 }
 
-% ==== Referred by this work as context ====
+% ==== Employed in our design ====
 
-@inproceedings{por,
-  author       = {Shacham, Hovav and Waters, Brent},
-  title        = {Compact Proofs of Retrievability},
-  booktitle    = {Advances in Cryptology -- ASIACRYPT 2008},
-  year         = {2008},
-  publisher    = {Springer},
-  address      = {Melbourne, Australia},
-  pages        = {90--107}
+@misc{wirehair,
+  howpublished = {\url{https://github.com/catid/wirehair}},
+  title        = {Wirehair : O(N) Fountain Code for Large Data},
+  key          = {wirehair}
 }
 
-@inproceedings{bar,
-  author       = {Aiyer, Amitanand S. and Alvisi, Lorenzo and Clement, Allen and Dahlin, Mike and Martin, Jean-Philippe and Porth, Carl},
-  title        = {{BAR} fault tolerance for cooperative services},
-  year         = {2005},
-  publisher    = {ACM},
-  address      = {Brighton, UK},
-  doi          = {10.1145/1095810.1095816},
-  booktitle    = {Proceedings of the 20th ACM Symposium on Operating Systems Principles (SOSP)},
-  pages        = {45--58}
+@misc{tokio,
+  howpublished = {\url{https://tokio.rs/}},
+  title        = {Tokio - An asynchronous Rust runtime},
+  key          = {tokio}
 }
 
 @misc{vrf-rfc,
@@ -157,6 +148,50 @@
   doi          = {10.1137/0108018}
 }
 
+@inproceedings{chord,
+  author       = {Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M. Frans and Balakrishnan, Hari},
+  title        = {{Chord}: A scalable peer-to-peer lookup service for internet applications},
+  year         = {2001},
+  publisher    = {ACM},
+  address      = {San Diego, CA, USA},
+  doi          = {10.1145/383059.383071},
+  booktitle    = {Proceedings of the 2001 Conference on Applications, Technologies, Architectures, and Protocols for Computer Communications (SIGCOMM)},
+  pages        = {149--160}
+}
+
+@inproceedings{kademlia,
+  author       = {Maymounkov, Petar and Mazi{\`e}res, David},
+  title        = {{Kademlia}: A Peer-to-Peer Information System Based on the {XOR} Metric},
+  booktitle    = {Revised Papers from the First International Workshop on Peer-to-Peer Systems (IPTPS)},
+  year         = {2002},
+  publisher    = {Springer},
+  address      = {Cambridge, MA, USA},
+  pages        = {53--65}
+}
+
+% ==== Referred by this work as context ====
+
+@inproceedings{por,
+  author       = {Shacham, Hovav and Waters, Brent},
+  title        = {Compact Proofs of Retrievability},
+  booktitle    = {Advances in Cryptology -- ASIACRYPT 2008},
+  year         = {2008},
+  publisher    = {Springer},
+  address      = {Melbourne, Australia},
+  pages        = {90--107}
+}
+
+@inproceedings{bar,
+  author       = {Aiyer, Amitanand S. and Alvisi, Lorenzo and Clement, Allen and Dahlin, Mike and Martin, Jean-Philippe and Porth, Carl},
+  title        = {{BAR} fault tolerance for cooperative services},
+  year         = {2005},
+  publisher    = {ACM},
+  address      = {Brighton, UK},
+  doi          = {10.1145/1095810.1095816},
+  booktitle    = {Proceedings of the 20th ACM Symposium on Operating Systems Principles (SOSP)},
+  pages        = {45--58}
+}
+
 @inproceedings{algorand,
   author       = {Gilad, Yossi and Hemo, Rotem and Micali, Silvio and Vlachos, Georgios and Zeldovich, Nickolai},
   title        = {{Algorand}: Scaling Byzantine Agreements for Cryptocurrencies},
@@ -218,25 +253,95 @@ location = {Vienna, Austria},
 series = {CCS '16}
 }
 
-@inproceedings{chord,
-  author       = {Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M. Frans and Balakrishnan, Hari},
-  title        = {{Chord}: A scalable peer-to-peer lookup service for internet applications},
-  year         = {2001},
-  publisher    = {ACM},
-  address      = {San Diego, CA, USA},
-  doi          = {10.1145/383059.383071},
-  booktitle    = {Proceedings of the 2001 Conference on Applications, Technologies, Architectures, and Protocols for Computer Communications (SIGCOMM)},
-  pages        = {149--160}
+@inproceedings{chash,
+  address   = {El Paso, Texas, USA},
+  series    = {{STOC} '97},
+  title     = {Consistent {Hashing} and {Random} {Trees}: {Distributed} {Caching} {Protocols} for {Relieving} {Hot} {Spots} on the {World} {Wide} {Web}},
+  isbn      = {0-89791-888-6},
+  url       = {https://doi.org/10.1145/258533.258660},
+  doi       = {10.1145/258533.258660},
+  booktitle = {Proceedings of the {Twenty}-{Ninth} {Annual} {ACM} {Symposium} on {Theory} of {Computing}},
+  publisher = {Association for Computing Machinery},
+  author    = {Karger, David and Lehman, Eric and Leighton, Tom and Panigrahy, Rina and Levine, Matthew and Lewin, Daniel},
+  year      = {1997},
+  keywords  = {Consistent Hashing},
+  pages     = {654--663},
+  file      = {consistent-hashing_stoc97.pdf:/home/lijl/.zotero/data/storage/3MBHZK2T/consistent-hashing_stoc97.pdf:application/pdf}
 }
 
-@inproceedings{kademlia,
-  author       = {Maymounkov, Petar and Mazi{\`e}res, David},
-  title        = {{Kademlia}: A Peer-to-Peer Information System Based on the {XOR} Metric},
-  booktitle    = {Revised Papers from the First International Workshop on Peer-to-Peer Systems (IPTPS)},
-  year         = {2002},
-  publisher    = {Springer},
-  address      = {Cambridge, MA, USA},
-  pages        = {53--65}
+@article{lrcode,
+  author  = {Gopalan, Parikshit and Huang, Cheng and Simitci, Huseyin and Yekhanin, Sergey},
+  journal = {IEEE Transactions on Information Theory},
+  title   = {On the Locality of Codeword Symbols},
+  year    = {2012},
+  volume  = {58},
+  number  = {11},
+  pages   = {6925-6934},
+  doi     = {10.1109/TIT.2012.2208937}
+}
+
+@article{rcode,
+  author  = {Dimakis, Alexandros G. and Godfrey, P. Brighten and Wu, Yunnan and Wainwright, Martin J. and Ramchandran, Kannan},
+  journal = {IEEE Transactions on Information Theory},
+  title   = {Network Coding for Distributed Storage Systems},
+  year    = {2010},
+  volume  = {56},
+  number  = {9},
+  pages   = {4539-4551},
+  doi     = {10.1109/TIT.2010.2054295}
+}
+
+@inproceedings{pbft,
+  author    = {Miguel Castro and Barbara Liskov},
+  title     = {Practical {B}yzantine fault tolerance},
+  booktitle = {Proceedings of Symposium on Operating Systems Design and Implementation},
+  volume    = {99},
+  year      = {1999},
+  pages     = {173--186}
+}
+
+@inproceedings{hotstuff,
+  address   = {Toronto ON, Canada},
+  series    = {{PODC} '19},
+  title     = {{HotStuff}: {BFT} {Consensus} with {Linearity} and {Responsiveness}},
+  isbn      = {978-1-4503-6217-7},
+  url       = {https://doi.org/10.1145/3293611.3331591},
+  doi       = {10.1145/3293611.3331591},
+  booktitle = {Proceedings of the 2019 {ACM} {Symposium} on {Principles} of {Distributed} {Computing}},
+  publisher = {Association for Computing Machinery},
+  author    = {Yin, Maofan and Malkhi, Dahlia and Reiter, Michael K. and Gueta, Guy Golan and Abraham, Ittai},
+  year      = {2019},
+  pages     = {347--356}
+}
+
+@misc{bitcoin,
+  title        = {Bitcoin: {A} peer-to-peer electronic cash system},
+  author       = {Nakamoto, Satoshi},
+  year         = {2009},
+  howpublished = {\url{https://bitcoin.org/bitcoin.pdf}}
+}
+
+@inproceedings{sleepyconsensus,
+  author    = {Momose, Atsuki and Ren, Ling},
+  title     = {Constant Latency in Sleepy Consensus},
+  year      = {2022},
+  isbn      = {9781450394505},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3548606.3559347},
+  doi       = {10.1145/3548606.3559347},
+  booktitle = {Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security},
+  pages     = {2295–2308},
+  numpages  = {14},
+  location  = {Los Angeles, CA, USA},
+  series    = {CCS '22}
+}
+
+@misc{ethereum,
+  title        = {A {Next}-{Generation} {Smart} {Contract} and {Decentralized} {Application} {Platform}},
+  author       = {Buterin, Vitalik},
+  year         = {2014},
+  howpublished = {\url{https://ethereum.org/en/whitepaper/}}
 }
 
 % ==== Related works ====
@@ -274,6 +379,140 @@ series = {CCS '16}
   address      = {Seattle, WA, USA},
   pages        = {307--320},
   year         = {2006}
+}
+
+@inproceedings{gfs,
+  address   = {Bolton Landing, NY, USA},
+  series    = {{SOSP} ’03},
+  title     = {The {Google} {File} {System}},
+  isbn      = {1-58113-757-5},
+  url       = {https://doi.org/10.1145/945445.945450},
+  doi       = {10.1145/945445.945450},
+  booktitle = {Proceedings of the {Nineteenth} {ACM} {Symposium} on {Operating} {Systems} {Principles}},
+  publisher = {Association for Computing Machinery},
+  author    = {Ghemawat, Sanjay and Gobioff, Howard and Leung, Shun-Tak},
+  year      = {2003},
+  note      = {GFS},
+  pages     = {29--43}
+}
+
+@inproceedings{bigtable,
+  address   = {Seattle, Washington},
+  series    = {{OSDI} '06},
+  title     = {Bigtable: {A} {Distributed} {Storage} {System} for {Structured} {Data}},
+  isbn      = {1-931971-47-1},
+  booktitle = {Proceedings of the 7th {Symposium} on {Operating} {Systems} {Design} and {Implementation}},
+  publisher = {USENIX Association},
+  author    = {Chang, Fay and Dean, Jeffrey and Ghemawat, Sanjay and Hsieh, Wilson C. and Wallach, Deborah A. and Burrows, Mike and Chandra, Tushar and Fikes, Andrew and Gruber, Robert E.},
+  year      = {2006},
+  pages     = {205--218}
+}
+
+@inproceedings{dynamo,
+  address   = {Stevenson, Washington, USA},
+  series    = {{SOSP} '07},
+  title     = {Dynamo: {Amazon}'s {Highly} {Available} {Key}-{Value} {Store}},
+  isbn      = {978-1-59593-591-5},
+  url       = {https://doi.org/10.1145/1294261.1294281},
+  doi       = {10.1145/1294261.1294281},
+  booktitle = {Proceedings of {Twenty}-{First} {ACM} {SIGOPS} {Symposium} on {Operating} {Systems} {Principles}},
+  publisher = {Association for Computing Machinery},
+  author    = {DeCandia, Giuseppe and Hastorun, Deniz and Jampani, Madan and Kakulapati, Gunavardhan and Lakshman, Avinash and Pilchin, Alex and Sivasubramanian, Swaminathan and Vosshall, Peter and Vogels, Werner},
+  year      = {2007},
+  pages     = {205--220}
+}
+
+@article{liquid,
+  series  = {{TOS} '19},
+  title   = {Liquid {Cloud} {Storage}},
+  volume  = {15},
+  issn    = {1553-3077},
+  url     = {https://doi.org/10.1145/3281276},
+  doi     = {10.1145/3281276},
+  number  = {1},
+  journal = {ACM Trans. Storage},
+  author  = {Luby, Michael and Padovani, Roberto and Richardson, Thomas J. and Minder, Lorenz and Aggarwal, Pooja},
+  month   = feb,
+  year    = {2019}
+}
+
+@misc{amazon-s3,
+  howpublished = {\url{https://aws.amazon.com/s3/}},
+  key          = {s3},
+  title        = {{Amazon} {S3} object storage}
+}
+
+@misc{amazon-glacier,
+  title        = {{Amazon} {S3} {Glacier} storage class},
+  howpublished = {\url{https://aws.amazon.com/s3/storage-classes/glacier/}},
+  key          = {aws-glacier}
+}
+
+@misc{google-coldline,
+  title        = {{Google} {Coldline} storage},
+  howpublished = {\url{https://cloud.google.com/storage/docs/storage-classes\#coldline}},
+}
+
+@misc{google-archive,
+  title        = {{Google} {Archive} storage},
+  howpublished = {\url{https://cloud.google.com/storage/docs/storage-classes\#archive}},
+  key          = {google-archive}
+}
+
+@inproceedings{google-storage,
+  author    = {Ford, Daniel and Labelle, Fran\c{c}ois and Popovici, Florentina I. and Stokely, Murray and Truong, Van-Anh and Barroso, Luiz and Grimes, Carrie and Quinlan, Sean},
+  title     = {Availability in Globally Distributed Storage Systems},
+  year      = {2010},
+  publisher = {USENIX Association},
+  address   = {USA},
+  booktitle = {Proceedings of the 9th USENIX Conference on Operating Systems Design and Implementation},
+  pages     = {61–74},
+  numpages  = {14},
+  location  = {Vancouver, BC, Canada},
+  series    = {OSDI'10}
+}
+
+@misc{google-cloudstore,
+  howpublished = {\url{https://cloud.google.com/storage}},
+  title        = {{Google} {Cloud} {Storage}},
+  key          = {google-cloudstore}
+}
+
+@inproceedings{crush,
+  author    = {Weil, Sage A. and Brandt, Scott A. and Miller, Ethan L. and Maltzahn, Carlos},
+  booktitle = {SC '06: Proceedings of the 2006 ACM/IEEE Conference on Supercomputing},
+  title     = {CRUSH: Controlled, Scalable, Decentralized Placement of Replicated Data},
+  year      = {2006},
+  volume    = {},
+  number    = {},
+  pages     = {31-31},
+  doi       = {10.1109/SC.2006.19}
+}
+
+@inproceedings{xfs,
+  address   = {Copper Mountain, Colorado, USA},
+  series    = {{SOSP} '95},
+  title     = {Serverless {Network} {File} {Systems}},
+  isbn      = {0-89791-715-4},
+  url       = {https://doi.org/10.1145/224056.224066},
+  doi       = {10.1145/224056.224066},
+  booktitle = {Proceedings of the {Fifteenth} {ACM} {Symposium} on {Operating} {Systems} {Principles}},
+  publisher = {Association for Computing Machinery},
+  author    = {Anderson, T. E. and Dahlin, M. D. and Neefe, J. M. and Patterson, D. A. and Roselli, D. S. and Wang, R. Y.},
+  year      = {1995},
+  pages     = {109--126}
+}
+
+@inproceedings{farsite,
+  address   = {Boston, MA},
+  series    = {{OSDI} '02},
+  title     = {{FARSITE}: {Federated}, {Available}, and {Reliable} {Storage} for an {Incompletely} {Trusted} {Environment}},
+  url       = {https://www.usenix.org/conference/osdi-02/farsite-federated-available-and-reliable-storage-incompletely-trusted-environment},
+  booktitle = {5th {Symposium} on {Operating} {Systems} {Design} and {Implementation}},
+  publisher = {USENIX Association},
+  author    = {Adya, Atul and Bolosky, William J. and Castro, Miguel and Cermak, Gerald and Chaiken, Ronnie and Douceur, John R. and Howell, Jon and Lorch, Jacob R. and Theimer, Marvin and Wattenhofer, Roger P.},
+  month     = dec,
+  year      = {2002}
 }
 
 % ==== Misc ====
