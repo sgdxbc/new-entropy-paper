@@ -52,8 +52,8 @@ Such replication scheme is commonly employed in data center settings, and we use
 \paragraph{Repair traffic.}
 We first simulate how much fragment repair traffic \sys generates, and compare it to the baseline replication approach.
 %We record the total number of repairing in the first year.
-\autoref{fig:repair} shows the total repair traffic (in units of data object sizes) incurred in the first year of system deployment.
-As discussed in \autoref{sec:impl}, \sys nodes can optionally cache chunk data to reduce repair traffic.
+\cref{fig:repair} shows the total repair traffic (in units of data object sizes) incurred in the first year of system deployment.
+As discussed in \cref{sec:impl}, \sys nodes can optionally cache chunk data to reduce repair traffic.
 We therefore also simulate \sys with varying chunk cache expiration time in hours.
 %The different lines of \sys indicate the percentage of nodes that regenerate encoding fragment using the booster optimization.
 As expected, repair traffic for \sys and the baseline system both increase linearly with increasing number of data objects.
@@ -67,7 +67,7 @@ This demonstrates that our chunk cache optimization is effective.
 As such, incentives should be provided to encourage nodes to cache for a longer time to reduce repair traffic.
 Fortunately, as shown later, most repairs finish quickly, so a short caching period can lead to good overall cache hit rate.
 
-\autoref{fig:repair} also shows total repair traffic in the first year with increasing node churn rate.
+\cref{fig:repair} also shows total repair traffic in the first year with increasing node churn rate.
 In both \sys and the replicated system, repair traffic grows at the same rate with increasing churn.
 This is expected as higher churn results in more frequent repair.
 The result demonstrates that \sys responds well to the change in the system's average churn rate.
@@ -84,7 +84,7 @@ The drop in repair traffic at high churn is caused by more frequent cache refres
 
 \paragraph{Repair and redundancy over time.}
 In the next simulation, we run \sys and trace one encoded chunk for a duration of 10 years.
-\autoref{fig:time} plots the number of fragments stored on honest \sys nodes over time, and the two lines are deployments with different inner code parameters.
+\cref{fig:time} plots the number of fragments stored on honest \sys nodes over time, and the two lines are deployments with different inner code parameters.
 Recoverability of the chunk requires at least 32 fragments survived on honest nodes.
 The number of survived fragments fluctuates over time due to node churn (decrease) and repair (increase).
 However, neither of the configurations drops below 32 survived fragments, indicating that the chunk is recoverable.
@@ -115,7 +115,7 @@ As expected, the configuration with higher redundancy (and therefore a higher th
 To evaluate how well \sys tolerates adversaries, we simulate a network with Byzantine faulty nodes.
 Byzantine nodes participate correctly in all \sys protocols; however, they do not store any encoding fragment.
 A data object is consider permanently lost when less than $\kout$ of its encoded chunks are irrecoverable (for \sys) or no replicas are left (for the replicated system).
-The \autoref{fig:faulty} shows the percentage of lost objects in a one-year trace.
+The \cref{fig:faulty} shows the percentage of lost objects in a one-year trace.
 This simulation validates that a simple replication system does not tolerance strong adversaries: The baseline system loses all of its objects when less than 5\% of the nodes are faulty.
 On the other hand, \sys can tolerate a significant fraction of faulty nodes without losing data.
 The degree of tolerance depends on the inner code parameters.
@@ -174,7 +174,7 @@ The node performs sanity check to make sure the object is properly retrieved.
     \label{fig:latency}
 \end{figure}
 
-We measure end-to-end latency of \store and \query operations for each system, and show the results in \autoref{fig:latency}.
+We measure end-to-end latency of \store and \query operations for each system, and show the results in \cref{fig:latency}.
 % For \query in \sys, we measure both the case that the client linearly searches the encoding stream for fragments ($slot\_get$), and the case where it directly locates the peers in DHT.
 % For smaller outer and inner code combinations, \sys attains virtually equivalent \store latency as the baseline replication system.
 % As the coding parameter increases, \sys requires selecting and contacting more peers to store the larger number of fragments.
@@ -220,7 +220,7 @@ IPFS has better \store performance, while its \query performance is dramatically
 \end{figure}
 
 To measure our system capacity, we perform multiple \store and \query loops concurrently from different random nodes.
-The latency result is shown in \autoref{fig:concurrent}.
+The latency result is shown in \cref{fig:concurrent}.
 \sys maintains its performance even up to 100 concurrent \store and \query operations, and is able to support more than 600 concurrent repairing.
 We can derive that \sys can support more than 400K \store and 720K \query per day, and can tolerance over 13M daily object repairs.
 This suggests that \sys is capable to handle massive real-world workload.
@@ -235,7 +235,7 @@ This suggests that \sys is capable to handle massive real-world workload.
 \end{figure}
 
 We also evaluate \sys with increasing system size, i.e., the number participants in the system.
-The scalability result is shown in \autoref{fig:scale}.
+The scalability result is shown in \cref{fig:scale}.
 Similar to IPFS, \sys is able to maintain near-constant performance regardless of the system's scale.
 
 \paragraph{Micro-benchmarks.}
@@ -252,8 +252,8 @@ Lastly, we run micro-benchmarks to evaluate the performance of object encoding a
 In the first experiment, we run a single client who applies both the outer layer and inner layer erasure code to encodes a 1 GB object into fragments.
 Then, the client takes the generated fragments, and uses the decoding function in both erasure codes to recover the original object.
 Lastly, we set up one peer node to generate a fragment from $\kin$ existing fragments.
-As shown in \autoref{fig:coding-time}, the time to encode and decode a large object is relatively stable across various coding parameters.
-A direct implication of this result is that the latency increase in \autoref{fig:latency} is caused by DHT operations, not object encoding/decoding.
+As shown in \cref{fig:coding-time}, the time to encode and decode a large object is relatively stable across various coding parameters.
+A direct implication of this result is that the latency increase in \cref{fig:latency} is caused by DHT operations, not object encoding/decoding.
 Chunk repair incurs significantly less CPU overhead, as it only involves the inner code.
 
 %\begin{figure}

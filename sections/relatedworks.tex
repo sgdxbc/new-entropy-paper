@@ -2,7 +2,7 @@
 \label{sec:rel}
 
 \paragraph{Distributed Storage Systems.}
-As mentioned in \autoref{sec:motivation}, our work is related to a long line of research and production systems in distributed storage~\cite{ceph,gfs,bigtable,dynamo,liquid,amazon-s3,amazon-glacier,google-storage,google-cloudstore,google-coldline}.
+As mentioned in \cref{sec:motivation}, our work is related to a long line of research and production systems in distributed storage~\cite{ceph,gfs,bigtable,dynamo,liquid,amazon-s3,amazon-glacier,google-storage,google-cloudstore,google-coldline}.
 Unlike \sys, all those systems are centrally managed by a single administrative entity, and all participants are assumed to be non-Byzantine.
 Our object store interface is similar to Amazon S3~\cite{amazon-s3} and Google Cloud Storage~\cite{google-cloudstore}.
 Many prior systems deploy a centralized service to manage storage metadata~\cite{gfs,bigtable}, while metadata management is fully decentralized in \sys.
@@ -20,7 +20,7 @@ Membership management is done through trusted certificate authorities.
 \sys reduces storage redundancy by using erasure coding, and avoids centralized trust through PoS and verifiable random peer selection.
 Most closely related to our work is the deep archival storage in OceanStore which stores erasure coded fragments over multiple failure domains.
 However, OceanStore makes centralized placement decisions and relies on trusted, centralized nodes to perform repairs.
-As detailed in \autoref{sec:motivation}, IPFS~\cite{filecoin} uses DHT to store publisher record without centralization, but offers no mechanism to reliably store objects.
+As detailed in \cref{sec:motivation}, IPFS~\cite{filecoin} uses DHT to store publisher record without centralization, but offers no mechanism to reliably store objects.
 Filecoin~\cite{filecoin} and Arweave~\cite{arweave} both use tokens to incentivize nodes to store objects longer, but has weak durability guarantees in the presence of failures.
 
 \ifspace
