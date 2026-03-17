@@ -3,7 +3,7 @@
 
 In this section, we describe several engineering details beyond \cref{sec:design} that worth mention in our \sys prototype.
 
-\subsection{Accerlate Placement Group Discovery with Distributed Hash Table}
+\subsection{Efficient Placement Group Discovery with Distributed Hash Table}
 
 Every put and get operations (including the get operations triggered by repairing) requires the client or bootstrapping node to discover the endorsed nodes to interact with them.
 Naively, this can be done by broadcasting to all nodes via a gossip protocol and waiting for responses, but this approach requires $O(N)$ communication overhead and does not scale to large system scales.
@@ -11,7 +11,7 @@ To cope with up to hundreds of thousands of nodes, we integrate an efficient nod
 
 DHT is widely used in peer-to-peer (P2P) systems for locating nodes and data.
 In our implementation, we use Kademlia~\cite{kademlia} as the underlying DHT protocol, which organizes nodes and data in a hash space based on their XOR distances.
-Kademlia provides a lookup protocol that recursively queries nodes to discover a certain number of closest nodes to a given key.
+Kademlia provides a lookup protocol that iteratively queries nodes to discover a certain number of closest nodes to a given key.
 This protocol yields consistent results on every node, and it can efficiently discover nodes with logarithmic communication overhead in the size of the network.
 
 We adapt the VRF in \sys to cooperate with Kademlia to discover the endorsed nodes for a given data object.
@@ -27,3 +27,19 @@ Then, the client or bootstrapping node can proceed to store to or retrieve from 
 
 While the DHT-based approach feels similar to the tranditional P2P storage~\cite{glacier,oceanstore} and prior DSN storage~\cite{swarm}, the key difference is that in \sys the DHT is only used for node discovery, while in prior works the DHT ultimated governs the data placement.
 For example, Byzantine nodes can significantly manipulate the data placement in a prior storage system by clustering themselves in the hash space, while in \sys this attack will have no effect as discussed in \cref{sec:approach}.
+
+\subsection{Accelerate Discovery with Multiple Placement Groups}
+
+While DHT can efficiently discover endorsed nodes, it may introduce higher latency than gossip protocols.
+\sgd{Do we need the following details?}
+% In Kademlia, the nodes maintain buckets of random neighbors at different distance ranges, and they respond to lookup queries with nodes from the buckets that are closest to the target key.
+% The closer buckets have smaller distance ranges and can provide higher-quality reponses.
+% If a query requires more nodes than the closest bucket can provide, the further responded nodes scatter in wider ranges, and the lookup procedure may converge on the nodes in these ranges more difficultly.
+In Kademlia, the lookup protocol maintains a list of candidate nodes for the final result, and it iteratively queries the closest candidates.
+Kademlia limits the number of concurrent queries to save bandwidth, as more concurrent queries may not provide necessary progress.
+What's worse, the large placement groups employed by \sys also introduces more query steps, because it is more difficult for Kademlia to converge on these larger scale lookups.
+
+In \sys, we increase the parallism of placement group discovery with multiple placement groups, which effectively accelerates the discovery.
+The client breaks data blocks into multiple sub-blocks and optionally apply an erasure coding across them to further enhance availability.
+Then, each sub-block is concurrently stored into \sys with smaller placement group.
+The bounded size placement groups effectively bound the lookup latency, while the concurrent lookups are independent and can be parallelized.
