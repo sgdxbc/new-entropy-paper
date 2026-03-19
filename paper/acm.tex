@@ -1,0 +1,24 @@
+\acmtrue
+
+% use the base acmart.cls
+% use the sigconf proceeding template with 10 pt fonts
+% nonacm option removes ACM-related text in the submission.
+\ifreview
+\PassOptionsToClass{nonacm,10pt,anonymous,review}{acmart}
+\fi
+\documentclass[sigconf]{acmart}
+% \renewcommand\footnotetextcopyrightpermission[1]{}
+% enable page numbers
+\settopmatter{printfolios=true}
+
+\input{macros}
+\input{preamble}
+
+\begin{document}
+
+\input{abstract}
+\maketitle
+\pagestyle{plain}
+\input{sections}
+
+\end{document}

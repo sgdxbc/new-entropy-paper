@@ -1,42 +1,19 @@
 % toggle outlines and comments
 \newif\ifdraft
+% toggle anonymous
+\newif\ifreview
 % toggle ACM/USENIX templates
 \newif\ifacm
+% toggle preprint specific content
+\newif\ifarxiv
 % toggle space constrains
 \newif\ifspace
 % toggle appendix/supplementary material
 \newif\ifapx
 
 \drafttrue
+\reviewtrue
+\arxivfalse
 \spacetrue
 \apxtrue
-
-\acmtrue
-% use the base acmart.cls
-% use the sigconf proceeding template with 10 pt fonts
-% nonacm option removes ACM-related text in the submission.
-\documentclass[sigconf,nonacm,anonymous,10pt,review]{acmart}
-% enable page numbers
-\settopmatter{printfolios=true}
-
-\input{macros}
-
-% DOI
-\acmDOI{}
-% ISBN
-\acmISBN{}
-
-
-\title{\sys: Scalable Byzantine Fault Tolerant Decentralized Storage}
-\author{Authors}
-
-\begin{document}
-
-\input{abstract}
-\maketitle
-\input{sections}
-
-\bibliographystyle{ACM-Reference-Format}
-\bibliography{paper}
-
-\end{document}
+\input{paper/acm}
