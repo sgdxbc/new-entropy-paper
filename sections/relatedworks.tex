@@ -13,15 +13,15 @@ Our approach of using rateless erasure code is inspired by liquid storage~\cite{
 Other erasure codes such as local reconstruction codes~\cite{lrcode}, regenerating codes~\cite{rcode}, and traditional MDS codes have also been used in distributed storage.
 \fi
 
-\paragraph{Decentralized Storage.}
-Building reliable storage systems in a fully decentralized environment has been explored extensively~\cite{xfs,farsite,oceanstore,filecoin,arweave}.
+\paragraph{Peer-to-peer (P2P) Storage.}
+Building reliable storage systems in a fully decentralized environment has been explored extensively~\cite{xfs,farsite,oceanstore,glacier}.
 Farsite~\cite{farsite} uses BFT replication for directory metadata and CFT replication for file data.
 Membership management is done through trusted certificate authorities.
-\sys reduces storage redundancy by using erasure coding, and avoids centralized trust through PoS and verifiable random peer selection.
-Most closely related to our work is the deep archival storage in OceanStore which stores erasure coded fragments over multiple failure domains.
-However, OceanStore makes centralized placement decisions and relies on trusted, centralized nodes to perform repairs.
-As detailed in \cref{sec:motivation}, IPFS~\cite{filecoin} uses DHT to store publisher record without centralization, but offers no mechanism to reliably store objects.
-Filecoin~\cite{filecoin} and Arweave~\cite{arweave} both use tokens to incentivize nodes to store objects longer, but has weak durability guarantees in the presence of failures.
+Most closely related to our work is the deep archival storage in OceanStore~\cite{oceanstore} which stores erasure coded fragments over multiple failure domains.
+Glacier~\cite{glacier} proposes to tolerate large scale correlated failures of Byzantine nodes with large erasure-coded placement groups.
+These pioneer P2P storage predates web3 and dApps, and do not fully recognize the attack vectors targeting modern DSNs.
+Specifically, they assume altruistic non-faulty nodes instead of rational nodes studied by \sys and other DSNs.
+Thus, the primary focus of \sys, which is how Byzantine nodes can economically influence the rational nodes, is generally beyond their scopes.
 
 \ifspace
 \paragraph{BFT Protocols.}
