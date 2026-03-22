@@ -37,20 +37,13 @@ Even if all Byzantine nodes reside in a single subspace, the rational nodes of t
 
 \subsection{Accelerating Discovery with Multiple Placement Groups}
 
-While DHT can efficiently discover endorsed nodes, it can introduce higher latency than gossip protocols.
-\sgd{Do we need the following details?}
-% In Kademlia, the nodes maintain buckets of random neighbors at different distance ranges, and they respond to lookup queries with nodes from the buckets that are closest to the target key.
-% The closer buckets have smaller distance ranges and can provide higher-quality reponses.
-% If a query requires more nodes than the closest bucket can provide, the further responded nodes scatter in wider ranges, and the lookup procedure may converge on the nodes in these ranges more difficultly.
-In Kademlia, the lookup protocol maintains a candidate list for the final result and iteratively queries the closest candidates.
-Kademlia limits concurrent queries to control bandwidth, because additional parallel queries may provide little progress.
-Moreover, the large placement groups used by \sys introduce additional query steps, since Kademlia converges more slowly for larger-scale lookups.
-\xxx{Add a simulation plot of target number of discovered nodes vs. steps?}
-
-In \sys, we increase the parallelism of placement group discovery by using multiple placement groups, which effectively reduces discovery latency.
-The client partitions each data block into multiple sub-blocks and can optionally apply erasure coding across them to further improve availability.
-Each sub-block is then stored concurrently in \sys with a smaller placement group.
-Bounded placement group sizes bound lookup latency, and concurrent lookups are independent and can be parallelized.
-As shown in \cref{sec:eval}, employing multiple placement groups yields comparable, and in some cases lower, operation latency.
-
-\xxx{Re-analysis data availability?}
+While \sys can safely employ DHT, Byzantine nodes can still attempt to cause performance degradation.
+When there are significantly more nodes than expected in a subspace because of adversaries, interacting with each of them to verify endorsement and transfer encoded fragment may take a long time, resulting in undesirable and unstable read and write latencies.
+We address this issue with another layer of erasure coding on client side.
+To store data, client first encodes it into multiple encoded blocks and stores each of them individually.
+For example, client may encode the data into 10 blocks, where any 8 of them can recover the data.
+Then, client concurrently stores the 10 blocks, performing DHT lookups with 10 distinct hashes as target, and can finish the whole store operation after any 8 of the blocks are stored by their placement groups.
+Finally, client may submit a transaction to cancel the 2 storing blocks that haven't been stored.
+In this way, adversaries have to attack at least 3 placement groups simultaneously to delay the storing.
+This will significantly spread the attacking power and mitigate its influence on any individual placement group, thus bound the overall performance.
+Moreover, by concurrently storing multiple blocks, the client can discover and validate more endorsed nodes concurrently, which also accelerates the operations.
