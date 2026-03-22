@@ -3,7 +3,7 @@
 
 In this section, we describe several engineering details beyond \cref{sec:design} that are worth highlighting in our \sys prototype.
 
-\subsection{Efficient Placement Group Locating with Distributed Hash Table}
+\subsection{Efficient Placement Group Discovery with Distributed Hash Table}
 
 Every put or get operation, including get operations triggered during repair, requires the client or bootstrapping node to discover the endorsed nodes with which it should interact.
 A naive approach is to broadcast to all nodes via a gossip protocol and wait for responses, but this method incurs $O(N)$ communication overhead and does not scale to large deployments.
@@ -14,23 +14,37 @@ In our implementation, we use Kademlia~\cite{kademlia} as the underlying DHT pro
 Kademlia organizes nodes and data in a hash space according to XOR distance.
 Kademlia's lookup protocol iteratively queries nodes to find a target number of nodes closest to a given key.
 The protocol yields consistent results across nodes and discovers candidates with logarithmic communication overhead in network size.
-Several prior P2P storage~\cite{oceanstore,glacier} and DSNs~\cite{swarm} directly rely on DHT for data placement due to its desirable communication efficiency and consistency.
 
-However, \sys's data placement is governed by VRF, which enables unpredictable placement and global defense to Byzantine nodes.
-The nodes endorsed by VRF uniformly distribute across the hash space, while the nodes discovered by DHT are globally closest to the target.
-Thus, DHT cannot feasibly discover all endorsed nodes of a placement group.
+We adapt the VRF in \sys to work with Kademlia so that endorsed nodes for a given data object become discoverable through DHT lookup.
+Specifically, we ensure that endorsed rational nodes are likely to appear near the object's hash in the Kademlia space.
+We define the VRF sampling probability as a step function and mask out nodes whose IDs are far from the data block hash.
+To preserve the expected sample size, we increase the sampling probability for the remaining nodes.
+\xxx{Formulate the VRF sample probability function.}
 
-To bridge between VRF and DHT, we propose a modified multi-region version of VRF.
-For each data block, multiple \emph{subhashes} are deterministically derived from the data hash.
-Then, a node is endorsed by the VRF if for any subhash, its node ID is close enough to the subhash considering XOR distance (i.e., it shares a sufficiently long prefix with the subhash), and it is sampled by VRF with the subhash as input, as described in \cref{sec:approach}.
-Conceptually, the hash space is divided into multiple regions, each of which contains a subhash, and the VRF samples nodes from each region with it.
+To discover endorsed nodes for a data block, the client or bootstrapping node performs a Kademlia lookup on the block hash.
+Nodes returned during lookup assist routing as in standard Kademlia, while endorsed nodes among them piggyback their VRF proofs and signatures in lookup responses.
+After the logarithmic-round lookup completes, the placement group is fully discovered.
+The client or bootstrapping node can then store data to, or retrieve data from, the endorsed nodes as described in \cref{sec:design}.
 
-This multi-region VRF allows efficient DHT-based node discovery.
-We can initiate dedicated lookups per subhash, which conclude after all nodes close enough to the subhash are discovered.
-These concurrent lookups have the same $O(\log{N})$ communication overhead as single DHT lookup, significantly reduced from the $O(N)$ gossip baseline.
-At the same time, none of the \sys properties is affected by this optimization.
-The on-chain state still maintains only the data hash, as the subhashes can be deterministically derived from it on demand.
-Most crucially, the security of placement groups is the same as before.
-The usage of DHT in \sys is a pure performance optimization of discovering endorsed nodes.
-In the end, nodes are still uniformly sampled for endorsement, regardless via a multi-region approach or a single-region one.
-Thus, all security analysis we performed in \cref{sec:design:analysis} still applies.
+Although this DHT-based approach resembles traditional P2P storage~\cite{glacier,oceanstore} and prior DSN systems~\cite{swarm}, a key distinction remains: in \sys, the DHT is used only for node discovery, whereas in prior systems it ultimately governs data placement.
+For example, Byzantine nodes can significantly influence placement in prior systems by clustering in the hash space, while in \sys this strategy has no effect, as discussed in \cref{sec:approach}.
+
+\subsection{Accelerating Discovery with Multiple Placement Groups}
+
+While DHT can efficiently discover endorsed nodes, it can introduce higher latency than gossip protocols.
+\sgd{Do we need the following details?}
+% In Kademlia, the nodes maintain buckets of random neighbors at different distance ranges, and they respond to lookup queries with nodes from the buckets that are closest to the target key.
+% The closer buckets have smaller distance ranges and can provide higher-quality reponses.
+% If a query requires more nodes than the closest bucket can provide, the further responded nodes scatter in wider ranges, and the lookup procedure may converge on the nodes in these ranges more difficultly.
+In Kademlia, the lookup protocol maintains a candidate list for the final result and iteratively queries the closest candidates.
+Kademlia limits concurrent queries to control bandwidth, because additional parallel queries may provide little progress.
+Moreover, the large placement groups used by \sys introduce additional query steps, since Kademlia converges more slowly for larger-scale lookups.
+\xxx{Add a simulation plot of target number of discovered nodes vs. steps?}
+
+In \sys, we increase the parallelism of placement group discovery by using multiple placement groups, which effectively reduces discovery latency.
+The client partitions each data block into multiple sub-blocks and can optionally apply erasure coding across them to further improve availability.
+Each sub-block is then stored concurrently in \sys with a smaller placement group.
+Bounded placement group sizes bound lookup latency, and concurrent lookups are independent and can be parallelized.
+As shown in \cref{sec:eval}, employing multiple placement groups yields comparable, and in some cases lower, operation latency.
+
+\xxx{Re-analysis data availability?}
