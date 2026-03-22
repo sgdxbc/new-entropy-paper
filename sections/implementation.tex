@@ -14,20 +14,26 @@ In our implementation, we use Kademlia~\cite{kademlia} as the underlying DHT pro
 Kademlia organizes nodes and data in a hash space according to XOR distance.
 Kademlia's lookup protocol iteratively queries nodes to find a target number of nodes closest to a given key.
 The protocol yields consistent results across nodes and discovers candidates with logarithmic communication overhead in network size.
+Unfortunately, Kademlia clearly cannot feasibly discover all endorsed nodes, which uniformly distributes across the whole hash space.
 
-We adapt the VRF in \sys to work with Kademlia so that endorsed nodes for a given data object become discoverable through DHT lookup.
-Specifically, we ensure that endorsed rational nodes are likely to appear near the object's hash in the Kademlia space.
-We define the VRF sampling probability as a step function and mask out nodes whose IDs are far from the data block hash.
-To preserve the expected sample size, we increase the sampling probability for the remaining nodes.
-\xxx{Formulate the VRF sample probability function.}
+To address this issue, we modify the endorsement rule to be favorable by DHT.
+The endorsed nodes not only need to obtain the sufficiently small pseudorandom output from VRF (\cref{sec:approach:sample}), but also need to have IDs with sufficiently small XOR distances to the data hash, i.e., share a sufficiently long common prefix with the data hash.
+Essentially, we only endorse nodes from a restricted \emph{subspace} around the data hash, the nodes of which can be easily discovered with a DHT lookup.
+To preserve the expected sample size, we increase the sampling probability according to the common prefix length.
+For example, if we endorse nodes whose IDs have 10-bit common prefix with the data hash, the sample rate $p$ is increased by $2^{10}$ times.
 
-To discover endorsed nodes for a data block, the client or bootstrapping node performs a Kademlia lookup on the block hash.
-Nodes returned during lookup assist routing as in standard Kademlia, while endorsed nodes among them piggyback their VRF proofs and signatures in lookup responses.
-After the logarithmic-round lookup completes, the placement group is fully discovered.
-The client or bootstrapping node can then store data to, or retrieve data from, the endorsed nodes as described in \cref{sec:design}.
+At the same time, we also adapt the vanilla Kademlia lookup semantics.
+Typically, Kademlia concludes lookups after a fixed number of the closest nodes to the target are discovered.
+If we look up endorsed nodes as this, the Byzantine nodes may cluster around the target to be discovered, while the further rational nodes will be overlooked even if they are endorsed.
+Instead, in \sys, Kademlia \emph{exhaustively} looks up the target subspaces with uncertain number of nodes.
+Specifically, it operates in a neighborhood basis similar to Swarm~\cite{swarm}.
+The nodes fully replicate the contacts of nearby nodes and randomly sample nodes from further distance buckets as in vanilla Kademlia.
+After a lookup reach any node within the same subspace as the target, the node will respond with the full contact list of the subspace, which is all possibly endorsed nodes.
+We adopt standard security treatments \xxx{cite S/Kademlia} such as disjoint lookup paths to defend against eclipse attacks targeting lookup protocol.
 
-Although this DHT-based approach resembles traditional P2P storage~\cite{glacier,oceanstore} and prior DSN systems~\cite{swarm}, a key distinction remains: in \sys, the DHT is used only for node discovery, whereas in prior systems it ultimately governs data placement.
-For example, Byzantine nodes can significantly influence placement in prior systems by clustering in the hash space, while in \sys this strategy has no effect, as discussed in \cref{sec:approach}.
+Although this DHT-based approach resembles traditional P2P storage~\cite{glacier,oceanstore} and prior DSN systems~\cite{swarm}, a key distinction remains: in \sys, the DHT is used only for node discovery and has nothing to do with data placement.
+While the sampling distribution is adjusted from globally uniform to subspace-wise uniform, the node-centric approach (\cref{sec:approach:sample}) remains the same, so as the key property: the rewards to the rational nodes are not affected by the distribution of Byzantine nodes.
+Even if all Byzantine nodes reside in a single subspace, the rational nodes of that subspace will still be reliably discovered during the exhaustive lookup, so they will not miss their endorsement and rewards.
 
 \subsection{Accelerating Discovery with Multiple Placement Groups}
 
