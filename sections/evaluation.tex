@@ -1,29 +1,29 @@
 \section{Evaluation}
 \label{sec:eval}
 
-We use two types of experiments to evaluate \sys: discrete event simulation and physical deployment on geo-distributed EC2 virtual machines.
-In simulation, we focus on long-term behavior, validating \sys's data availability and repair efficiency.
-Then we confirm that \sys achieves decent performance, incurring operation latencies comparable to existing DSNs, with the physical deployment.
-Unless otherwise specified, we use a $(80, 32)$ rateless erasure coding, that is, the coding requires $k=32$ fragments to recover the original data, and we set a proper sample rate to ensure that $N_e = 80$ nodes at minimum are endorsed for each data block with high probability.\footnotemark
+We evaluate \sys through two complementary methods: discrete-event simulation and physical deployment on geo-distributed EC2 virtual machines.
+In simulation, we focus on long-term behavior to validate \sys's data availability and repair efficiency.
+In physical deployment, we verify that \sys delivers practical performance, with operation latencies comparable to those of existing DSNs.
+Unless otherwise specified, we use a $(80, 32)$ rateless erasure code, where recovering the original data requires $k=32$ fragments, and we set the sampling rate to ensure that at least $N_e = 80$ nodes are endorsed for each data block with high probability.\footnotemark
 \footnotetext{We adopt the conventional notation for erasure coding and describe the employed coding as $(N_e, k)$ for brevity.
 The actual coding scheme can generate as many fragments as needed, and $N_e$ is the number of fragments \sys persists for each data block.}
 
-We compare \sys to a private Swarm~\cite{swarm} network, where each data block is replicated by a neighborhood represented by 3 randomly-chosen nodes.
-We choose Swarm because it is the most resilient one among all prior DSNs (\cref{sec:motivation}), and it also has performance characteristics that are comparable to \sys because the two systems share similar DHT-based node discovery, on-chain governance, and client-side encoding design.
+We compare \sys against a private Swarm~\cite{swarm} network, where each data block is replicated within a neighborhood represented by three randomly chosen nodes.
+We choose Swarm because it is the most resilient prior DSN (\cref{sec:motivation}) and exhibits performance characteristics comparable to \sys, as both systems use similar DHT-based node discovery, on-chain governance, and client-side encoding.
 We implement external clients for both systems.
-The clients do not participate in Kademlia DHT and randomly select nodes as gateways to perform read and write operations.
-Unless otherwise specified, in both \sys and Swarm, the stored data is encoded into 10 blocks with a $(10, 8)$ code on the client.
-As discussed in \cref{sec:impl:encode}, this is a performance optimization in \sys while a security measurement in Swarm.
+The clients do not participate in the Kademlia DHT and instead randomly select gateway nodes for store and retrieve operations.
+Unless otherwise specified, both \sys and Swarm encode each data object into 10 blocks using a $(10, 8)$ code at the client side.
+As discussed in \cref{sec:impl:encode}, this is a performance optimization in \sys, whereas in Swarm it serves as a security measure.
 
 \subsection{Simulations}
 
-We first use discrete event simulation to evaluate the fault tolerance guarantees and repair overhead of \sys.
-The simulated network contains a total of 100K nodes.
-Unless otherwise specified, the Byzantine faulty rate is set to $f=\frac{1}{3}$, and the benign failure rate is set to $f'=4$ per year, that is, the number of benign failures in a year is $4\times$ the number of rational nodes on average.
+We first use discrete-event simulation to evaluate the fault-tolerance guarantees and repair overhead of \sys.
+The simulated network contains 100K nodes.
+Unless otherwise specified, the Byzantine fault rate is set to $f=\frac{1}{3}$, and the benign failure rate is set to $f'=4$ per year, meaning that the expected number of benign failures per year is $4\times$ the number of rational nodes.
 Rational node failures follow a Poisson distribution.
-We use data object size as the basic unit for repair traffic.
-The overall storage capacity which \sys occupies is also recorded.
-We run each simulation 10 times with different seed values and take the average.
+We use data-object size as the basic unit of repair traffic.
+We also record the total storage capacity occupied by \sys.
+Each simulation is repeated 10 times with different random seeds, and we report the average.
 
 \begin{figure}
     \addgraph{time-alive}
@@ -35,11 +35,11 @@ We run each simulation 10 times with different seed values and take the average.
 
 \paragraph{Repair and redundancy over time.}
 In the first simulation, we run \sys and trace one data block for a duration of 10 years.
-\cref{fig:time} plots the number of fragments stored on rational nodes over time, and the two lines are deployments with different target minimum numbers of endorsement $N_e$.
-The recover threshold $k$ is the same 32, so the recoverability of the data block requires at least 32 fragments survived on rational nodes, while larger $N_e$ means more storage overhead.
-The number of survived fragments fluctuates over time due to node failures (decrease) and repair (increase).
-However, neither of the configurations drops below 32 survived fragments, indicating that the chunk is recoverable.
-As expected, the configuration with higher redundancy maintains a wider margin to the safety critical level.
+\Cref{fig:time} plots the number of fragments stored on rational nodes over time; the two lines correspond to deployments with different target minimum endorsement counts $N_e$.
+The recovery threshold is fixed at $k=32$, so the data block remains recoverable as long as at least 32 fragments survive on rational nodes, while larger $N_e$ implies higher storage overhead.
+The number of surviving fragments fluctuates over time due to node failures (decreases) and repair (increases).
+However, neither configuration drops below 32 surviving fragments, indicating that the block remains recoverable.
+As expected, the higher-redundancy configuration maintains a larger safety margin.
 
 \begin{figure}
     \addgraph{faulty-lost}
@@ -51,12 +51,12 @@ As expected, the configuration with higher redundancy maintains a wider margin t
 
 \paragraph{Fault tolerance.}
 To evaluate how well \sys tolerates adversaries, we simulate a network with various Byzantine faulty nodes.
-A data block is consider permanently lost when insufficient fragments remain on rational nodes (for \sys) or no replicas are left (for Swarm).
-The \cref{fig:faulty} shows the percentage of lost objects in a one-year trace.
-This simulation validates that Swarm does not tolerance strong adversaries: It loses all of its blocks when less than 5\% of the nodes are faulty.
+A data block is considered permanently lost when insufficient fragments remain on rational nodes (for \sys) or when no replicas remain (for Swarm).
+\Cref{fig:faulty} shows the percentage of lost objects over a one-year trace.
+This simulation shows that Swarm does not tolerate strong adversaries: it loses all blocks when fewer than 5\% of nodes are Byzantine.
 On the other hand, \sys can tolerate a significant fraction of faulty nodes without losing data.
 The degree of tolerance depends on the rateless code parameters $k$ and $N_e$.
-Using the default parameter, \sys can tolerate around the targeted 33\% faulty nodes, while a more conservative configuration can improve tolerance further at the expense of increased redundancy.
+Using the default parameters, \sys tolerates approximately the target \nicefrac{1}{3} Byzantine rate, while a more conservative configuration further improves tolerance at the cost of additional redundancy.
 
 \begin{figure}
     \addgraph{churn-repair}
@@ -68,25 +68,23 @@ Using the default parameter, \sys can tolerate around the targeted 33\% faulty n
 \end{figure}
 
 \paragraph{Repair traffic.}
-We simulate how much fragment repair traffic \sys generates, and compare it to the baseline replication approach of Swarm.
+We quantify the fragment-repair traffic generated by \sys and compare it with Swarm's baseline replication approach.
 \Cref{fig:repair} shows the total repair traffic (in units of data object sizes) incurred in the first year of system deployment.
-As discussed in \cref{sec:impl:repair}, \sys nodes can optionally cache chunk data to reduce repair traffic.
-We therefore also simulate \sys with varying chunk cache expiration time in hours.
-As expected, repair traffic for \sys and Swarm both increase linearly with increasing number of data objects.
-\sys pays a higher repair cost compared to the baseline, as constructing a new fragment requires transmitting $k$ existing fragments.
-By hitting the chunk cache, repair traffic for each fragment is reduced by $k$ times, making it comparable to the replication system.
-Concretely, repair traffic is decreased by $6\times$ when the cache duration increases to 48 hours.
+As discussed in \cref{sec:impl:repair}, \sys nodes can optionally cache full blocks to reduce repair traffic.
+We therefore evaluate \sys under different cache-expiration times (in hours).
+As expected, repair traffic in both \sys and Swarm increases linearly with the number of data objects.
+\sys incurs higher repair cost than replication, because constructing a new fragment requires transmitting $k$ existing fragments.
+When a repair hits the chunk cache, traffic per repaired fragment is reduced by a factor of $k$, making the cost comparable to replication.
+Concretely, repair traffic decreases by $6\times$ when cache duration is increased to 48 hours.
 This demonstrates that our chunk cache optimization is effective.
 % As such, incentives should be provided to encourage nodes to cache for a longer time to reduce repair traffic.
 % Fortunately, as shown later, most repairs finish quickly, so a short caching period can lead to good overall cache hit rate.
 
-\Cref{fig:repair} also shows total repair traffic in the first year with increasing node failure rate.
-In both \sys and the replicated system, repair traffic grows at the same rate with increasing failure rates.
-This is expected as higher failure rates result in more frequent repair.
-The result demonstrates that \sys responds well to the change in the system's average failure rate.
-Another implication is that \sys scales well with an increase in failures, i.e., the overhead per node failure remains constant.
-As with the previous experiment, longer chunk cache effectively reduces the repair traffic.
-The drop in repair traffic at high failure rate is caused by more frequent cache refreshes.
+\Cref{fig:repair} also reports total repair traffic in the first year as node failure rate increases.
+In both \sys and the replicated baseline, repair traffic grows at a similar rate as failures increase, as expected.
+These results indicate that \sys adapts well to changes in average failure rate and scales with churn, since overhead per failure remains roughly constant.
+As in the previous experiment, longer chunk-cache duration further reduces repair traffic.
+The slight drop in repair traffic at high failure rates is due to more frequent cache refreshes.
 
 \subsection{Physical Deployment}
 
@@ -96,11 +94,11 @@ The drop in repair traffic at high failure rate is caused by more frequent cache
 %In practice, it could be parallelized and improve \store performance.
 
 Next, we evaluate \sys using our implementation.
-We deploy 10,000 \sys nodes on Amazon EC2 in 5 AWS zones (us-west, ap-east, eu-central, sa-east, af-south) across 5 continents.
-We launch 20 \texttt{m5.4xlarge} instances with 16 vCPU, 64GiB of memory and up to 10Gbps network bandwidth in each zone, and run 100 peers on each instance.
-In the evaluation of store and retrieve operations, we spawn a client to perform store operation in one of the five regions.
-After the store finished, another client is immediately spawned in another random region to issue a retrieve operation with the hash to retrieve the data block.
-The node performs sanity check to make sure the data block is properly retrieved.
+We deploy 10,000 \sys nodes on Amazon EC2 across five AWS zones (us-west, ap-east, eu-central, sa-east, af-south) spanning five continents.
+In each zone, we launch 20 \texttt{m5.4xlarge} instances, each with 16 vCPUs, 64 GiB memory, and up to 10 Gbps network bandwidth, and run 100 peers per instance.
+To evaluate store and retrieve operations, we launch a client in one of the five regions to issue a store operation.
+After the store completes, we immediately launch another client in a randomly selected region to issue a retrieve operation using the stored hash.
+The retrieving node performs a sanity check to confirm that the data block is correctly recovered.
 
 \paragraph{Latency Results.}
 
@@ -111,9 +109,9 @@ The node performs sanity check to make sure the data block is properly retrieved
     \label{fig:latency}
 \end{figure}
 
-We measure end-to-end latency of store and retrieve operations of 1 GB data for each system, and show the results in \cref{fig:latency}.
-Swarm has better store performance, while its retrieve performance is dramatically affected by the choice of client-side coding.
-\sys on the other hand, manages to maintain the latency on a steady state across different code setup.
+We measure end-to-end latency for storing and retrieving 1 GB of data in each system; results are shown in \cref{fig:latency}.
+Swarm provides lower store latency, but its retrieve latency is strongly affected by the client-side coding configuration.
+In contrast, \sys maintains relatively stable latency across different coding setups.
 
 \iffalse
 \paragraph{Concurrent operations.}
@@ -142,9 +140,9 @@ This suggests that \sys is capable to handle massive real-world workload.
     \label{fig:scale}
 \end{figure}
 
-We also evaluate \sys with increasing system size, i.e., the number participants in the system.
-The scalability result is shown in \cref{fig:scale}.
-Similar to Swarm and prior DHT-based systems, \sys is able to maintain near-constant performance regardless of the system's scale.
+We also evaluate \sys as system size increases, that is, as the number of participants grows.
+The scalability results are shown in \cref{fig:scale}.
+Similar to Swarm and prior DHT-based systems, \sys maintains near-constant performance across system scales.
 
 \paragraph{Micro-benchmarks.}
 
@@ -156,10 +154,10 @@ Similar to Swarm and prior DHT-based systems, \sys is able to maintain near-cons
     \label{fig:coding-time}
 \end{figure}
 
-Lastly, we run micro-benchmarks to evaluate the performance of encoding and decoding.
-In the first experiment, we run a single client who applies both layers of erasure codes to encode 1 GB data into fragments.
-Then, the client takes the generated fragments, and uses the decoding function in both erasure codes to recover the original data.
-Lastly, we set up one peer node to generate a fragment from $k$ existing fragments.
-As shown in \cref{fig:coding-time}, the time to encode and decode is relatively stable across various coding parameters.
-A direct implication of this result is that the latency increase in \cref{fig:latency} is caused by DHT operations, not data encoding/decoding.
-Data block repair incurs significantly less CPU overhead, as it only involves single code and much fewer data.
+Lastly, we run micro-benchmarks to evaluate encoding and decoding performance.
+In the first experiment, a single client applies both erasure-coding layers to encode 1 GB of data into fragments.
+The client then decodes the generated fragments using both coding layers to recover the original data.
+Finally, we configure one peer to generate a fragment from $k$ existing fragments.
+As shown in \cref{fig:coding-time}, encoding and decoding time remains relatively stable across coding parameters.
+This result implies that the latency increase in \cref{fig:latency} is mainly caused by DHT operations rather than by data encoding or decoding.
+Data-block repair incurs significantly lower CPU overhead because it uses only one coding layer and much less data.
