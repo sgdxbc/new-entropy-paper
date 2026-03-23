@@ -52,6 +52,7 @@ In contrast to Swarm's client-side erasure coding, our design uses this extra co
 Because \sys already guarantees reliable storage for each encoded block, this layer requires no manual repair and introduces no additional storage overhead.
 
 \subsection{Efficient Repair with Caching}
+\label{sec:impl:repair}
 
 During bootstrapping, a node fetches encoded fragments to reconstruct the data blocks that endorse it.
 This process requires downloading at least $k$ times the amount of data eventually stored, which causes substantial network-traffic amplification.

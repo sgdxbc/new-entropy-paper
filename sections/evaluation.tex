@@ -2,129 +2,88 @@
 \label{sec:eval}
 
 We use two types of experiments to evaluate \sys: discrete event simulation and physical deployment on geo-distributed EC2 virtual machines.
-Unless otherwise specified, we use $\kin = 32, R = 80$ for the inner code,
-% We implement the outer code using rateless erasure code with randomly generated indices.
-and the outer code uses $\kout = 8$ and 10 chunks are generated for each object.
-All objects are 1 GB in size.
-%By default k = 64, persistence parameter $k_p = 1.2k$, select rate $K = 2k$
-%\sgd{This description assumes single-stack nodes.}
-% In our physical deployment, \store operations return only when $1.6k$ persistence proofs are received through gossip.
-% This safeguard policy improves system stability without introducing significant overhead.
+In simulation, we focus on long-term behavior, validating \sys's data availability and repair efficiency.
+Then we confirm that \sys achieves decent performance, incurring operation latencies comparable to existing DSNs, with the physical deployment.
+Unless otherwise specified, we use a $(80, 32)$ rateless erasure coding, that is, the coding requires $k=32$ fragments to recover the original data, and we set a proper sample rate to ensure that $N_e = 80$ nodes at minimum are endorsed for each data block with high probability.\footnotemark
+\footnotetext{We adopt the conventional notation for erasure coding and describe the employed coding as $(N_e, k)$ for brevity.
+The actual coding scheme can generate as many fragments as needed, and $N_e$ is the number of fragments \sys persists for each data block.}
 
-\sgd{TODO turn this into an IPFS-based setup.}
-
-When evaluating physical deployments, we compare \sys to a private IPFS~\cite{filecoin} network.
-When working with IPFS, we reuse our client from \sys implementation, and send chunks to IPFS peers instead of \sys peer nodes.
-Each chunk is sent to three randomly-chosen IPFS peers for \store operation.
-For \query operation, client contacts one random IPFS peer per chunk,  and the chunk will first be transferred from one of the three storing peers to that contacted peer, then get back to client, similar to the interaction with \sys peer node.
-
-% We only slightly modified IPFS in the following way: When storing an object, we transfer the object to a random peer instead of storing locally.
-% Note that IPFS (and our modified version) by default only stores a single copy of the object, therefore offering no durability guarantee.
-% Second, we also evaluate against the Ceph~\cite{ceph} distributed storage system.
+We compare \sys to a private Swarm~\cite{swarm} network, where each data block is replicated by a neighborhood represented by 3 randomly-chosen nodes.
+We choose Swarm because it is the most resilient one among all prior DSNs (\cref{sec:motivation}), and it also has performance characteristics that are comparable to \sys because the two systems share similar DHT-based node discovery and on-chain governance design.
+We implement external clients for both systems.
+The clients do not participate in Kademlia DHT and randomly select nodes as gateways to perform read and write operations.
 
 \subsection{Simulations}
 
-We first use discrete event simulation to evaluate the repair overhead and fault tolerance guarantees of \sys.
+We first use discrete event simulation to evaluate the fault tolerance guarantees and repair overhead of \sys.
 The simulated network contains a total of 100K nodes.
-For simplicity, we parametrize one churn rate for all nodes.
-Node failures (including permanently leaving the system) follow a Poisson distribution according to the churn.
-%Each node periodically gossips until it fails.
-%Then after gossip timeout, next responsible peers will notice and may choose to start to repair.
+Unless otherwise specified, the Byzantine faulty rate is set to $f=\frac{1}{3}$, and the benign failure rate is set to $f'=4$ per year, that is, the number of benign failures in a year is $4\times$ the number of rational nodes on average.
+Rational node failures follow a Poisson distribution.
 We use data object size as the basic unit for repair traffic.
 The overall storage capacity which \sys occupies is also recorded.
-%Notice redundancy reduction is not simulated, so the redundancy is more than result from deployed environment.
 We run each simulation 10 times with different seed values and take the average.
 
-Besides \sys, we also simulate a Ceph-like replicated storage system.
-This system replicates each object on 3 randomly selected peers, and performs object repair immediately after one of the replicas fails.
-%This is similar to datacenter-level distributed storage.
-Such replication scheme is commonly employed in data center settings, and we use it as a baseline to compare to our decentralized protocol.
+\begin{figure}
+    \addgraph{time-alive}
+    \caption{Number of fragments stored on alive \sys rational nodes over time. The two lines are for different inner code configurations with different redundancy.}
+    \ifacm\Description{TODO}\fi
+    \label{fig:time}
+\end{figure}
+
+\paragraph{Repair and redundancy over time.}
+In the first simulation, we run \sys and trace one data block for a duration of 10 years.
+\cref{fig:time} plots the number of fragments stored on rational nodes over time, and the two lines are deployments with different target minimum numbers of endorsement $N_e$.
+The recover threshold $k$ is the same 32, so the recoverability of the data block requires at least 32 fragments survived on rational nodes, while larger $N_e$ means more storage overhead.
+The number of survived fragments fluctuates over time due to node failures (decrease) and repair (increase).
+However, neither of the configurations drops below 32 survived fragments, indicating that the chunk is recoverable.
+As expected, the configuration with higher redundancy maintains a wider margin to the safety critical level.
+
+\begin{figure}
+    \addgraph{faulty-lost}
+    \caption{Percentage of lost objects in the presence of Byzantine faulty peers.
+    \sys runs with three inner and outer code configurations respectively for the simulation.}
+    \ifacm\Description{TODO}\fi
+    \label{fig:faulty}
+\end{figure}
+
+\paragraph{Fault tolerance.}
+To evaluate how well \sys tolerates adversaries, we simulate a network with various Byzantine faulty nodes.
+A data object is consider permanently lost when insufficient fragments remain on rational nodes (for \sys) or no replicas are left (for Swarm).
+The \cref{fig:faulty} shows the percentage of lost objects in a one-year trace.
+This simulation validates that Swarm does not tolerance strong adversaries: The baseline system loses all of its objects when less than 5\% of the nodes are faulty.
+On the other hand, \sys can tolerate a significant fraction of faulty nodes without losing data.
+The degree of tolerance depends on the inner code parameters.
+Using the default parameter, \sys can tolerate around the targeted 33\% faulty nodes, while a more conservative configuration can improve tolerance further at the expense of increased redundancy.
 
 \begin{figure}
     \addgraph{churn-repair}
     \addgraph{object-repair}
     \caption{Repair traffic over increasing number of objects and churn rate.
     The subscript number indicates duration in hours until the chunk cache is cleared.}
-    \Description{TODO}
+    \ifacm\Description{TODO}\fi
     \label{fig:repair}
 \end{figure}
 
 \paragraph{Repair traffic.}
-We first simulate how much fragment repair traffic \sys generates, and compare it to the baseline replication approach.
-%We record the total number of repairing in the first year.
-\cref{fig:repair} shows the total repair traffic (in units of data object sizes) incurred in the first year of system deployment.
-As discussed in \cref{sec:impl}, \sys nodes can optionally cache chunk data to reduce repair traffic.
+We simulate how much fragment repair traffic \sys generates, and compare it to the baseline replication approach of Swarm.
+\Cref{fig:repair} shows the total repair traffic (in units of data object sizes) incurred in the first year of system deployment.
+As discussed in \cref{sec:impl:repair}, \sys nodes can optionally cache chunk data to reduce repair traffic.
 We therefore also simulate \sys with varying chunk cache expiration time in hours.
-%The different lines of \sys indicate the percentage of nodes that regenerate encoding fragment using the booster optimization.
-As expected, repair traffic for \sys and the baseline system both increase linearly with increasing number of data objects.
-\sys pays a higher repair cost compared to the baseline, as constructing a new fragment requires transmitting $\kin$ existing fragments.
-By hitting the chunk cache, repair traffic for each fragment is reduced by $\kin$ times, making it comparable to the replication system.
-%When booster peers cache object perfectly, every repair only transfers $1/k$ of data object size, so the overall repair traffic is comparable to the replicated system.
-%However, when booster hit rate decreases, there is a sudden jump in the repair traffic due to the high ``cache miss'' penalty.
-Concretely, repair traffic is decreased by 6X when the cache duration increases to 48 hours.
-%Beyond that, repair traffic only doubled from 75\% hit rate to 50\%, and doubled again when the booster optimization is turned off.
+As expected, repair traffic for \sys and Swarm both increase linearly with increasing number of data objects.
+\sys pays a higher repair cost compared to the baseline, as constructing a new fragment requires transmitting $k$ existing fragments.
+By hitting the chunk cache, repair traffic for each fragment is reduced by $k$ times, making it comparable to the replication system.
+Concretely, repair traffic is decreased by $6\times$ when the cache duration increases to 48 hours.
 This demonstrates that our chunk cache optimization is effective.
-As such, incentives should be provided to encourage nodes to cache for a longer time to reduce repair traffic.
-Fortunately, as shown later, most repairs finish quickly, so a short caching period can lead to good overall cache hit rate.
+% As such, incentives should be provided to encourage nodes to cache for a longer time to reduce repair traffic.
+% Fortunately, as shown later, most repairs finish quickly, so a short caching period can lead to good overall cache hit rate.
 
-\cref{fig:repair} also shows total repair traffic in the first year with increasing node churn rate.
-In both \sys and the replicated system, repair traffic grows at the same rate with increasing churn.
-This is expected as higher churn results in more frequent repair.
-The result demonstrates that \sys responds well to the change in the system's average churn rate.
-Another implication is that \sys scales well with an increase in churn, i.e., the overhead per node failure remains constant.
+\Cref{fig:repair} also shows total repair traffic in the first year with increasing node failure rate.
+In both \sys and the replicated system, repair traffic grows at the same rate with increasing failure rates.
+This is expected as higher failure rates result in more frequent repair.
+The result demonstrates that \sys responds well to the change in the system's average failure rate.
+Another implication is that \sys scales well with an increase in failures, i.e., the overhead per node failure remains constant.
 As with the previous experiment, longer chunk cache effectively reduces the repair traffic.
-The drop in repair traffic at high churn is caused by more frequent cache refreshes.
-
-\begin{figure}
-    \addgraph{time-alive}
-    \caption{Number of fragments stored on alive \sys honest nodes over time. The two lines are for different inner code configurations with different redundancy.}
-    \Description{TODO}
-    \label{fig:time}
-\end{figure}
-
-\paragraph{Repair and redundancy over time.}
-In the next simulation, we run \sys and trace one encoded chunk for a duration of 10 years.
-\cref{fig:time} plots the number of fragments stored on honest \sys nodes over time, and the two lines are deployments with different inner code parameters.
-Recoverability of the chunk requires at least 32 fragments survived on honest nodes.
-The number of survived fragments fluctuates over time due to node churn (decrease) and repair (increase).
-However, neither of the configurations drops below 32 survived fragments, indicating that the chunk is recoverable.
-As expected, the configuration with higher redundancy (and therefore a higher threshold $R$) maintains a wider margin to the safety critical level.
-
-%\autoref{fig:time} plots the raw capacity, i.e., the aggregated encoding size, a single data object occupies in the whole system.
-%As a reference point, capacity of a 3-way replication system is kept constant at 3.
-%\sys incurs less redundancy most of the time.
-%The short interval in which \sys incurs larger redundancy can be further reduced by aggressive redundancy reducing introduced in \autoref{sec:implementation}.
-%Note that although \sys deploys lazy repairing, comparing to the overall simulation time (10 years), the repair delay is still appears instantaneous.
-%
-%The lower subplot of \autoref{fig:time} shows the accumulated repair traffic over 10 years.
-%The number of step increases taken by \sys is less than the replicated system.
-%This serves as a strong evidence that \sys performs repair more lazily than a replication system, and thus relies less on synchrony in the system.
-%As a comparison, \sys using an alternative parameter $k_{repair} = 1.6k$, thus tolerating 25\% more faulty peers, is also plotted in the graph.
-%Compared to the default parameter, object repairs happen more frequently, but still less than that of a replicated system.
-
-\begin{figure}
-    \addgraph{faulty-lost}
-    % \addgraph{targeted-lost}
-    \caption{Percentage of lost objects in the presence of Byzantine faulty peers.
-    \sys runs with three inner and outer code configurations respectively for the simulation.}
-    \Description{TODO}
-    \label{fig:faulty}
-\end{figure}
-
-\paragraph{Fault tolerance.}
-To evaluate how well \sys tolerates adversaries, we simulate a network with Byzantine faulty nodes.
-Byzantine nodes participate correctly in all \sys protocols; however, they do not store any encoding fragment.
-A data object is consider permanently lost when less than $\kout$ of its encoded chunks are irrecoverable (for \sys) or no replicas are left (for the replicated system).
-The \cref{fig:faulty} shows the percentage of lost objects in a one-year trace.
-This simulation validates that a simple replication system does not tolerance strong adversaries: The baseline system loses all of its objects when less than 5\% of the nodes are faulty.
-On the other hand, \sys can tolerate a significant fraction of faulty nodes without losing data.
-The degree of tolerance depends on the inner code parameters.
-Using the default parameter, \sys can tolerate around the targeted 33\% faulty nodes, while a more conservative configuration can improve tolerance further at the expense of increased redundancy.
-
-% We also evaluate \sys{}'s tolerance against targeted adversaries, and show the object lost rate in the lower subplot of \autoref{fig:faulty}.
-% Once again, the baseline replication system shows weak fault tolerance, losing all objects when less than 2\% of the nodes were attacked.
-% In contrast, our outer layer coding approach effectively defends against targeted adversaries.
-% With a (14, 8) coding configuration, no object is lost until more than 20\% of the nodes are being attacked.
+The drop in repair traffic at high failure rate is caused by more frequent cache refreshes.
 
 \subsection{Physical Deployment}
 
