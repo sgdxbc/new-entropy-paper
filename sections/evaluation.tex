@@ -9,9 +9,11 @@ Unless otherwise specified, we use a $(80, 32)$ rateless erasure coding, that is
 The actual coding scheme can generate as many fragments as needed, and $N_e$ is the number of fragments \sys persists for each data block.}
 
 We compare \sys to a private Swarm~\cite{swarm} network, where each data block is replicated by a neighborhood represented by 3 randomly-chosen nodes.
-We choose Swarm because it is the most resilient one among all prior DSNs (\cref{sec:motivation}), and it also has performance characteristics that are comparable to \sys because the two systems share similar DHT-based node discovery and on-chain governance design.
+We choose Swarm because it is the most resilient one among all prior DSNs (\cref{sec:motivation}), and it also has performance characteristics that are comparable to \sys because the two systems share similar DHT-based node discovery, on-chain governance, and client-side encoding design.
 We implement external clients for both systems.
 The clients do not participate in Kademlia DHT and randomly select nodes as gateways to perform read and write operations.
+Unless otherwise specified, in both \sys and Swarm, the stored data is encoded into 10 blocks with a $(10, 8)$ code on the client.
+As discussed in \cref{sec:impl:encode}, this is a performance optimization in \sys while a security measurement in Swarm.
 
 \subsection{Simulations}
 
@@ -25,7 +27,8 @@ We run each simulation 10 times with different seed values and take the average.
 
 \begin{figure}
     \addgraph{time-alive}
-    \caption{Number of fragments stored on alive \sys rational nodes over time. The two lines are for different inner code configurations with different redundancy.}
+    \caption{Number of fragments stored on alive \sys rational nodes over time.
+    The two lines are for different rateless code configurations with different redundancy.}
     \ifacm\Description{TODO}\fi
     \label{fig:time}
 \end{figure}
@@ -48,11 +51,11 @@ As expected, the configuration with higher redundancy maintains a wider margin t
 
 \paragraph{Fault tolerance.}
 To evaluate how well \sys tolerates adversaries, we simulate a network with various Byzantine faulty nodes.
-A data object is consider permanently lost when insufficient fragments remain on rational nodes (for \sys) or no replicas are left (for Swarm).
+A data block is consider permanently lost when insufficient fragments remain on rational nodes (for \sys) or no replicas are left (for Swarm).
 The \cref{fig:faulty} shows the percentage of lost objects in a one-year trace.
-This simulation validates that Swarm does not tolerance strong adversaries: The baseline system loses all of its objects when less than 5\% of the nodes are faulty.
+This simulation validates that Swarm does not tolerance strong adversaries: It loses all of its blocks when less than 5\% of the nodes are faulty.
 On the other hand, \sys can tolerate a significant fraction of faulty nodes without losing data.
-The degree of tolerance depends on the inner code parameters.
+The degree of tolerance depends on the rateless code parameters $k$ and $N_e$.
 Using the default parameter, \sys can tolerate around the targeted 33\% faulty nodes, while a more conservative configuration can improve tolerance further at the expense of increased redundancy.
 
 \begin{figure}
@@ -94,80 +97,25 @@ The drop in repair traffic at high failure rate is caused by more frequent cache
 
 Next, we evaluate \sys using our implementation.
 We deploy 10,000 \sys nodes on Amazon EC2 in 5 AWS zones (us-west, ap-east, eu-central, sa-east, af-south) across 5 continents.
-We launch 20 m5.4xlarge instances with 16 vCPU, 64GiB of memory and up to 10Gbps network bandwidth in each zone, and run 100 peers on each instance.
-
-% As mentioned earlier, we implemented an IPFS-like decentralized storage system using Kademlia DHT as a comparison system.
-% %This Kademlia-based system serves as a state-of-the-art decentralized storage baseline.
-% We directly use Kademlia's \texttt{PUT\_RECORD} interface to store the data object, and set the replication factor to 3 to match the redundancy of \sys.
-% Each data object is split into $\kin \cdot \kout$ records.
-% This splitting scheme ensures good storage load balancing across nodes in the system.
-As mentioned earlier, we compared \sys with a IPFS network that paired with \sys client.
-Each data object is split into $\kout$ chunks, replicated three times and stored into IPFS network.
-
-% Note that erasure coding, unfortunately, cannot be easily adapted into Kademlia.
-%We also deployed a Ceph cluster with one replication pool and one erasure coding pool, all with the stock configuration.
-%The cluster contains 5 servers, one in each region.
-%The Ceph cluster serves as a reference distributed storage system design.
-
-% In every run of the evaluation, to remove any caching effect, we spawn a fresh node as client.
-% Once the node successfully connects to the network, it issues a \store with a randomly generated object.
-% After the \store returns an object ID, another fresh node is spawned to issue a \query with the returned ID to retrieve the object.
-In the evaluation of \store and \query operation, we spawn a client to perform \store in one of the five regions.
-After the \store finished with chunk secrets, another client is immediately spawned in another random region to issue a \query with the secret to retrieve the object.
-The node performs sanity check to make sure the object is properly retrieved.
-
-% In the evaluation of repairing, we trigger a special command to force nodes to evict the oldest member that stores the chunk.
-% This is equivalent to the member being disconnected from the network.
-% The remaining group members locate a new member to replace the evicted one.
-% We report the latency between the eviction and the instant when the new member is known to successfully store the chunk.
-
-% We evaluate the system with a simulated DHT routing system that provides node discovery in constant time.
-% This simplification mitigates the effect of DHT routing performance on the result, and focus on the performance differences between the protocols.
+We launch 20 \texttt{m5.4xlarge} instances with 16 vCPU, 64GiB of memory and up to 10Gbps network bandwidth in each zone, and run 100 peers on each instance.
+In the evaluation of store and retrieve operations, we spawn a client to perform store operation in one of the five regions.
+After the store finished, another client is immediately spawned in another random region to issue a retrieve operation with the hash to retrieve the data block.
+The node performs sanity check to make sure the data block is properly retrieved.
 
 \paragraph{Latency Results.}
 
 \begin{figure}
     \addgraph{latency}
-    \caption{Latency of \store and \query operation in a world-wide deployment.}
-    \Description{TODO}
+    \caption{Latency of store and retrieve operations in a world-wide deployment.}
+    \ifacm\Description{TODO}\fi
     \label{fig:latency}
 \end{figure}
 
-We measure end-to-end latency of \store and \query operations for each system, and show the results in \cref{fig:latency}.
-% For \query in \sys, we measure both the case that the client linearly searches the encoding stream for fragments ($slot\_get$), and the case where it directly locates the peers in DHT.
-% For smaller outer and inner code combinations, \sys attains virtually equivalent \store latency as the baseline replication system.
-% As the coding parameter increases, \sys requires selecting and contacting more peers to store the larger number of fragments.
-% This is reflected in the longer \sys $\store$ latency.
-% \query shows similar latency trend when \sys client linearly searches for fragments.
-% By implementing the DHT record optimization, \query latency of \sys remains constant regardless of coding parameters, and is comparable to the baseline performance.
-IPFS has better \store performance, while its \query performance is dramatically affected by outer code.
+We measure end-to-end latency of store and retrieve operations of 1 GB data for each system, and show the results in \cref{fig:latency}.
+Swarm has better store performance, while its retrieve performance is dramatically affected by the choice of client-side coding.
 \sys on the other hand, manages to maintain the latency on a steady state across different code setup.
 
-%For the default object size of 64 MiB, \sys outperforms both Kademlia and Ceph by a wide margin in latency.
-%Moreover, \sys also enjoys a much lower latency variance compared to Kademlia.
-%The better performance of \sys comes from its large code design.
-%In \sys, encoding fragments are uniformly distributed across many peers.
-%Fragment transfers thus can be done in parallel, utilizing the network bandwidth more efficiently.
-%Kademlia, in the contrary, requires the object to be sequentially transmitted to the remote peer.
-%The latency is therefore highly limited by bottleneck link bandwidth between the two peers.
-%
-%The benefit of \sys's design is even more obvious with larger objects.
-%When we increase data object size by 16 times to 1 GiB, the latency is only doubled.
-%Kademlia, on the other hand, takes more than 120s to finish one operation due to sequential transmission.
-%We also measure a \sys variant with slightly reduced $k_p = 1.2k$ which tolerance less faulty peers on \store operations.
-%Its latency when storing 1 GiB objects is even close to Kademlia but with 64 MiB object size.
-
-%\paragraph{Latency breakdown.}
-%Compared to Kademlia, \sys requires less sequential peer communication, but performs extra encoding/decoding for an object.
-%Thanks to highly-optimized fountain code library, the coding latency overhead is surprisingly small: for 1GiB object, it takes only 4.2s from receiving the pull request from the first responsible peer, to send out all $k_p$ encoding fragments.
-%More than half of the duration is waiting for gossip dissemination, rather than generating fragment.
-%Fragment decoding latency is negligible, and after the node collects enough fragments to recover, actual object recovery only takes 1.2s.
-%For a comparison, computing SHA256 hash for a 1 GiB object takes 4.7s.
-%Actually, SHA256 hash computation is the major source of the additional latency when switching from 64 MiB to 1 GiB objects.
-%The good support provided by the library not only make operations blazing fast, but also makes it feasible to regularly recover tons of whole objects among the peers without worrying about performance overhead.
-
-%Future work. Monitor cpu usage and network bandwidth usage.
-
+\iffalse
 \paragraph{Concurrent operations.}
 
 \begin{figure}
@@ -183,69 +131,35 @@ The latency result is shown in \cref{fig:concurrent}.
 \sys maintains its performance even up to 100 concurrent \store and \query operations, and is able to support more than 600 concurrent repairing.
 We can derive that \sys can support more than 400K \store and 720K \query per day, and can tolerance over 13M daily object repairs.
 This suggests that \sys is capable to handle massive real-world workload.
+\fi
 
 \paragraph{Scalability.}
 
 \begin{figure}
     \addgraph{peer}
-    \caption{Latency of \store and \query operation with varying number of nodes.}
-    \Description{TODO}
+    \caption{Latency of store and retrieve operations with varying number of nodes.}
+    \ifacm\Description{TODO}\fi
     \label{fig:scale}
 \end{figure}
 
 We also evaluate \sys with increasing system size, i.e., the number participants in the system.
 The scalability result is shown in \cref{fig:scale}.
-Similar to IPFS, \sys is able to maintain near-constant performance regardless of the system's scale.
+Similar to Swarm and prior DHT-based systems, \sys is able to maintain near-constant performance regardless of the system's scale.
 
 \paragraph{Micro-benchmarks.}
 
 \begin{figure}
     \addgraph{coding-time-outer}
     \addgraph{coding-time-inner}
-    \caption{Micro-benchmarks showing the utilized CPU time for clients to encode and decode a data object (top plot), and for repairing a fragment in a chunk group.}
-    \Description{TODO}
+    \caption{Micro-benchmarks showing the utilized CPU time for clients to encode and decode 1GB data (top plot), and for repairing a fragment on a bootstrapping node.}
+    \ifacm\Description{TODO}\fi
     \label{fig:coding-time}
 \end{figure}
 
-Lastly, we run micro-benchmarks to evaluate the performance of object encoding and decoding.
-In the first experiment, we run a single client who applies both the outer layer and inner layer erasure code to encodes a 1 GB object into fragments.
-Then, the client takes the generated fragments, and uses the decoding function in both erasure codes to recover the original object.
-Lastly, we set up one peer node to generate a fragment from $\kin$ existing fragments.
-As shown in \cref{fig:coding-time}, the time to encode and decode a large object is relatively stable across various coding parameters.
-A direct implication of this result is that the latency increase in \cref{fig:latency} is caused by DHT operations, not object encoding/decoding.
-Chunk repair incurs significantly less CPU overhead, as it only involves the inner code.
-
-%\begin{figure}
-%    \addgraph{coding-traffic}
-%    \addgraph{coding-cpu}
-%    \caption{Total traffic and CPU time spent for running different protocols in certain long term.}
-%    \label{fig:coding-time}
-%\end{figure}
-
-%The long term evaluation runs the system in a "fast forward" fashion for 10 minutes.
-%In the first 2 minutes, a data object is stored into the system similar to latency evaluation.
-%Then, each node randomly churns a peer with Possion-distributed random interval, and the average interval is 10 second.
-%This effectively models a decentralized system with churn rate 7884.
-%DHT's ping interval and re-publication interval are adjusted accordingly to ensure the peer discovery can make use of relatively up-to-date information.
-%In \sys, the data object will be repaired many times, and in Kademlia the data object will be re-replicated for many times.
-%Finally, we accumulated the total outbound traffic and the CPU time from each peer at the end of the 10 minutes period.
-%We also measured the result of an idle system that does not store any data, only maintain DHT information and regular heartbeat.
-%All data shows in the figure has been subtracted by this baseline.
-
-\iffalse
-\subsection{Discussion}
-
-\lijl{We can include this discussion in the submission if there is space.}
-
-As our evaluation results have shown, \sys incurs higher performance overhead and management complexity compared to centralized deployments and prior best-effort systems.
-However, we believe there exists inherent trade-offs between performance and security guarantees (e.g., anti-censorship and strong adversary tolerance).
-As we demonstrated earlier (\autoref{sec:intro} and \autoref{sec:background}), these properties are more critical than performance for our target deployment scenarios.
-
-\ifspace
-We also note that \sys is not the only decentralized system that pays this price.
-Both Bitcoin and Ethereum require around one hour to confirm a transaction.
-And it has been proved that the long confirmation time is critical to their safety guarantees in a permissionless setting.
-Algorand~\cite{algorand} takes 13 message steps to commit in the presence of adversaries, and relies on randomized peer selection for security.
-\fi
-
-\fi
+Lastly, we run micro-benchmarks to evaluate the performance of encoding and decoding.
+In the first experiment, we run a single client who applies both layers of erasure codes to encode 1 GB data into fragments.
+Then, the client takes the generated fragments, and uses the decoding function in both erasure codes to recover the original data.
+Lastly, we set up one peer node to generate a fragment from $k$ existing fragments.
+As shown in \cref{fig:coding-time}, the time to encode and decode is relatively stable across various coding parameters.
+A direct implication of this result is that the latency increase in \cref{fig:latency} is caused by DHT operations, not data encoding/decoding.
+Data block repair incurs significantly less CPU overhead, as it only involves single code and much fewer data.

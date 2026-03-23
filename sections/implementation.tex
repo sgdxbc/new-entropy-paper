@@ -36,6 +36,7 @@ Although the sampling distribution is adjusted from globally uniform to subspace
 Even if all Byzantine nodes reside in a single subspace, rational nodes in that subspace are still reliably discovered during exhaustive lookup, so they do not miss endorsements or rewards.
 
 \subsection{Accelerating Discovery with Multiple Placement Groups}
+\label{sec:impl:encode}
 
 While \sys can safely employ DHT, Byzantine nodes can still attempt to cause performance degradation.
 When adversaries create significantly more nodes than expected in a subspace, interacting with all of them to verify endorsements and transfer encoded fragments can take a long time, leading to unstable read and write latency.
