@@ -50,3 +50,13 @@ Moreover, concurrent storage of multiple blocks allows the client to discover an
 
 In contrast to Swarm's client-side erasure coding, our design uses this extra coding layer as a performance optimization rather than a reliability mechanism.
 Because \sys already guarantees reliable storage for each encoded block, this layer requires no manual repair and introduces no additional storage overhead.
+
+\subsection{Efficient Repair with Caching}
+
+During bootstrapping, a node fetches encoded fragments to reconstruct the data blocks that endorse it.
+This process requires downloading at least $k$ times the amount of data eventually stored, which causes substantial network-traffic amplification.
+To reduce this overhead, nodes may temporarily cache reconstructed full blocks after bootstrapping.
+When subsequent bootstrapping nodes request encoded fragments for cached blocks, a caching node can locally re-encode the required fragments and return them directly.
+The requesting nodes then run $\ECVerify$ on the received fragments and store them immediately, without fetching additional fragments or reconstructing the full blocks.
+We leave the incentive design for rational nodes to provide caching as future work.
+Overall, cache-assisted repair minimizes repair-related network overhead.
