@@ -14,6 +14,7 @@ In our implementation, we use Kademlia~\cite{kademlia} as the underlying DHT pro
 Kademlia organizes nodes and data in a hash space according to XOR distance.
 Kademlia's lookup protocol iteratively queries nodes to find a target number of nodes closest to a given key.
 This protocol yields consistent results across nodes and discovers candidates with communication overhead that is logarithmic in network size.
+\lijl{Does Kademlia guarantee consistent lookup results?}
 However, vanilla Kademlia cannot feasibly discover all endorsed nodes, which are uniformly distributed across the entire hash space.
 
 To address this issue, we modify the endorsement rule to make discovery DHT-friendly.
@@ -21,12 +22,14 @@ An endorsed node must not only produce a sufficiently small pseudorandom output 
 In essence, we endorse nodes only from a restricted \emph{subspace} around the data hash, which can be explored efficiently through DHT lookup.
 To preserve the expected sample size, we increase the sampling probability according to the common prefix length.
 For example, if we endorse nodes whose IDs share a 10-bit prefix with the data hash, the sample rate $p$ is increased by a factor of $2^{10}$.
+\lijl{Might be easier to understand if we explain using ratio of the subspace, instead of prefix length.}
 
 We also adapt the lookup semantics of vanilla Kademlia.
 Typically, Kademlia concludes lookups after a fixed number of the closest nodes to the target are discovered.
 If endorsed nodes were discovered in this way, Byzantine nodes could cluster near the target and dominate the result set, while farther rational nodes could be overlooked even when endorsed.
 Instead, in \sys, Kademlia performs \emph{exhaustive} lookups over target subspaces with an unknown number of nodes.
 Specifically, it operates on a neighborhood basis similar to Swarm~\cite{swarm}.
+\lijl{We should explain the design first, then say it resembles the Swarm design.}
 The nodes fully replicate the contacts of nearby nodes and randomly sample nodes from further distance buckets as in vanilla Kademlia.
 After a lookup reaches any node in the same subspace as the target, that node responds with the full contact list of the subspace, which includes all potentially endorsed nodes.
 We adopt standard security techniques \xxx{cite S/Kademlia}, such as disjoint lookup paths, to defend against eclipse attacks on the lookup protocol.
