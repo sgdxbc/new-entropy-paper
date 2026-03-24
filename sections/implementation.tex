@@ -62,6 +62,7 @@ During bootstrapping, a node fetches encoded fragments to reconstruct the data b
 This process requires downloading at least $k$ times the amount of data eventually stored, which causes substantial network-traffic amplification.
 To reduce this overhead, nodes may temporarily cache reconstructed full blocks after bootstrapping.
 When subsequent bootstrapping nodes request encoded fragments for cached blocks, a caching node can locally re-encode the required fragments and return them directly.
+\lijl{How does the bootstrapping node know which node has the cached copy? If it doesn't know, it still needs to fetch from all?}
 The requesting nodes then run $\ECVerify$ on the received fragments and store them immediately, without fetching additional fragments or reconstructing the full blocks.
 We leave the incentive design for rational nodes to provide caching as future work.
 Overall, cache-assisted repair minimizes repair-related network overhead.
