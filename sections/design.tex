@@ -13,20 +13,20 @@ For simplicity, we omit data expiration and removal, and the incentive for data 
 \label{alg:contract}
 \begin{algorithmic}[1]
 \State \textbf{State:} $\text{stakingSet} \gets \emptyset$, $\text{dataSet} \gets \emptyset, p \gets p^\star$
-\Procedure{Stake}{node, stake}
-    \State $\text{stakingSet} \gets \text{stakingSet} \cup \{\text{node}\}$
+\Procedure{Stake}{\pk, stake}
+    \State $\text{stakingSet} \gets \text{stakingSet} \cup \{\pk\}$
 \EndProcedure
 \Procedure{Store}{dataHash, payment}
     \State $\text{dataSet} \gets \text{dataSet} \cup \{\text{dataHash}\}$
 \EndProcedure
-\Procedure{Prove}{node, nodeKey, dataHash, output, proof, fragmentIndex, fragment}
-    \State $(n^*, h^*) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \text{epoch})$
-    \State Assert $(\text{node}, \text{dataHash}) = (n^*, h^*)$
-    \State Assert $\VRFVerify(\text{nodeKey}, \text{dataHash}, \text{output}, \text{proof})$
-    \State Assert $\frac{\text{output}}{Y}<p$
-    \State Assert $\textsc{hash}(proof) = \text{fragmentIndex}$
-    \State Assert $\ECVerify(\text{dataHash}, \text{fragmentIndex}, \text{fragment})$
-    \State Reward \text{node}
+\Procedure{Prove}{\pk, dataHash, $y$, $\pi$, fragIndex, frag}
+    \State $(n^*, h^*) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{epochcoin}())$
+    \State Assert $(\pk, \text{dataHash}) = (n^*, h^*)$
+    \State Assert $\VRFVerify(\pk, \text{dataHash}, y, \text{proof})$
+    \State Assert $\frac{y}{Y}<p$
+    \State Assert $\textsc{hash}(\pi) = \text{fragIndex}$
+    \State Assert $\ECVerify(\text{dataHash}, \text{fragIndex}, \text{frag})$
+    \State Reward \pk
 \EndProcedure
 \Procedure{UpdateSampleRate}{}
     \State $N \gets \left|\text{stakingSet}\right|$
@@ -49,6 +49,39 @@ If validation succeeds, the submitting node receives token rewards.
 
 % \subsection{Client Operations}
 
+\begin{algorithm}
+\caption{Client operations}
+\label{alg:client}
+\begin{algorithmic}[1]
+\Procedure{Store}{data}
+    \State $h \gets \textsc{hash}(data)$
+    \State Submit $\textsc{Store}(h, \text{payment})$ transaction
+    \State $\text{endorsed} \gets \emptyset$
+    \While{$\left|\text{endorsed}\right| < N_e$}
+        \State Wait for $\textsc{Endorsed}(h, \pk, y, \pi)$
+        \State Assert $\VRFVerify(\pk, h, y, \pi)$
+        \State Assert $\frac{y}{Y}<p$
+        \State $\text{fragIndex} \gets \textsc{hash}(\pi)$
+        \State $\text{frag} \gets \ECEncode(\text{data}, \text{fragIndex})$
+        \State Reply $\textsc{Endorsed}$ with $\text{frag}$
+        \State $\text{endorsed} \gets \text{endorsed} \cup \{\pk\}$
+    \EndWhile
+    \State \Return $h$
+\EndProcedure
+\Procedure{Retrieve}{dataHash}
+    \State Broadcast $\textsc{Query}(\text{dataHash})$
+    \State $\text{frags} \gets \emptyset$
+    \While{$\ECDecode(\text{frags}) = \bot$}
+        \State Wait for $\textsc{QueryReply}(\text{dataHash}, \text{fragIndex}, \text{frag})$
+        \If{$\ECVerify(\text{dataHash}, \text{fragIndx}, \text{frag})$}
+            \State $\text{frags} \gets \text{frags} \cup \{(\text{fragIndex}, \text{frag})\}$
+        \EndIf
+    \EndWhile
+    \State \Return $\ECDecode(\text{frags})$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
 To store a data block, a client submits a storing transaction with the data hash and the token payment for storage.
 When nodes process the storing transaction, they run $\VRFGen$ locally with their $\sk$ and the current sample rate $p$ to determine whether they are endorsed.
 If endorsed, they query the client and provide VRF proofs.
@@ -60,6 +93,31 @@ Nodes that store relevant fragments return them to the client.
 The client validates these fragments in a manner similar to proving transactions and decodes the data block from the validated fragments.
 
 % \subsection{Node Bootstrapping}
+
+\begin{algorithm}
+\caption{Node routine}
+\label{alg:node}
+\begin{algorithmic}[1]
+\State Synchronize blockchain states stakingSet, dataSet and $p$
+\State $\text{storage} \gets \emptyset$
+\For{$h \in \text{dataSet}$}
+    \State $(y, \pi) = \VRFGen(\sk, h)$
+    \If{$\frac{y}{Y} < p$}
+        \State $\text{data} \gets \textsc{Retrieve}(h)$
+        \State $\text{fragIndex} \gets \textsc{hash}(\pi)$
+        \State $\text{frag} \gets \ECEncode(\text{data}, \text{fragIndex})$
+        \State $\text{storage} \gets \text{storage} \cup (h, \text{fragIndex}, \text{frag})$
+    \EndIf
+\EndFor
+\For{every epoch}
+    \State Reply $\textsc{Query}(h)$ requests if $(h, \dots) \in \text{storage}$
+    \State $(n, h) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{epochcoin}())$
+    \If{$n = \pk \land (h, \text{fragIndex}, \text{frag}) \in \text{storage}$}
+        \State Submit $\textsc{Prove}(\pk, h, y, \pi, \text{fragIndex}, \text{frag})$ transaction
+    \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
 
 Redundancy repair occurs when new nodes join \sys.
 After synchronizing the on-chain state, a node runs $\VRFGen$ against the current set of stored data hashes.
