@@ -8,7 +8,35 @@ For simplicity, we omit data expiration and removal, and the incentive for data 
 
 \subsection{Design Overview}
 
-The smart contract in \sys maintains two on-chain states: the current set of staking nodes and the current set of stored data hashes.
+\begin{algorithm}
+\caption{On-Chain Smart Contract}
+\label{alg:contract}
+\begin{algorithmic}[1]
+\State \textbf{State:} $\text{stakingSet} \gets \emptyset$, $\text{dataSet} \gets \emptyset, p \gets p^\star$
+\Procedure{Stake}{node, stake}
+    \State $\text{stakingSet} \gets \text{stakingSet} \cup \{\text{node}\}$
+\EndProcedure
+\Procedure{Store}{dataHash, payment}
+    \State $\text{dataSet} \gets \text{dataSet} \cup \{\text{dataHash}\}$
+\EndProcedure
+\Procedure{Prove}{node, nodeKey, dataHash, output, proof, fragmentIndex, fragment}
+    \State $(n^*, h^*) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \text{epoch})$
+    \State Assert $(\text{node}, \text{dataHash}) = (n^*, h^*)$
+    \State Assert $\VRFVerify(\text{nodeKey}, \text{dataHash}, \text{output}, \text{proof})$
+    \State Assert $\frac{\text{output}}{Y}<p$
+    \State Assert $\textsc{hash}(proof) = \text{fragmentIndex}$
+    \State Assert $\ECVerify(\text{dataHash}, \text{fragmentIndex}, \text{fragment})$
+    \State Reward \text{node}
+\EndProcedure
+\Procedure{UpdateSampleRate}{}
+    \State $N \gets \left|\text{stakingSet}\right|$
+    \State $p \gets \frac{2N_e}{(1-f)N}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+We show the states and algorithms of \sys's on-chain contract in \cref{alg:contract}.
+The smart contract maintains two on-chain states: the current set of staking nodes and the current set of stored data hashes.
 The former determines the number of nodes, which in turn determines the current sample rate $p$.
 The smart contract accepts three types of transactions: staking transactions for node joining, storing transactions for clients to store data, and proving transactions for nodes to prove storage and claim rewards.
 
