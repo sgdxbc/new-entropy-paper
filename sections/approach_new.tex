@@ -33,14 +33,16 @@ a \code{get} takes an identifier, and returns the blob if the data was successfu
 All data are \emph{immutable};
 updating an existing data requires a deletion followed by a new \code{put}.
 
-The distributed storage service aims to provide the following design goals:
+The distributed storage service should satisfy the following design goals:
 
 \begin{itemize}
-    \item \textbf{Availability}
+    \item \textbf{Availability}: If a data blob is successfully stored in the system, subsequent retrieval of the data should return the exact blob eventually.
+    \item \textbf{Storage Scalability}: The overall storage capacity should increase linearly with more participating nodes in the system.
+    \item \textbf{Blockchain Efficiency}: Each storage request should only incur one blockchain transaction with a small, constant transaction size.
 \end{itemize}
 
 \subsection{Challenges}
 \label{sec:approach:challenges}
 
 \subsection{The Case for Random Sampling}
-\label{sec:approach:sampling}
+\label{sec:approach:case}
