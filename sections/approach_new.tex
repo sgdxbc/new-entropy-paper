@@ -8,6 +8,37 @@ Lastly, we introduce our random sampling-based approach.
 \subsection{System Model and Goals}
 \label{sec:approach:model}
 
+In this work, we assume a decentralized, permissionless network.
+Nodes can join and leave the network freely.
+Each node possesses some persistent storage device(s) to store data.
+For simplicity, we assume equal storage capacity on each node;
+handling heterogeneous capacity is discussed in \XXX.
+The network is assumed to be asynchronous.
+
+Nodes do not trust each other.
+Honest nodes are rational and follow the protocol precisely.
+Byzantine nodes can deviate arbitrarily from the protocol, and may behave irrationally.
+Each node possesses a unique private/public key pair.
+Byzantine nodes are computationally bounded, and cannot subvert the cryptographic algorithms used in the paper.
+We assume the presence of a Proof of Stake~\cite{} protocol that defend Sybil attacks;
+as such, at most $\frac{1}{3}$ of the nodes are Byzantine at any time.
+We also assume the presence of a BFT blockchain protocol~\cite{};
+the blockchain guarantees safety and liveness, and exposes a cryptocurrency as incentives to the nodes.
+
+The set of nodes in the network collectively implements a distributed storage service.
+The service exposes a \code{get}, \code{put}, and \code{delete} interface.
+A \code{put} stores a blob of data into the service and returns an identifier;
+a \code{get} takes an identifier, and returns the blob if the data was successfully stored before;
+\code{delete} takes an identifier, and removes the data if it is stored in the system.
+All data are \emph{immutable};
+updating an existing data requires a deletion followed by a new \code{put}.
+
+The distributed storage service aims to provide the following design goals:
+
+\begin{itemize}
+    \item \textbf{Availability}
+\end{itemize}
+
 \subsection{Challenges}
 \label{sec:approach:challenges}
 
