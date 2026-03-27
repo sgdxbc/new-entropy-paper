@@ -12,8 +12,9 @@ In this work, we assume a decentralized, permissionless network.
 Nodes can join and leave the network freely.
 Each node possesses some persistent storage device(s) to store data.
 For simplicity, we assume equal storage capacity on each node;
-handling heterogeneous capacity is discussed in \XXX.
-The network is assumed to be asynchronous.
+handling node heterogeneity is discussed in \XXX.
+The network is assumed to be partially synchronous.
+\lijl{Could we handle asynchronous network? I guess if network asynchrony is longer than node lifetime, then we can't guarantee availability.}
 
 Nodes do not trust each other.
 Honest nodes are rational and follow the protocol precisely.
