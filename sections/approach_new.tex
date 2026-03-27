@@ -17,7 +17,7 @@ The network is assumed to be partially synchronous.
 \lijl{Could we handle asynchronous network? I guess if network asynchrony is longer than node lifetime, then we can't guarantee availability.}
 
 Nodes do not trust each other.
-Honest nodes are rational and follow the protocol precisely.
+Honest nodes are rational \footnote{A node is rational if its actions maximize its expected profit.} and follow the protocol precisely.
 Byzantine nodes can deviate arbitrarily from the protocol, and may behave irrationally.
 Each node possesses a unique private/public key pair.
 Byzantine nodes are computationally bounded, and cannot subvert the cryptographic algorithms used in the paper.
