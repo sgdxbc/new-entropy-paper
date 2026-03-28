@@ -37,13 +37,33 @@ updating an existing data requires a deletion followed by a new \code{put}.
 The distributed storage service should satisfy the following design goals:
 
 \begin{itemize}
-    \item \textbf{Availability}: If a data blob is successfully stored in the system, subsequent retrieval of the data should return the exact blob eventually.
+    \item \textbf{Data Availability}: If a data blob is successfully stored in the system, subsequent retrieval of the data should return the exact blob eventually.
     \item \textbf{Storage Scalability}: The overall storage capacity should increase linearly with more participating nodes in the system.
-    \item \textbf{Blockchain Efficiency}: Each storage request should only incur one blockchain transaction with a small, constant transaction size.
+    \item \textbf{Blockchain Efficiency}: Each storage request should only incur one blockchain transaction with a small, constant state size regardless of system scale.
 \end{itemize}
 
 \subsection{Challenges}
 \label{sec:approach:challenges}
+
+\paragraph{\textbf{Availability and scalability trade-off}}
+Data availability and storage scalability are common design goals for traditional distributed storage systems~\cite{ceph,bigtable,gfs,dynamo,google-storage,azure_storage,f4}.
+A key enabler for these properties is centralized control.
+The operator can divide the system nodes into \emph{placement groups} based on their failure domains.
+Given that the operator is aware and fully controls the node physical location (e.g., rack, pod, cluster, data center, and region), they can strategically form these groups to minimize correlated failures within each group.
+Therefore, data stored in a placement group have high availability guarantees.
+When nodes within a group fail, the operator can add nodes to restore the redundancy, while maintaining the same minimum failure correlation.
+With highly available placement groups, the system can horizontally scale the storage capacity by adding more groups, without compromising availability.
+
+The combination of permissionless setting and irrational adversaries in a decentralized network makes simultaneous data availability and storage scalability a harder challenge.
+To achieve scalability, the system needs to partition nodes into placement groups to store disjoint set of data.
+However, without centralized control, no entity in the system can reliably detect failure correlation within each group.
+More critically, Byzantine nodes can concentrate within a few groups;
+once they collude and discard the data simultaneously, data availability can be easily compromised.
+Even when group formation is done carefully~\cite{}, Byzantine entities can adapt (e.g., by leaving and re-joining with different IDs) and eventually compromise a group.
+Traditional BFT protocols~\cite{} address this issue by ensuring an honest majority.
+However, given that a third of all nodes can be Byzantine, having an honest majority in every group directly violates our storage scalability requirement: adding nodes no longer results in more groups with additional capacity.
+
+\paragraph{\textbf{Erasure coding and repair integrity}}
 
 \subsection{The Case for Random Sampling}
 \label{sec:approach:case}
