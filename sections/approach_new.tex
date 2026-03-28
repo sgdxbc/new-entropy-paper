@@ -39,7 +39,7 @@ The distributed storage service should satisfy the following design goals:
 \begin{itemize}
     \item \textbf{Data Availability}: If a data blob is successfully stored in the system, subsequent retrieval of the data should return the exact blob eventually.
     \item \textbf{Storage Scalability}: The overall storage capacity should increase linearly with more participating nodes in the system.
-    \item \textbf{Blockchain Efficiency}: Each storage request should only incur one blockchain transaction with a small, constant state size regardless of system scale.
+    \item \textbf{Blockchain Efficiency}: Storing a data blob (including repair) should only require one blockchain transaction with a small, constant blockchain state size.
 \end{itemize}
 
 \subsection{Challenges}
@@ -60,10 +60,21 @@ However, without centralized control, no entity in the system can reliably detec
 More critically, Byzantine nodes can concentrate within a few groups;
 once they collude and discard the data simultaneously, data availability can be easily compromised.
 Even when group formation is done carefully~\cite{}, Byzantine entities can adapt (e.g., by leaving and re-joining with different IDs) and eventually compromise a group.
-Traditional BFT protocols~\cite{} address this issue by ensuring an honest majority.
-However, given that a third of all nodes can be Byzantine, having an honest majority in every group directly violates our storage scalability requirement: adding nodes no longer results in more groups with additional capacity.
+Traditional BFT protocols~\cite{} address this issue by requiring an honest majority.
+However, given that a third of all nodes can be Byzantine, having an honest majority in every group violates our storage scalability requirement: adding nodes no longer results in more groups with additional capacity.
 
 \paragraph{\textbf{Erasure coding and repair integrity}}
+Erasure coding (EC), using codes such as Reed-Solomon code, Local Reconstruction Code (LRC)~\cite{azure_storage}, and regenerating codes~\cite{regen_code}, is a common technique for improving storage efficiency.
+Regardless of the exact code construction, commonly deployed EC requires sufficient nodes storing \emph{unique} encoded fragments to survive simultaneous failures, so that the original data can be reconstructed.
+This invariant needs to hold throughout the lifetime of each stored data.
+
+Proper encoding generation and assignment is straightforward in the presence of a trusted, centralized service.
+However, without centralized trust, fragment assignment becomes a coordination problem that requires BFT consensus.
+Given that each repair involves encoding generation and assignment, a data blob requires recurring BFT transactions throughout its lifetime, violating our blockchain efficiency goal.
+
+The presence of Byzantine nodes also introduces challenges to encoding integrity.
+Unlike replication where any party can independently verify data integrity using the data hash, it is non-trivial for a node to validate the correctness of an EC encoding.
+The naive solution of recording all encoding hashes in the blockchain violates our blockchain efficiency goal, since the transaction state size is no longer constant.
 
 \subsection{The Case for Random Sampling}
 \label{sec:approach:case}
