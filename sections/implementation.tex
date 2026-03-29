@@ -5,8 +5,8 @@ In this section, we present several engineering details beyond \cref{sec:design}
 
 \subsection{Efficient Placement Group Discovery with Distributed Hash Table}
 
-Every put or get operation, including gets triggered by repair, requires the client or bootstrapping node to discover the endorsed nodes with which it should transfer encoded fragments.
-A naive approach is to broadcast to all nodes through a gossip protocol and wait for responses, but this method incurs $O(N)$ communication overhead and does not scale to large deployments.
+Every store or retrieve operation, including retrievals triggered during repair, requires the client or bootstrapping node to exchange encoded fragments with all endorsed nodes.
+The naive approach described in \cref{sec:design} is to submit a store transaction for writes or broadcast requests to all nodes through a gossip protocol for reads, then wait for responses. This method incurs $O(N)$ communication overhead and also suffers from block-propagation latency for store operations.
 To support up to hundreds of thousands of nodes, we integrate an efficient node discovery mechanism based on a distributed hash table (DHT).
 
 DHTs are widely used in peer-to-peer (P2P) systems to locate nodes and data.
@@ -14,25 +14,24 @@ In our implementation, we use Kademlia~\cite{kademlia} as the underlying DHT pro
 Kademlia organizes nodes and data in a hash space according to XOR distance.
 Kademlia's lookup protocol iteratively queries nodes to find a target number of nodes closest to a given key.
 This protocol yields consistent results across nodes and discovers candidates with communication overhead that is logarithmic in network size.
-\lijl{Does Kademlia guarantee consistent lookup results?}
+\lijl{Does Kademlia guarantee consistent lookup results?} \sgd{With sufficient security measures and assumptions, lookups are eventually consistent despite transient network partitioning. This may be too much detail to elaborate here.}
 However, vanilla Kademlia cannot feasibly discover all endorsed nodes, which are uniformly distributed across the entire hash space.
 
 To address this issue, we modify the endorsement rule to make discovery DHT-friendly.
 An endorsed node must not only produce a sufficiently small pseudorandom output from VRF (\cref{sec:approach:sample}), but also have an ID with a sufficiently small XOR distance to the data hash, that is, it must share a sufficiently long common prefix with the data hash.
 In essence, we endorse nodes only from a restricted \emph{subspace} around the data hash, which can be explored efficiently through DHT lookup.
-To preserve the expected sample size, we increase the sampling probability according to the common prefix length.
-For example, if we endorse nodes whose IDs share a 10-bit prefix with the data hash, the sample rate $p$ is increased by a factor of $2^{10}$.
-\lijl{Might be easier to understand if we explain using ratio of the subspace, instead of prefix length.}
+To preserve the expected sample size, we increase the sampling probability according to the subspace-size ratio.
+If we endorse nodes from a subspace covering $\nicefrac{1}{n}$ of the whole hash space, the sample rate $p$ should be increased by a factor of $n$.
+\lijl{Might be easier to understand if we explain using ratio of the subspace, instead of prefix length.} \sgd{Revised.}
 
 We also adapt the lookup semantics of vanilla Kademlia.
 Typically, Kademlia concludes lookups after a fixed number of the closest nodes to the target are discovered.
 If endorsed nodes were discovered in this way, Byzantine nodes could cluster near the target and dominate the result set, while farther rational nodes could be overlooked even when endorsed.
 Instead, in \sys, Kademlia performs \emph{exhaustive} lookups over target subspaces with an unknown number of nodes.
-Specifically, it operates on a neighborhood basis similar to Swarm~\cite{swarm}.
-\lijl{We should explain the design first, then say it resembles the Swarm design.}
-The nodes fully replicate the contacts of nearby nodes and randomly sample nodes from further distance buckets as in vanilla Kademlia.
+Meanwhile, the nodes fully replicate the contacts of nearby nodes and randomly sample nodes from further distance buckets as in vanilla Kademlia.
 After a lookup reaches any node in the same subspace as the target, that node responds with the full contact list of the subspace, which includes all potentially endorsed nodes.
-We adopt standard security techniques \xxx{cite S/Kademlia}, such as disjoint lookup paths, to defend against eclipse attacks on the lookup protocol.
+The way \sys operates the DHT closely resembles the neighborhood concept in Swarm~\cite{swarm}, and we also adopt security techniques \xxx{cite S/Kademlia} similar to those used in Swarm, such as disjoint lookup paths, to defend against eclipse attacks on the lookup protocol.
+\lijl{We should explain the design first, then say it resembles the Swarm design.} \sgd{Done.}
 
 Although this DHT-based approach resembles traditional P2P storage~\cite{glacier,oceanstore} and prior DSN systems~\cite{swarm}, a key distinction remains: in \sys, the DHT is used only for node discovery and has nothing to do with data placement.
 Although the sampling distribution is adjusted from globally uniform to subspace-wise uniform, the node-centric approach (\cref{sec:approach:sample}) remains unchanged, as does its key property: rewards to rational nodes are unaffected by the distribution of Byzantine nodes.
@@ -43,14 +42,15 @@ Even if all Byzantine nodes reside in a single subspace, rational nodes in that 
 
 While \sys can safely employ DHT, Byzantine nodes can still attempt to cause performance degradation.
 When adversaries create significantly more nodes than expected in a subspace, interacting with all of them to verify endorsements and transfer encoded fragments can take a long time, leading to unstable read and write latency.
-We address this issue by adding another layer of erasure coding on the client side.
-To store data, the client first encodes it into multiple blocks and stores each block independently.
-For example, the client may encode data into 10 blocks, of which any 8 are sufficient for recovery.
+We address this issue by adding another layer of erasure coding on the client side, which we refer to as \emph{client encoding}. The rateless erasure coding introduced in \cref{sec:approach} is referred to simply as \emph{encoding}.
+With client encoding, the client stores a data object by first encoding it into multiple blocks and then storing each block independently, as previously described in \cref{sec:design}.
+For example, the client may encode a data object into 10 blocks, of which any 8 are sufficient for recovery.
 The client then stores these 10 blocks concurrently, performing DHT lookups with 10 distinct target hashes, and completes the store operation once any 8 blocks are successfully stored by their corresponding placement groups.
 Finally, the client may submit a transaction to cancel the remaining 2 blocks that were not stored.
-In this way, adversaries must attack at least 3 placement groups simultaneously to delay storage.
+Retrieval operations can be performed similarly without on-chain activity.
+In this way, adversaries must attack at least 3 placement groups simultaneously to delay storage or retrieval.
 This strategy spreads adversarial effort and mitigates its influence on any single placement group, thereby bounding overall performance.
-Moreover, concurrent storage of multiple blocks allows the client to discover and validate more endorsed nodes in parallel, which further accelerates operations.
+Moreover, concurrent storage and retrieval of multiple blocks allow the client to discover and validate more endorsed nodes in parallel, which further accelerates operations.
 
 In contrast to Swarm's client-side erasure coding, our design uses this extra coding layer as a performance optimization rather than a reliability mechanism.
 Because \sys already guarantees reliable storage for each encoded block, this layer requires no manual repair and introduces no additional storage overhead.
@@ -62,7 +62,10 @@ During bootstrapping, a node fetches encoded fragments to reconstruct the data b
 This process requires downloading at least $k$ times the amount of data eventually stored, which causes substantial network-traffic amplification.
 To reduce this overhead, nodes may temporarily cache reconstructed full blocks after bootstrapping.
 When subsequent bootstrapping nodes request encoded fragments for cached blocks, a caching node can locally re-encode the required fragments and return them directly.
-\lijl{How does the bootstrapping node know which node has the cached copy? If it doesn't know, it still needs to fetch from all?}
-The requesting nodes then run $\ECVerify$ on the received fragments and store them immediately, without fetching additional fragments or reconstructing the full blocks.
+\lijl{How does the bootstrapping node know which node has the cached copy? If it doesn't know, it still needs to fetch from all?} \sgd{Clarified.}
+Before transmitting an encoded fragment, an endorsed node performs a handshake with the requesting node to provide its endorsement proof.
+During this handshake, a caching node also informs bootstrapping nodes about available cached blocks.
+The requesting node can then provide its own endorsement proof to the caching node, which encodes and transmits the fragment for the requesting node's index instead of the fragment for its own index.
+The requesting node then runs $\ECVerify$ on the received fragment and stores it immediately, without fetching additional fragments or reconstructing full blocks.
 We leave the incentive design for rational nodes to provide caching as future work.
 Overall, cache-assisted repair minimizes repair-related network overhead.
