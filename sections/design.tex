@@ -9,7 +9,9 @@ For simplicity, we omit data expiration and removal, and the incentive for data 
 \subsection{Design Overview}
 
 \begin{algorithm}
-\caption{On-Chain Smart Contract}
+\caption{On-chain smart contracts.
+\textsc{epoch()} returns current block height, and block$_i$ is the block at height $i$.
+\textsc{Stake} and \textsc{Store} transactions are presented with simplification.}
 \label{alg:contract}
 \begin{algorithmic}[1]
 \State \textbf{State:} $\text{stakingSet} \gets \emptyset$, $\text{dataSet} \gets \emptyset, p \gets p^\star$
@@ -19,8 +21,9 @@ For simplicity, we omit data expiration and removal, and the incentive for data 
 \Procedure{Store}{dataHash, payment}
     \State $\text{dataSet} \gets \text{dataSet} \cup \{\text{dataHash}\}$
 \EndProcedure
-\Procedure{Prove}{\pk, dataHash, $y$, $\pi$, fragIndex, frag}
-    \State $(n^*, h^*) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{epochcoin}())$
+\Procedure{Prove}{\pk, i, dataHash, $y$, $\pi$, fragIndex, frag}
+    \State Assert $i+W>\textsc{epoch}()$
+    \State $(n^*, h^*) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{hash}({\text{block}_i}))$
     \State Assert $(\pk, \text{dataHash}) = (n^*, h^*)$
     \State Assert $\VRFVerify(\pk, \text{dataHash}, y, \text{proof})$
     \State Assert $\frac{y}{Y}<p$
@@ -30,27 +33,27 @@ For simplicity, we omit data expiration and removal, and the incentive for data 
 \EndProcedure
 \Procedure{UpdateSampleRate}{}
     \State $N \gets \left|\text{stakingSet}\right|$
-    \State $p \gets \frac{2N_e}{(1-f)N}$
+    \State $p \gets \frac{2N_e}{(1-f)N}$ rounded to a certain precision
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
 We show the states and algorithms of \sys's on-chain contract in \cref{alg:contract}.
 The smart contract maintains two on-chain states: the current set of staking nodes and the current set of stored data hashes.
-The former determines the number of nodes, which in turn determines the current sample rate $p$.
-The smart contract accepts three types of transactions: staking transactions for node joining, storing transactions for clients to store data, and proving transactions for nodes to prove storage and claim rewards.
+The former determines the number of nodes, which in turn determines the current sample rate $p$ via a periodical routine \textsc{UpdateSampleRate}.
+We will explain the formula of $p$ in \cref{sec:design:analysis}.
+The smart contract accepts three types of transactions: \textsc{Stake} transactions for node joining, \textsc{Store} transactions for clients to store data, and \textsc{Prove} transactions for nodes to prove storage and claim rewards.
 
-A staking transaction adds a node to the staking set.
-A storing transaction adds a data hash to the stored-data set.
+As shown in \cref{alg:contract}, a \textsc{Stake} transaction adds a node to the staking set, and a \textsc{Store} transaction adds a data hash to the stored-data set.
 At each block height, a random $(\text{node}, \text{data})$ pair is sampled from these states using the block hash as a seed, making the sampled pair unpredictable in advance.
-If the sampled node is endorsed in the data placement group, it can submit a proving transaction within a time window, including a VRF proof and the stored fragment.
-The smart contract validates the node and data hash in the transaction, then runs $\VRFVerify$ and $\ECVerify$ as described in \cref{sec:approach:ec}.
-If validation succeeds, the submitting node receives token rewards.
+If the sampled node is endorsed in the data placement group, it can submit a \textsc{Prove} transaction within a time window, including a VRF proof and the stored fragment.
+The smart contract validates the node and data hash in the transaction, going through a series of assertions.
+If all assertions pass, the submitting node receives token rewards.
 
 % \subsection{Client Operations}
 
 \begin{algorithm}
-\caption{Client operations}
+\caption{Client operations.}
 \label{alg:client}
 \begin{algorithmic}[1]
 \Procedure{Store}{data}
@@ -63,7 +66,7 @@ If validation succeeds, the submitting node receives token rewards.
         \State Assert $\frac{y}{Y}<p$
         \State $\text{fragIndex} \gets \textsc{hash}(\pi)$
         \State $\text{frag} \gets \ECEncode(\text{data}, \text{fragIndex})$
-        \State Reply $\textsc{Endorsed}$ with $\text{frag}$
+        \State Reply $\textsc{Endorsed}$ with $(\text{fragIndex}, \text{frag})$
         \State $\text{endorsed} \gets \text{endorsed} \cup \{\pk\}$
     \EndWhile
     \State \Return $h$
@@ -82,18 +85,6 @@ If validation succeeds, the submitting node receives token rewards.
 \end{algorithmic}
 \end{algorithm}
 
-To store a data block, a client submits a storing transaction with the data hash and the token payment for storage.
-When nodes process the storing transaction, they run $\VRFGen$ locally with their $\sk$ and the current sample rate $p$ to determine whether they are endorsed.
-If endorsed, they query the client and provide VRF proofs.
-The client first runs $\VRFVerify$ to validate these nodes, then encodes fragments using proof hashes as indices and sends the corresponding fragments to them.
-The client concludes the store operation after sending a sufficient number of encoded fragments.
-
-To retrieve a data block, a client sends a gossip message to \sys to discover encoded fragments.
-Nodes that store relevant fragments return them to the client.
-The client validates these fragments in a manner similar to proving transactions and decodes the data block from the validated fragments.
-
-% \subsection{Node Bootstrapping}
-
 \begin{algorithm}
 \caption{Node routine}
 \label{alg:node}
@@ -104,36 +95,68 @@ The client validates these fragments in a manner similar to proving transactions
     \State $(y, \pi) = \VRFGen(\sk, h)$
     \If{$\frac{y}{Y} < p$}
         \State $\text{data} \gets \textsc{Retrieve}(h)$
+        \Comment use client operation
         \State $\text{fragIndex} \gets \textsc{hash}(\pi)$
         \State $\text{frag} \gets \ECEncode(\text{data}, \text{fragIndex})$
         \State $\text{storage} \gets \text{storage} \cup (h, \text{fragIndex}, \text{frag})$
     \EndIf
 \EndFor
-\For{every epoch}
-    \State Reply $\textsc{Query}(h)$ requests if $(h, \dots) \in \text{storage}$
-    \State $(n, h) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{epochcoin}())$
-    \If{$n = \pk \land (h, \text{fragIndex}, \text{frag}) \in \text{storage}$}
-        \State Submit $\textsc{Prove}(\pk, h, y, \pi, \text{fragIndex}, \text{frag})$ transaction
+\For{every epoch $i$}
+    \For{$\textsc{Query}(h)$}
+        \If{$(h, \text{fragIndex}, \text{frag}) \in \text{storage}$}
+            \State Reply $\textsc{Query}$ with fragIndex and frag
+        \EndIf
+    \EndFor
+    \State Update stakingSet and dataSet according to transactions in block$_i$
+    \State \textsc{UpdateSampleRate}()
+    \Comment periodically, use on-chain procedure
+    \If{$p$ changed}
+        \State Adjust storage accordingly
+    \EndIf
+    \For{\textsc{Store}(h, \_) transactions $\in$ block$_i$}
+        \State $(y, \pi) = \VRFGen(\sk, h)$
+        \If{$\frac{y}{Y} < p$}
+            \State Send $\textsc{Endorsed}(h, \pk, y, \pi)$ to client
+            \State Wait for $\textsc{EndorsedReply}(\text{fragIndex}, \text{frag})$
+            \State Assert $\ECVerify(h, \text{fragIndex}, \text{frag})$
+            \State $\text{storage} \gets \text{storage} \cup (h, \text{fragIndex}, \text{frag})$
+        \EndIf
+    \EndFor
+    \State $(n, h) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{hash}(\text{block}_i))$
+    \If{$n = \pk \land (h, \text{fragIdx}, \text{frag}) \in \text{storage}$}
+        \State Submit $\textsc{Prove}(\pk, i, h, y, \pi, \text{fragIdx}, \text{frag})$ transaction
     \EndIf
 \EndFor
 \end{algorithmic}
 \end{algorithm}
 
-Redundancy repair occurs when new nodes join \sys.
+The \textsc{Store} and \textsc{Retrieve} client operations are shown in \cref{alg:client}, and the node daemon routine is presented in \cref{alg:node}.
+To \textsc{Store} a data block, a client submits a \textsc{Store} transaction with the data hash and the token payment for storage.
+When nodes process the \textsc{Store} transaction, they run $\VRFGen$ locally with their $\sk$ and use the current sample rate $p$ to determine whether they are endorsed.
+If endorsed, they query the client and provide VRF proofs.
+The client first runs $\VRFVerify$ to validate these nodes, then encodes fragments using proof hashes as indices and sends the corresponding fragments to them.
+The client concludes the store operation after sending a sufficient number of encoded fragments.
+
+To retrieve a data block, a client sends a gossip message \textsc{Query} to \sys to discover encoded fragments.
+Nodes that store relevant fragments return them to the client.
+The client validates these fragments in a manner similar to proving transactions and decodes the data block from the validated fragments.
+
+% \subsection{Node Bootstrapping}
+
+Redundancy repair occurs when new nodes join \sys, as shown in the first half of \cref{alg:node}.
 After synchronizing the on-chain state, a node runs $\VRFGen$ against the current set of stored data hashes.
-For each placement group in which the newly joined node is endorsed, it queries encoded fragments and decodes the data block, similar to client retrieval.
+For each placement group in which the newly joined node is endorsed, it queries encoded fragments and decodes the data block, same as client retrieval.
 It then encodes its assigned fragment, according to the VRF proof hash, and stores them locally.
 
 \subsection{Configure Sample Rate}
 
 The sample rate $p$ is periodically reconfigured based on Byzantine fault rate $f$, benign failure rate of rational nodes $f'$, EC recovery threshold $k$, and the number of nodes $N$.
 The parameters $f$, $f'$, and $k$ are configured statically, and $N$ is derived from the current staking-node state.
-The formula for $p$ is shown in \cref{sec:design:analysis}.
+% The formula for $p$ is shown in \cref{sec:design:analysis}.
 If $p$ decreases when $N$ grows, each node reruns $\VRFGen$ on the data corresponding to stored fragments and discards fragments for which it is no longer endorsed.
 Conversely, if $p$ increases when the system shrinks, each node reruns the bootstrap routine and stores additional fragments.
 %According to the random sampling definition (\cref{sec:approach:sample}), nodes only need to discard fragments when $p$ decreases and only need to store more fragments when $p$ increases.
-Note that such reconfiguration only happens when $p$ changes, according to \cref{sec:approach:sample}.
-Our design minimizes data transfer during reconfiguration.
+Note that such reconfiguration only happens when $p$ changes, and our design minimizes data transfer during reconfiguration.
 
 \subsection{Data Availability Analysis}
 \label{sec:design:analysis}
