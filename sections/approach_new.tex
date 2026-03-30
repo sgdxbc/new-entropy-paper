@@ -61,7 +61,7 @@ More critically, Byzantine nodes can concentrate within a few groups;
 once they collude and discard the data simultaneously, data availability can be easily compromised.
 Even when group formation is done carefully~\cite{}, Byzantine entities can adapt (e.g., by leaving and re-joining with different IDs) and eventually compromise a group.
 Traditional BFT protocols~\cite{} address this issue by requiring an honest majority.
-However, given that a third of all nodes can be Byzantine, having an honest majority in every group violates our storage scalability requirement: adding nodes no longer results in more groups with additional capacity.
+However, given that a third of all nodes can be Byzantine, having an honest majority in every group violates our storage scalability requirement: Adding nodes no longer results in more groups with additional capacity.
 
 \paragraph{\textbf{Erasure coding and repair integrity}}
 Erasure coding (EC), using codes such as Reed-Solomon code, Local Reconstruction Code (LRC)~\cite{azure_storage}, and regenerating codes~\cite{regen_code}, is a common technique for improving storage efficiency.
@@ -74,7 +74,46 @@ Given that each repair involves encoding generation and assignment, a data blob 
 
 The presence of Byzantine nodes also introduces challenges to encoding integrity.
 Unlike replication where any party can independently verify data integrity using the data hash, it is non-trivial for a node to validate the correctness of an EC encoding.
+A single Byzantine node can easily poison repair and data reads.
 The naive solution of recording all encoding hashes in the blockchain violates our blockchain efficiency goal, since the transaction state size is no longer constant.
 
 \subsection{The Case for Random Sampling}
 \label{sec:approach:case}
+
+The availability scalability trade-off appears fundamental:
+To tolerate $\frac{N}{3}$ Byzantine nodes, each placement group needs to include more than $\frac{N}{3}$ nodes, which contradicts storage scalability.
+Our contribution that sidesteps this trade-off is a new group formation technique that preserves data availability.
+Data availability requires at least $k$ non-failure nodes to store unique data fragments in each placement group, where $k$ fragments can reconstruct the data.
+Our key insight is that having group size of $f + k$ is a sufficient but not necessary condition.
+In fact, such ``group-centric'' strategy, where each group is formed independently, assumes the presence of $f$ Byzantine nodes in \emph{every} group and is overly conservative.
+Instead, we propose a node-centric approach: Each honest node selects which placement group to join through independent \emph{random sampling}.
+By properly setting the sampling rate, we can ensure that each placement group contains at least $k$ honest nodes with overwhelming probability.
+Byzantine nodes may deviate from this sampling and collude to concentrate in certain groups.
+However, even if a group is dominated by Byzantine nodes, the presence of at least $k$ honest nodes can guarantee availability of the data.
+
+\lijl{We can add a paragraph to illustrate this sampling approach with some figures.}
+
+Correctness of our sampling approach relies on three conditions.
+First, the sampling outcome of a node is publicly verifiable, and once revealed, it becomes immutable.
+\lijl{Do we care if a Byzantine node violates this and joins more groups? Maybe not for proper incentives?}
+Second, correctness of data fragments stored on any node is publicly verifiable; otherwise, Byzantine nodes can poison the data in a group even with sufficient honest nodes.
+\cref{sec:design} details how we apply cryptographic algorithms to address both challenges.
+
+Lastly, without centralized admission, decentralized distributed storage relies on incentives to attract participants and continued storage contributions.
+Our approach requires distributing \emph{fair incentives} to honest nodes for sustainability and data availability.
+In particular, our sampling-based approach uniformly assigns honest nodes to placement groups, and therefore should offer equal incentives to each honest node.
+Prior systems~\cite{} apply a ``data-centric'' approach, in which each stored data is allocated certain amount of incentives, regardless of the number of nodes storing that data.
+The rationale is that the system aims to incentivize nodes to store less populated data for even distribution and thus strong availability.
+However, such mechanism breaks our fair incenctive requirement.
+When Byzantine nodes concentrate in a placement group, the honest nodes would receive proportionally less incentives and be driven out of the system.
+
+To address this challenge, we propose a new node-centric incentive mechanism.
+The system offers equal incentives to every node, regardless of what data they store.
+Rational nodes would therefore store the data assigned by the random sampling to maximize profit.
+Irrational Byzantine nodes can concentrate in certain groups.
+However, their presence will not impact the incentives received by the honest nodes in those groups.
+This ensures that at least $k$ honest nodes remain in each group.
+The approach may result in uneven incentives across data, but we aruge that the overall incentive pool remains the same and the uneven incentive distribution has no impact on data availability.
+In \cref{sec:design}, we explain how our system validates that a node is actually storing the assigned data before issuing incentives.
+
+\paragraph{Random sampling for Erasure Coding}
