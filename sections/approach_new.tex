@@ -95,7 +95,7 @@ However, even if a group is dominated by Byzantine nodes, the presence of at lea
 
 Correctness of our sampling approach relies on three conditions.
 First, the sampling outcome of a node is publicly verifiable, and once revealed, it becomes immutable.
-\lijl{Do we care if a Byzantine node violates this and joins more groups? Maybe not for proper incentives?}
+\lijl{Do we care if a Byzantine node violates this and joins more groups? Maybe yes for proper incentives?}
 Second, correctness of data fragments stored on any node is publicly verifiable; otherwise, Byzantine nodes can poison the data in a group even with sufficient honest nodes.
 \cref{sec:design} details how we apply cryptographic algorithms to address both challenges.
 
@@ -116,4 +116,16 @@ This ensures that at least $k$ honest nodes remain in each group.
 The approach may result in uneven incentives across data, but we aruge that the overall incentive pool remains the same and the uneven incentive distribution has no impact on data availability.
 In \cref{sec:design}, we explain how our system validates that a node is actually storing the assigned data before issuing incentives.
 
-\paragraph{Random sampling for Erasure Coding}
+\paragraph{\textbf{Random sampling for erasure coding}}
+Our second major novelty is to apply random sampling to design \emph{trustless} erasure coding without BFT consensus.
+The key insight is to restructure erasure coding as a \emph{selection} problem.
+Specifically, the coding process conceptually generates a \emph{sequence} of $k + m$ encoded fragments.
+Instead of assigning fragments to nodes, we ask each node to independently \emph{select} an index in the sequence, and stores the corresponding fragment.
+Applying random sampling allows nodes to perform this selection without explicit BFT coordination.
+
+\lijl{Can also add a paragraph to illustrate this sampling approach with some figure.}
+
+One caveat is that recovering the original data requires at least $k$ unique fragments to be stored on honest nodes.
+Independent sampling can result in honest nodes storing repeated fragments, leading to violation of this requirement.
+Our base solution is to sample multiple fragments on each node, so that every unique fragment is seletcted by some honest node with overwhelming probability.
+In \autoref{sec:design}, we discuss how we apply \emph{rateless} erasure code to improve the space efficiency of this base approach.
