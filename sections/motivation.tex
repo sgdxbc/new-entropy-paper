@@ -89,7 +89,6 @@ We summarize prior work in \cref{tab:dsn}, comparing them along three dimensions
 Higher storage volume and fault tolerance are preferable, while lower on-chain footprint is desirable.
 % Next, we explain how their limitations relate to their data placement solutions.
 
-\iffalse
 Filecoin~\cite{filecoin}, Sia~\cite{sia} and Shelby~\cite{shelby} achieve scalable storage volume but must trade off between on-chain footprint and fault tolerance.
 Their on-chain footprints grow with placement-group size because placement metadata is explicitly recorded as storage contracts.
 In practice, they must bound on-chain overhead by using small groups, typically fewer than 10 in Filecoin and 30 by default in Sia.
@@ -108,8 +107,8 @@ Walrus~\cite{walrus} adopts a data placement approach that more closely resemble
 In Walrus, the top 1000 nodes (according to their staking) are selected as the committee to store all data for each epoch (of two weeks).
 It uses algorithmic placement to map each data block to a subset of committee nodes via a hash function, which yields a scalable on-chain footprint.
 However, its storage volume is not scalable, and it is vulnerable to a fraction of Byzantine nodes compromising the committee at sufficient system scale.
-\fi
 
+\iffalse
 Filecoin~\cite{filecoin}, Sia~\cite{sia}, and Shelby~\cite{shelby} achieve scalable storage volume but must trade off on-chain footprint against fault tolerance.
 Because placement metadata is recorded explicitly as storage contracts, their on-chain overhead grows with group size, forcing them to cap groups at a fixed small size (fewer than 10 in Filecoin, 30 by default in Sia).
 These fixed, small groups cannot scale with the network, so a fraction of Byzantine nodes can dominate individual groups, while enlarging groups to tolerate a global Byzantine fraction would make on-chain overhead infeasible.
@@ -117,6 +116,7 @@ Permacoin~\cite{permacoin}, Retricoin~\cite{retricoin}, and Arweave~\cite{arweav
 They rely on incentives rather than mandatory placement, which precludes erasure coding and forces replication, so tolerating a global Byzantine fraction requires each data segment to be replicated across a number of nodes proportional to the total population, yielding non-scalable storage volume.
 Walrus~\cite{walrus} uses algorithmic placement via a hash function over a permissioned committee of the top 1000 staked nodes, yielding a scalable on-chain footprint and efficient erasure-coded storage.
 However, its storage volume is bounded by those 1000 nodes, and a fraction of Byzantine nodes can overwhelm the fixed committee and cause data loss at scale.
+\fi
 
 Swarm~\cite{swarm} achieves both scalable on-chain footprint and Byzantine tolerance, but falls short in scalable storage volume.
 Swarm divides nodes into disjoint neighborhoods.
