@@ -51,9 +51,10 @@ As expected, the higher-redundancy configuration maintains a larger safety margi
 
 \paragraph{Fault tolerance.}
 To evaluate how well \sys tolerates adversaries, we simulate a network with various Byzantine faulty nodes.
-A data block is considered permanently lost when insufficient fragments remain on rational nodes (for \sys) or when no replicas remain (for Swarm).
+At beginning, 100 data objects are stored into the networks with a $(10, 8)$ client encoding.
+A data object is considered permanently lost when any 3 of its blocks are lost, and a data block is lost when insufficient fragments remain on rational nodes (for \sys) or when no replicas remain (for Swarm).
 \Cref{fig:faulty} shows the percentage of lost objects over a one-year trace.
-This simulation shows that Swarm does not tolerate strong adversaries: it loses all blocks when fewer than 5\% of nodes are Byzantine.
+This simulation shows that Swarm does not tolerate strong adversaries: it loses all data when fewer than 5\% of nodes are Byzantine.
 On the other hand, \sys can tolerate a significant fraction of faulty nodes without losing data.
 The degree of tolerance depends on the rateless code parameters $k$ and $N_e$.
 Using the default parameters, \sys tolerates approximately the target \nicefrac{1}{3} Byzantine rate, while a more conservative configuration further improves tolerance at the cost of additional redundancy.
@@ -111,7 +112,8 @@ The retrieving node performs a sanity check to confirm that the data block is co
 \end{figure}
 
 We measure end-to-end latency for storing and retrieving 1 GB of data in each system; results are shown in \cref{fig:latency}.
-Swarm provides lower store latency, but its retrieve latency is strongly affected by the client-side coding configuration.
+With various rateless coding, \sys performance remain stable, incurring higher store latency and lower retrieve latency, both comparable to Swarm.
+Swarm's retrieve latency is strongly affected by the client-side coding configuration.
 In contrast, \sys maintains relatively stable latency across different coding setups.
 
 \iffalse
