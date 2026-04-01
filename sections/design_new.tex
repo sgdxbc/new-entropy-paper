@@ -42,3 +42,47 @@ performing decoding using a tampered symbol would lead to integrity violation of
 Verifiable rateless code~\cite{verify-rateless-ec} enables any third party to validate the integrity of a received symbol.
 The scheme is also space efficient.
 The third party only needs to possess a small hash of the original data when performing the validation.
+
+\lijl{Like VRF, can show the verifiable rateless EC interface here, so that later text can refer to it.}
+
+\subsection{\sys Protocol}
+\label{sec:design:proto}
+
+An \sys deployment consists of three main components: storage nodes that provide permanent storage, clients which issue \textsc{Store} and \textsc{Retrieve} requests, and \sys smart contracts deployed on the blockchain.
+\cref{alg:contract}, \cref{alg:client}, and \cref{alg:node} show the state and the pseudocode for the smart contracts, the clients, and the storage nodes, respectively.
+We only require the storage nodes to submit transactions and learn the finalized transaction blocks on the blockchain, that is, storage nodes and blockchain full nodes can be disjoint.
+
+\subsubsection{Node Management}
+\label{sec:design:proto:mgmt}
+\sys runs in a permissionless setting.
+Storage nodes can join or leave the system at any time.
+To join the system, a storage node submits a \textsc{Stake} transaction with its public key and staking tokens, as shown in \cref{alg:contract}.
+The on-chain state maintains the set of currently staking nodes, which are the active storage nodes, in the system.
+The transaction adds the node to the set, and locks up the staked tokens.
+If the node later fails to pass the storage verification tests~\cref{sec:design:proto:store}, the staked tokens will be slashed.
+To leave the system, an existing node submits a \textsc{UnStake} transaction, which removes the node from the staking set and returns the locked tokens.
+\lijl{Can add the unstake transaction to the pseudocode.}
+By checking the $\st{stakingSet}$ on-chain state, all parties can have a consistent view of the current active storage nodes.
+Byzantine storage nodes can also freely join and leave the system.
+However, we assume Byzantine entities are bounded by $\frac{1}{3}$ of the overall tokens, so at most $\frac{1}{3}$ of the nodes in the $\st{stakingSet}$ at any time can be Byzantine.
+\lijl{Currently, we don't specify how much stake is required, and how that relates to the storage capacity of the node, or the rewards. We should discuss briefly.}
+
+\subsubsection{Store Procedure}
+\label{sec:design:proto:store}
+Something.
+
+\subsubsection{Data Retrieval}
+\label{sec:design:proto:retrieval}
+Something.
+
+\subsubsection{Repair}
+\label{sec:design:proto:repair}
+Something.
+
+\subsection{System Parameter Configuration}
+\label{sec:design:param}
+Something.
+
+\subsection{Data Availability Proof}
+\label{sec:design:proof}
+Something.
