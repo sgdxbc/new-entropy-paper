@@ -27,3 +27,4 @@ Kademlia
 DHTs
 asynchrony
 Permissionless
+linearizability
