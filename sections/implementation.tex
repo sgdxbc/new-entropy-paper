@@ -4,6 +4,7 @@
 In this section, we present several engineering details beyond \cref{sec:design} that are important in our \sys prototype.
 
 \subsection{Efficient Placement Group Discovery with Distributed Hash Table}
+\label{sec:impl:dht}
 
 Every store or retrieve operation, including retrievals triggered during repair, requires the client or bootstrapping node to exchange encoded fragments with all endorsed nodes.
 The naive approach described in \cref{sec:design} is to submit a store transaction for writes or broadcast requests to all nodes through a gossip protocol for reads, then wait for responses. This method incurs $O(N)$ communication overhead and also suffers from block-propagation latency for store operations.
