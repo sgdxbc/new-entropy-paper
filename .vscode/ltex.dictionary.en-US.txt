@@ -28,3 +28,4 @@ DHTs
 asynchrony
 Permissionless
 linearizability
+XORed
