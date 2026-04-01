@@ -1,0 +1,8 @@
+\section{\sys Design}
+\label{sec:design}
+
+In this section, we present \sys, the first decentralized storage system that simultaneously achieves the three properties in \cref{sec:approach:model}.
+The main novelty of \sys is a distributed storage design that carefully applies random sampling (\cref{sec:approach:case}) to both data placement and erasure coding.
+The design assumes a BFT blockchain that orders and executes smart contracts (\ie, transactions) with linearizability~\cite{linearizability} guarantee;
+\sys is agnostic to the protocol details of the blockchain.
+We also assume the blockchain provides an incentive token that is economically favorable to rational nodes.
