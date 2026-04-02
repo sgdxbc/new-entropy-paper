@@ -30,6 +30,8 @@ Rateless codes are a family of erasure codes that has a special property.
 A rateless code generates an \emph{infinite} sequence of encoding symbols from $k$ source blocks.
 Any $k + \epsilon$ encoding symbols can be used to reconstruct the original data.
 This differs from traditional maximum distance separable (MDS) codes, such as Reed-Solomon codes, which produce a fixed number of $n$ encoding symbols from the $k$ source blocks.
+Rateless erasure code exposes an $\ECEncode$ function, which accepts a data block and an index and returns the encoded fragment of that index in the sequence.
+It also exposes an $\ECDecode$ function, which takes $k + \epsilon$ encoded fragments and their indices, and returns the reconstructed data block.
 
 Internally, a rateless code such as LT codes~\cite{lt_code} and raptor codes~\cite{raptor_code} split the input data into blocks.
 For each encoding symbol, it performs an XOR on some subset of the blocks.
@@ -39,11 +41,11 @@ The decoder repeats the process until it generates all degree one blocks, \ie, t
 
 Using traditional rateless codes, a decoder cannot verify the integrity of a received encoding symbol;
 performing decoding using a tampered symbol would lead to integrity violation of the data.
-Verifiable rateless code~\cite{verify-rateless-ec} enables any third party to validate the integrity of a received symbol.
+Verifiable rateless code~\cite{verify-rateless-ec} enables any third party to validate the integrity of a received symbol with an $\ECVerify$ function.
 The scheme is also space efficient.
-The third party only needs to possess a small hash of the original data when performing the validation.
+The third party only needs to possess a small hash of the original data and the fragment with its index to $\ECVerify$ when performing the validation.
 
-\lijl{Like VRF, can show the verifiable rateless EC interface here, so that later text can refer to it.}
+\lijl{Like VRF, can show the verifiable rateless EC interface here, so that later text can refer to it.} \sgd{Done in the text above.}
 
 \subsection{\sys Protocol}
 \label{sec:design:proto}
@@ -90,12 +92,14 @@ To join the system, a storage node submits a \textsc{Stake} transaction with its
 The on-chain state maintains the set of currently staking nodes, which are the active storage nodes, in the system.
 The transaction adds the node to the set, and locks up the staked tokens.
 If the node later fails to pass the storage verification tests~\cref{sec:design:proto:store}, the staked tokens will be slashed.
+\sgd{We don't really have slashing in current design.}
 To leave the system, an existing node submits a \textsc{UnStake} transaction, which removes the node from the staking set and returns the locked tokens.
-\lijl{Can add the unstake transaction to the pseudocode.}
+\lijl{Can add the unstake transaction to the pseudocode.} \sgd{Will add if have space.}
 By checking the $\st{stakingSet}$ on-chain state, all parties can have a consistent view of the current active storage nodes.
 Byzantine storage nodes can also freely join and leave the system.
 However, we assume Byzantine entities are bounded by $\frac{1}{3}$ of the overall tokens, so at most $\frac{1}{3}$ of the nodes in the $\st{stakingSet}$ at any time can be Byzantine.
 \lijl{Currently, we don't specify how much stake is required, and how that relates to the storage capacity of the node, or the rewards. We should discuss briefly.}
+\sgd{Staking is not for correct behavior but just to defend Sybil attacks. So being sufficient to make Sybil attack too expensive is good enough.}
 
 \begin{algorithm}
 \caption{Client operations.}

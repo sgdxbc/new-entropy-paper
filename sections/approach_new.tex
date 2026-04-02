@@ -13,8 +13,10 @@ Nodes can join and leave the network freely.
 Each node possesses some persistent storage device(s) to store data.
 For simplicity, we assume equal storage capacity on each node;
 handling node heterogeneity is discussed in \XXX.
+\sgd{We don't really discuss it seriously; just briefly say virtual nodes can help.}
 The network is assumed to be partially synchronous.
 \lijl{Could we handle asynchronous network? I guess if network asynchrony is longer than node lifetime, then we can't guarantee availability.}
+\sgd{Probably yes. Also anyway we are bounded with network model of blockchain, which may even be synchronous (such as Bitcoin).}
 
 Nodes do not trust each other.
 Honest nodes are rational \footnote{A node is rational if its actions maximize its expected profit.} and follow the protocol precisely.
@@ -103,6 +105,7 @@ However, even if a group is dominated by Byzantine nodes, the presence of at lea
 Correctness of our sampling approach relies on three conditions.
 First, the sampling outcome of a node is publicly verifiable, and once revealed, it becomes immutable.
 \lijl{Do we care if a Byzantine node violates this and joins more groups? Maybe yes for proper incentives?}
+\sgd{Yes. That is the critical reasoning of \sys safety. We don't care how many Byzantine nodes may join a placement group, but we care how many placement groups can a Byzantine node join.}
 Second, correctness of data fragments stored on any node is publicly verifiable; otherwise, Byzantine nodes can poison the data in a group even with sufficient honest nodes.
 \cref{sec:design} details how we apply cryptographic algorithms to address both challenges.
 
