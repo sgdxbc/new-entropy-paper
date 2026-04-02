@@ -67,17 +67,17 @@ However, given that a third of all nodes can be Byzantine, having an honest majo
 
 \paragraph{\textbf{Erasure coding and repair integrity}}
 Erasure coding (EC), using codes such as Reed-Solomon code, Local Reconstruction Code (LRC)~\cite{azure_storage}, and regenerating codes~\cite{regen_code}, is a common technique for improving storage efficiency.
-Regardless of the exact code construction, commonly deployed EC requires sufficient nodes storing \emph{unique} encoded fragments to survive simultaneous failures, so that the original data can be reconstructed.
+Regardless of the exact code construction, commonly deployed EC requires sufficient nodes storing \emph{unique} encoded symbols to survive simultaneous failures, so that the original data can be reconstructed.
 This invariant needs to hold throughout the lifetime of each stored data.
 
-Proper encoding generation and assignment is straightforward in the presence of a trusted, centralized service.
-However, without centralized trust, fragment assignment becomes a coordination problem that requires BFT consensus.
-Given that each repair involves encoding generation and assignment, a data blob requires recurring BFT transactions throughout its lifetime, violating our blockchain efficiency goal.
+Proper encoding and symbol assignment is straightforward in the presence of a trusted, centralized service.
+However, without centralized trust, symbol assignment becomes a coordination problem that requires BFT consensus.
+Given that each repair involves encoded symbol generation and assignment, a data blob requires recurring BFT transactions throughout its lifetime, violating our blockchain efficiency goal.
 
 The presence of Byzantine nodes also introduces challenges to encoding integrity.
-Unlike replication where any party can independently verify data integrity using the data hash, it is non-trivial for a node to validate the correctness of an EC encoding.
+Unlike replication where any party can independently verify data integrity using the data hash, it is non-trivial for a node to validate the correctness of an encoded symbol.
 A single Byzantine node can easily poison repair and data reads.
-The naive solution of recording all encoding hashes in the blockchain violates our blockchain efficiency goal, since the transaction state size is no longer constant.
+The naive solution of recording all encoded symbol hashes in the blockchain violates our blockchain efficiency goal, since the transaction state size is no longer constant.
 
 \subsection{The Case for Random Sampling}
 \label{sec:approach:case}
