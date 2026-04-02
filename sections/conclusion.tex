@@ -1,10 +1,5 @@
 \section{Conclusion}
 
-In this work, we present \sys, a new approach for defending Byzantine nodes in decentralized storage networks (DSNs).
-%Byzantine behavior represents a risk that is uncommon in traditional storage systems but fundamental in permissionless environments.
-%DSNs must therefore tolerate Byzantine faults that can arise and concentrate anywhere in the system, while naive defenses can impose substantial overhead.
-We combine a novel node-centric incentivization and a sampling-based data placement mechanism with verifiability.
-This new approach in \sys reframes how we design and reason about storage systems that tolerates Byzantine attacks.
-% By isolating node incentives, \sys also isolates node behavior, so Byzantine nodes cannot interfere with the behavior of rational nodes.
-\sys is an initial realization of this design philosophy for storage systems in permissionless and adversarial settings.
-Our next step is to fully implement and thoroughly evaluate \sys to validate its effectiveness in real-world deployments.
+We presented \sys, a decentralized storage network that simultaneously achieves scalable storage volume, efficient on-chain footprint, and strong Byzantine fault tolerance.
+\sys decouples node incentives from placement-group composition and applies VRF-based random sampling for both group formation and rateless erasure coding.
+The design ensures that Byzantine nodes cannot influence rational honest node behavior regardless of adversarial distribution.
