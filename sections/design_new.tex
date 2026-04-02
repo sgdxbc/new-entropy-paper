@@ -104,7 +104,18 @@ It then adds verified fragments to its local permanent storage.
 
 \subsubsection{Storage Verification}
 \label{sec:design:proto:pos}
-Something.
+To incentivize storage nodes to store their endorsed data, \sys applies a storage verification protocol.
+Note that we assume that the mechanism is only effective for rational honest nodes;
+irrational Byzantine nodes may ignore these incentives and discard stored data.
+However, our sampling-based solution (\cref{sec:design:proto:store}) always maintain data availability.
+
+Specifically, at each blockchain block height, every storage node invokes a \textsc{sample} procedure that takes the current contract state and the latest block hash as inputs, and outputs a sampled (node, data) pair (\cref{alg:node} line 32-35).
+Randomness of the inputs ensure that the output (node, data) pair is statically unpredictable.
+If the storage node is sampled, and it is endorsed to store the data, it can submit a \textsc{Prove} transaction that includes its VRF proof and the stored EC fragment.
+The smart contract (\cref{alg:contract} line 8-17) performs the same \textsc{sample} procedure and verifies that the submitting node and data are the sampled result.
+It then validates the VRF proof, ensures that the node is endorsed, and checks the integrity of the EC fragment.
+If all checks pass, the contract transfers some reward tokens to the submitting node.
+To maximize rewards, a rational honest node will maintain storage of all endorsed data fragments.
 
 \subsubsection{Repair}
 \label{sec:design:proto:repair}
