@@ -47,6 +47,13 @@ The distributed storage service should satisfy the following design goals:
 \subsection{Challenges}
 \label{sec:approach:challenges}
 
+\begin{figure*}
+    \includegraphics[width=\textwidth]{figures/approaches-h}
+    \caption{Comparison of data- and node-centric strategies and random sampling approach. Red circles are Byzantine nodes. VRF output is normalized for brevity.}
+    \ifacm\Description{TODO}\fi
+    \label{fig:approaches}
+\end{figure*}
+
 \paragraph{\textbf{Availability and scalability trade-off}}
 Data availability and storage scalability are common design goals for traditional distributed storage systems~\cite{ceph,bigtable,gfs,dynamo,google-storage,azure_storage,f4}.
 A key enabler for these properties is centralized control.
@@ -81,13 +88,6 @@ The naive solution of recording all encoded symbol hashes in the blockchain viol
 
 \subsection{The Case for Random Sampling}
 \label{sec:approach:case}
-
-\begin{figure*}
-    \includegraphics[width=\textwidth]{figures/approaches-h}
-    \caption{Comparison of data- and node-centric strategies and random sampling approach. Red circles are Byzantine nodes. VRF output is normalized for brevity.}
-    \ifacm\Description{TODO}\fi
-    \label{fig:approaches}
-\end{figure*}
 
 The availability scalability trade-off appears fundamental:
 To tolerate $\frac{N}{3}$ Byzantine nodes, each placement group needs to include more than $\frac{N}{3}$ nodes, which contradicts storage scalability.
@@ -144,12 +144,12 @@ Applying random sampling allows nodes to perform this selection without explicit
 
 \lijl{Can also add a paragraph to illustrate this sampling approach with some figure.}
 
-\begin{figure}
-    \includegraphics[width=\columnwidth]{figures/encode}
-    \caption{Placing encoded fragments with random sampling.}
-    \ifacm\Description{TODO}\fi
-    \label{fig:encode}
-\end{figure}
+%\begin{figure}
+%    \includegraphics[width=\columnwidth]{figures/encode}
+%    \caption{Placing encoded fragments with random sampling.}
+%    \ifacm\Description{TODO}\fi
+%    \label{fig:encode}
+%\end{figure}
 
 One caveat is that recovering the original data requires at least $k$ unique fragments to be stored on honest nodes.
 Independent sampling can result in honest nodes storing repeated fragments, leading to violation of this requirement.
