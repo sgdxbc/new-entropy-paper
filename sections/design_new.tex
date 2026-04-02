@@ -129,7 +129,16 @@ Once it receives sufficient correct fragments, it performs $\ECDecode$ to recons
 
 \subsubsection{Repair}
 \label{sec:design:proto:repair}
-Something.
+When honest nodes permanently fail or leave the system, \sys needs to repair impacted data redundancy to maintain data availability.
+Prior solutions typically rely on centralized monitoring and coordination to repair redundancy.
+
+Being a decentralized storage system, \sys applies a different approach to data repair.
+When the overall system size remains relatively stable, \sys relies on newly joined nodes to repair lost redundancy due to churns.
+Specifically, after a new node joins the system and synchronizes the on-chain state (\cref{alg:node} line 1-11), it iterates through all the stored data hashes in \st{dataSet}.
+For each data hash, the node performs the same VRF-based sampling to check endorsement.
+If the node is endorsed, it requests the EC fragments from other storage nodes and reconstruct the original data, identical to the client retrieval procedure.
+Subsequently, the node encodes its sampled EC fragment (same as the \textsc{Store} procedure), and stores the fragment locally.
+Our sampling mechanism ensures that the newly joined honest nodes will restore the required redundancy in each placement group with high probability.
 
 \subsection{System Parameter Configuration}
 \label{sec:design:param}
