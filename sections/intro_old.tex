@@ -1,0 +1,83 @@
+\section{Introduction}
+\label{sec:intro}
+
+Decentralized storage networks (DSNs)~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn,swarm} are emerging as a reliable and cost-effective approach to long-term data storage for blockchains and beyond.
+60\% of all decentralized applications utilize the IPFS/Filecoin~\cite{filecoin} stack for off-chain metadata and front-end asset storage~\cite{filecoin-web3}.
+Arweave~\cite{arweave} stores historical ledger data of Solana, Avalanche, Polkadot, Cosmos and NEAR Protocol~\cite{arweave-solana,arweave-blockchains}.
+Besides blockchain ecosystems, the government of Bermuda uploads public datasets to Filecoin~\cite{filecoin-bermuda}.
+Sia~\cite{sia} secured a major partnership with HackerNoon to back up its entire publishing archive\footnote{\url{https://sia.hackernoon.com/}}~\cite{sia-hackermoon}.
+Nowadays, the top DSNs host more than Exabyte of data~\cite{filecoin-size}.
+
+DSNs address the need for reliable storage under strict trust assumptions in which no single participant is trusted~\cite{bar}.
+Whereas centralized storage systems focus on tolerating failures of resources operated by a single organization, DSNs assume that organizations themselves may be untrusted.
+DSNs also tolerate organization-level failures, such as service shutdowns or censorship of stored data.
+Consequently, DSNs rely on resources contributed by permissionless providers, usually through incentive mechanisms, and apply distributed protocols such as smart contracts executed on blockchains.
+Providers can join and leave the network at any time.
+DSNs can tolerate data loss on individual nodes caused by node churn, disk failures, and adversarial behavior.
+As a result, users need not trust any single provider for availability while retaining confidence that their data remain reliably stored.
+DSNs are also cost-effective because no single provider can monopolize storage resources.
+
+Similar to centrally managed distributed storage, a critical task in DSNs is \emph{data placement}.
+Each data block is stored redundantly on a set of nodes called the \emph{placement group}.
+A placement group needs to tolerate simultaneous node failures to prevent data losses.
+%This placement metadata must remain reliable throughout each block's lifetime to support retrieval and repair.
+Existing DSNs either maintain placement metadata on chain through smart contracts, or derive placement groups algorithmically through deterministic rules or protocols.
+Compared to centralized storage, DSNs face new challenges in data placement due to adversarial behaviors:
+Malicious nodes can ignore incentives~\cite{bar}, collude within a placement group, and discard redundancy simultaneously~\cite{ipfs-attack,bittorrent-attack}.
+Such attacks could violate the data availability guarantees.
+% Consequently, a placement group designed to tolerate $m$ simultaneous failures can still fail after just more than $m-f$ additional non-Byzantine failures when the group contains $f$ Byzantine nodes.
+% Among placement groups of equal size, those with fewer rational nodes and more Byzantine nodes are less robust.
+
+%We define the \emph{effective placement group} of a data block as the subset of rational nodes in its DSN-determined placement group; data remain available only when this effective group is large enough to tolerate simultaneous failures.
+%In this sense, the effective placement group is the DSN counterpart of the placement group in centrally managed storage.
+%Yet DSNs cannot directly identify Byzantine nodes and therefore cannot directly measure effective group size, while Byzantine nodes can move across and cluster within selected placement groups, making nominally uniform group sizes increasingly vulnerable.
+%Although prior DSN designs focus on enforcing correct storage by rational nodes and efficiently detecting storage failures~\cite{por}, they largely overlook placement attacks, where data may be lost before any visible failure signal appears.
+We identify a fundamental challenge in forming placement groups in DSNs, regardless of the approach.
+Given that Byzantine nodes can discard stored data at any time, a placement group can only rely on sufficient non-Byzantine nodes to maintain data availability.
+We term the set of non-Byzantine nodes in a placement group the \emph{effective placement group}.
+However, it is generally impossible to identify Byzantine nodes.
+Therefore, accurately determining the effective placement group size remains infeasible.
+
+We review how prior DSNs form placement groups in \cref{sec:motivation:review}.
+These designs suffer from limited and non-scalable storage capacity~\cite{permacoin,retricoin,arweave,walrus,bft-dsn,swarm}, substantial on-chain footprint~\cite{filecoin,sia,shelby}, and/or weak Byzantine fault tolerance~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn}.
+%We identify the root cause of these limitations as an incentive mismatch: Byzantine nodes can distribute arbitrarily and concentrate attacks on selected placement groups, whereas incentives are rigidly bound to specific data blocks and their associated groups.
+%As a result, each placement group must overprovision as if it were defending against the full Byzantine budget, leading to redundant defensive effort across the DSN.
+%To improve efficiency, DSNs should defend against Byzantine behavior globally rather than independently within each placement group, and should distribute defensive effort across groups according to attack concentration so that no group is compromised.
+Our key insight is that the root cause shared by existing designs is their \emph{data-centric} placement approach.
+In these systems, each placement group is formed and incentivized independently.
+Because Byzantine nodes cannot be identified reliably, each group must be provisioned to withstand adversarial power.
+This design creates a fundamental trade-off: either over-provision all groups against potential Byzantine attacks, or sacrifice the availability of some groups.
+
+In this work, we propose a novel design principle of DSNs: a \emph{node-centric} approach that allows efficient Byzantine fault tolerance across placement groups.
+Unlike prior data-centric approaches, in which each placement group is incentivized separately, our approach incentivizes each node directly for contributing storage, regardless of which groups they join.
+%Therefore, rewards received by nodes storing a data block need not match the payment made by the client storing that block.
+Under this node-centric model, rational honest nodes are no longer affected by Byzantine distribution because their rewards depend only on their storage contribution.
+
+Node-centric incentivization alone is insufficient to guarantee data availability;
+a DSN still needs to ensure enough honest nodes join each placement group.
+%At the same time, DSNs can no longer rely on uniform per-data payouts to balance rational nodes across groups, so the data placement scheme must explicitly ensure that each placement group contains a sufficient number of rational nodes.
+To address this challenge, we design \sys, a DSN in which nodes are randomly sampled into each placement group. %\footnotemark.
+%\footnotetext{The name \sys reflects this randomization principle.}
+\sys employs a verifiable random function (VRF)~\cite{vrf,vrf-rfc} for publicly verifiable sampling, which we call endorsement, while controlling the expected number of groups that endorse each node.
+%\sys realizes the node-centric approach by rewarding per endorsement and isolating rewards across nodes through independent endorsements.
+The sampling-based design ensures each group contains sufficient honest nodes with overwhelmingly high probability, regardless of Byzantine node distribution.
+Combined with our node-centric incentivization, enough honest redundancy remains within each group to maintain data availability.
+We further extend this sampling approach to support robust erasure coding~\cite{verify-rateless-ec} within each group without coordination.
+
+We present the full design of \sys in \cref{sec:design}.
+Like most prior DSNs, \sys supports storage and retrieval operations for external clients.
+Under the hood, \sys employs a lightweight on-chain contract and network protocol for client-node interaction.
+We design a minimal, proof-of-concept incentive policy for our random sampling approach.
+At every block height, a pair of node and data block is randomly sampled to be rewarded if the node can prove its storage of the data block, similar to Arweave~\cite{arweave}.
+However, in \sys, the node must also be endorsed by the data block as well as store it in order to be rewarded.
+This design is consistent with the node-centric approach of \sys, giving \sys greater control over reward allocation and offering stronger protection for the interests of rational nodes.
+We also show the repairing protocol, which happens naturally at new node bootstrapping.
+Finally, we analyze data availability in \sys and derive an upper bound on data-loss probability from system parameters.
+
+We thoroughly evaluate \sys with both simulation and physical deployment.
+In simulation, \sys shows promising long-term characteristics.
+\sys preserves sufficient encoded fragments for recovery over a 10-year simulation while incurring only about $2\times$ redundancy.
+Under Byzantine faults, \sys tolerates a significantly larger Byzantine fraction than prior DSNs, and this tolerance improves as redundancy increases.
+We also verify that a short-term caching optimization (\cref{sec:impl:repair}) reduces \sys's repair traffic by $6\times$, making it only marginally higher than that of replication-based DSNs.
+In physical deployment, \sys achieves operation latencies of approximately 30--40 seconds for 1~GB data objects, comparable to Swarm~\cite{swarm}, due to its efficient distributed-hash-table-based lookup (\cref{sec:impl:dht}).
+We also show that \sys's performance is scalable regarding the number of nodes, and its coding overhead is practical and stable.
