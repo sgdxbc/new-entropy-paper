@@ -82,6 +82,13 @@ The naive solution of recording all encoding hashes in the blockchain violates o
 \subsection{The Case for Random Sampling}
 \label{sec:approach:case}
 
+\begin{figure*}
+    \includegraphics[width=\textwidth]{figures/approaches-h}
+    \caption{Comparison of data- and node-centric strategies and random sampling approach. Red circles are Byzantine nodes. VRF output is normalized for brevity.}
+    \ifacm\Description{TODO}\fi
+    \label{fig:approaches}
+\end{figure*}
+
 The availability scalability trade-off appears fundamental:
 To tolerate $\frac{N}{3}$ Byzantine nodes, each placement group needs to include more than $\frac{N}{3}$ nodes, which contradicts storage scalability.
 Our contribution that sidesteps this trade-off is a new group formation technique that preserves data availability.
@@ -93,15 +100,11 @@ By properly setting the sampling rate, we can ensure that each placement group c
 Byzantine nodes may deviate from this sampling and collude to concentrate in certain groups.
 However, even if a group is dominated by Byzantine nodes, the presence of at least $k$ honest nodes can guarantee availability of the data.
 
-\lijl{We can add a paragraph to illustrate this sampling approach with some figures.}
+\lijl{We can add a paragraph to illustrate this sampling approach with some figures.} \sgd{Draft paragraph below.}
 
-\begin{figure*}
-    \includegraphics[width=\textwidth]{figures/approaches-h}
-    \caption{Comparison of data- and node-centric strategies and random sampling approach. Red circles are Byzantine nodes. VRF output is normalized for brevity.}
-    \ifacm\Description{TODO}\fi
-    \label{fig:approaches}
-\end{figure*}
-
+We illustrate our node-centric strategy and random sampling approach in \cref{fig:approaches}.
+Unlike the DSNs with data-centric strategy, \sys does not attempt to maintain uniform number of nodes in each placement group.
+Instead, it allows many Byzantine nodes to cluster in a placement group (the green and blue ones), but ensures uniform number of placement groups the nodes can join.
 Correctness of our sampling approach relies on three conditions.
 First, the sampling outcome of a node is publicly verifiable, and once revealed, it becomes immutable.
 \lijl{Do we care if a Byzantine node violates this and joins more groups? Maybe yes for proper incentives?}
@@ -112,19 +115,25 @@ Second, correctness of data fragments stored on any node is publicly verifiable;
 Lastly, without centralized admission, decentralized distributed storage relies on incentives to attract participants and continued storage contributions.
 Our approach requires distributing \emph{fair incentives} to honest nodes for sustainability and data availability.
 In particular, our sampling-based approach uniformly assigns honest nodes to placement groups, and therefore should offer equal incentives to each honest node.
-Prior systems~\cite{} apply a ``data-centric'' approach, in which each stored data is allocated certain amount of incentives, regardless of the number of nodes storing that data.
+Prior systems~\cite{filecoin,sia,shelby,permacoin,retricoin,arweave,walrus,bft-dsn,swarm} apply a ``data-centric'' approach, in which each stored data is allocated certain amount of incentives, regardless of the number of nodes storing that data.
 The rationale is that the system aims to incentivize nodes to store less populated data for even distribution and thus strong availability.
 However, such mechanism breaks our fair incenctive requirement.
 When Byzantine nodes concentrate in a placement group, the honest nodes would receive proportionally less incentives and be driven out of the system.
 
 To address this challenge, we propose a new node-centric incentive mechanism.
 The system offers equal incentives to every node, regardless of what data they store.
-Rational nodes would therefore store the data assigned by the random sampling to maximize profit.
+Rational nodes would therefore store \emph{all} the data assigned by the random sampling to maximize profit.
 Irrational Byzantine nodes can concentrate in certain groups.
 However, their presence will not impact the incentives received by the honest nodes in those groups.
-This ensures that at least $k$ honest nodes remain in each group.
+This ensures that the number of rational nodes in a group equals to the number of sampled rational nodes, and at least $k$ honest nodes remain in each group with a proper sampling rate.
 The approach may result in uneven incentives across data, but we aruge that the overall incentive pool remains the same and the uneven incentive distribution has no impact on data availability.
 In \cref{sec:design}, we explain how our system validates that a node is actually storing the assigned data before issuing incentives.
+
+% The nodes in a placement group do not share the incentive supplied by the storing client, but receive individual incentives for being sampled by the placement group, what we called being \emph{endorsed}.
+% It is safe in \sys to perform this incentive reallocation because the number of endorsement of Byzantine nodes is restricted by the random sampling.
+% If the Byzantine nodes change their identities to be endorsed from a specific placement group, they will be ``kicked out'' from the previous endorsing ones.
+% In the end, the rewards to the rational nodes are not affected by the distribution of Byzantine nodes across placement groups, so the rational nodes will join all endorsing placement groups to maximize their profits.
+% Finally, we can assume the number of rational nodes storing a data block equals the number of endorsed rational nodes, and we can ensure data availability as we later proved in \cref{sec:design:analysis}.
 
 \paragraph{\textbf{Random sampling for erasure coding}}
 Our second major novelty is to apply random sampling to design \emph{trustless} erasure coding without BFT consensus.
