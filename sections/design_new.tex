@@ -52,6 +52,36 @@ An \sys deployment consists of three main components: storage nodes that provide
 \cref{alg:contract}, \cref{alg:client}, and \cref{alg:node} show the state and the pseudocode for the smart contracts, the clients, and the storage nodes, respectively.
 We only require the storage nodes to submit transactions and learn the finalized transaction blocks on the blockchain, that is, storage nodes and blockchain full nodes can be disjoint.
 
+\begin{algorithm}
+\caption{On-chain smart contracts.
+\textsc{epoch()} returns current block height, and block$_i$ is the block at height $i$.
+\textsc{Stake} and \textsc{Store} transactions are presented with simplification.}
+\label{alg:contract}
+\begin{algorithmic}[1]
+\State \textbf{State:} $\text{stakingSet} \gets \emptyset$, $\text{dataSet} \gets \emptyset, p \gets p^\star$
+\Procedure{Stake}{\pk, stake}
+    \State $\text{stakingSet} \gets \text{stakingSet} \cup \{\pk\}$
+\EndProcedure
+\Procedure{Store}{dataHash, payment}
+    \State $\text{dataSet} \gets \text{dataSet} \cup \{\text{dataHash}\}$
+\EndProcedure
+\Procedure{Prove}{\pk, i, dataHash, $y$, $\pi$, fragIndex, frag}
+    \State Assert $i+W>\textsc{epoch}()$
+    \State $(n^*, h^*) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{hash}({\text{block}_i}))$
+    \State Assert $(\pk, \text{dataHash}) = (n^*, h^*)$
+    \State Assert $\VRFVerify(\pk, \text{dataHash}, y, \text{proof})$
+    \State Assert $\frac{y}{Y}<p$
+    \State Assert $\textsc{hash}(\pi) = \text{fragIndex}$
+    \State Assert $\ECVerify(\text{dataHash}, \text{fragIndex}, \text{frag})$
+    \State Reward \pk
+\EndProcedure
+\Procedure{UpdateSampleRate}{}
+    \State $N \gets \left|\text{stakingSet}\right|$
+    \State $p \gets \frac{2N_e}{(1-f)N}$ rounded to a certain precision
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
 \subsubsection{Node Management}
 \label{sec:design:proto:mgmt}
 \sys runs in a permissionless setting.
@@ -66,6 +96,84 @@ By checking the $\st{stakingSet}$ on-chain state, all parties can have a consist
 Byzantine storage nodes can also freely join and leave the system.
 However, we assume Byzantine entities are bounded by $\frac{1}{3}$ of the overall tokens, so at most $\frac{1}{3}$ of the nodes in the $\st{stakingSet}$ at any time can be Byzantine.
 \lijl{Currently, we don't specify how much stake is required, and how that relates to the storage capacity of the node, or the rewards. We should discuss briefly.}
+
+\begin{algorithm}
+\caption{Client operations.}
+\label{alg:client}
+\begin{algorithmic}[1]
+\Procedure{Store}{data}
+    \State $h \gets \textsc{hash}(data)$
+    \State Submit $\textsc{Store}(h, \text{payment})$ transaction
+    \State $\text{endorsed} \gets \emptyset$
+    \While{$\left|\text{endorsed}\right| < N_e$}
+        \State Wait for $\textsc{Endorsed}(h, \pk, y, \pi)$
+        \State Assert $\VRFVerify(\pk, h, y, \pi)$
+        \State Assert $\frac{y}{Y}<p$
+        \State $\text{fragIndex} \gets \textsc{hash}(\pi)$
+        \State $\text{frag} \gets \ECEncode(\text{data}, \text{fragIndex})$
+        \State Reply $\textsc{Endorsed}$ with $(\text{fragIndex}, \text{frag})$
+        \State $\text{endorsed} \gets \text{endorsed} \cup \{\pk\}$
+    \EndWhile
+    \State \Return $h$
+\EndProcedure
+\Procedure{Retrieve}{dataHash}
+    \State Broadcast $\textsc{Query}(\text{dataHash})$
+    \State $\text{frags} \gets \emptyset$
+    \While{$\ECDecode(\text{frags}) = \bot$}
+        \State Wait for $\textsc{QueryReply}(\text{dataHash}, \text{fragIndex}, \text{frag})$
+        \If{$\ECVerify(\text{dataHash}, \text{fragIndx}, \text{frag})$}
+            \State $\text{frags} \gets \text{frags} \cup \{(\text{fragIndex}, \text{frag})\}$
+        \EndIf
+    \EndWhile
+    \State \Return $\ECDecode(\text{frags})$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Node routine}
+\label{alg:node}
+\begin{algorithmic}[1]
+\State Synchronize blockchain states stakingSet, dataSet and $p$
+\State $\text{storage} \gets \emptyset$
+\For{$h \in \text{dataSet}$}
+    \State $(y, \pi) = \VRFGen(\sk, h)$
+    \If{$\frac{y}{Y} < p$}
+        \State $\text{data} \gets \textsc{Retrieve}(h)$
+        \Comment use client operation
+        \State $\text{fragIndex} \gets \textsc{hash}(\pi)$
+        \State $\text{frag} \gets \ECEncode(\text{data}, \text{fragIndex})$
+        \State $\text{storage} \gets \text{storage} \cup (h, \text{fragIndex}, \text{frag})$
+    \EndIf
+\EndFor
+\For{every epoch $i$}
+    \For{$\textsc{Query}(h)$}
+        \If{$(h, \text{fragIndex}, \text{frag}) \in \text{storage}$}
+            \State Reply $\textsc{Query}$ with fragIndex and frag
+        \EndIf
+    \EndFor
+    \State Update stakingSet and dataSet according to transactions in block$_i$
+    \State \textsc{UpdateSampleRate}()
+    \Comment periodically, use on-chain procedure
+    \If{$p$ changed}
+        \State Adjust storage accordingly
+    \EndIf
+    \For{\textsc{Store}(h, \_) transactions $\in$ block$_i$}
+        \State $(y, \pi) = \VRFGen(\sk, h)$
+        \If{$\frac{y}{Y} < p$}
+            \State Send $\textsc{Endorsed}(h, \pk, y, \pi)$ to client
+            \State Wait for $\textsc{EndorsedReply}(\text{fragIndex}, \text{frag})$
+            \State Assert $\ECVerify(h, \text{fragIndex}, \text{frag})$
+            \State $\text{storage} \gets \text{storage} \cup (h, \text{fragIndex}, \text{frag})$
+        \EndIf
+    \EndFor
+    \State $(n, h) \gets \textsc{sample}(\text{stakingSet}, \text{dataSet}, \textsc{hash}(\text{block}_i))$
+    \If{$n = \pk \land (h, \text{fragIdx}, \text{frag}) \in \text{storage}$}
+        \State Submit $\textsc{Prove}(\pk, i, h, y, \pi, \text{fragIdx}, \text{frag})$ transaction
+    \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
 
 \subsubsection{Data Storage}
 \label{sec:design:proto:store}
