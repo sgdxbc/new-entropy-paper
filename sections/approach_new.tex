@@ -100,11 +100,11 @@ By properly setting the sampling rate, we can ensure that each placement group c
 Byzantine nodes may deviate from this sampling and collude to concentrate in certain groups.
 However, even if a group is dominated by Byzantine nodes, the presence of at least $k$ honest nodes can guarantee availability of the data.
 
-\lijl{We can add a paragraph to illustrate this sampling approach with some figures.} \sgd{Draft paragraph below.}
+\Cref{fig:approaches} illustrates our approach.
+Under the data-centric strategy, Byzantine nodes can cluster in a group and dilute rewards, driving rational nodes away.
+The node-centric approach does not attempt to maintain a uniform number of nodes per group.
+Instead, it bounds the number of groups each node can join through random sampling, so the expected number of honest nodes per group remains stable regardless of Byzantine distribution.
 
-We illustrate our node-centric strategy and random sampling approach in \cref{fig:approaches}.
-Unlike the DSNs with data-centric strategy, \sys does not attempt to maintain uniform number of nodes in each placement group.
-Instead, it allows many Byzantine nodes to cluster in a placement group (the green and blue ones), but ensures uniform number of placement groups the nodes can join.
 Correctness of our sampling approach relies on three conditions.
 First, the sampling outcome of a node is publicly verifiable, and once revealed, it becomes immutable.
 \lijl{Do we care if a Byzantine node violates this and joins more groups? Maybe yes for proper incentives?}
