@@ -90,10 +90,10 @@ We only require the storage nodes to submit transactions and learn the finalized
 Storage nodes can join or leave the system at any time.
 To join the system, a storage node submits a \textsc{Stake} transaction with its public key and staking tokens, as shown in \cref{alg:contract}.
 The on-chain state maintains the set of currently staking nodes, which are the active storage nodes, in the system.
-The transaction adds the node to the set, and locks up the staked tokens.
-If the node later fails to pass the storage verification tests~\cref{sec:design:proto:store}, the staked tokens will be slashed.
+The transaction adds the node to the set, and locks up the staked tokens, in defense of Sybil attacks.
+% If the node later fails to pass the storage verification tests~\cref{sec:design:proto:store}, the staked tokens will be slashed.
 \sgd{We don't really have slashing in current design.}
-To leave the system, an existing node submits a \textsc{UnStake} transaction, which removes the node from the staking set and returns the locked tokens.
+To leave the system, an existing node submits a \textsc{UnStake} transaction (omitted in listing), which removes the node from the staking set and returns the locked tokens.
 \lijl{Can add the unstake transaction to the pseudocode.} \sgd{Will add if have space.}
 By checking the $\st{stakingSet}$ on-chain state, all parties can have a consistent view of the current active storage nodes.
 Byzantine storage nodes can also freely join and leave the system.

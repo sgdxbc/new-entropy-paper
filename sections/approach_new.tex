@@ -12,14 +12,14 @@ In this work, we assume a decentralized, permissionless network.
 Nodes can join and leave the network freely.
 Each node possesses some persistent storage device(s) to store data.
 For simplicity, we assume equal storage capacity on each node;
-handling node heterogeneity is discussed in \XXX.
+handling node heterogeneity can employ virtual nodes from seminar works~\cite{chord}.
 \sgd{We don't really discuss it seriously; just briefly say virtual nodes can help.}
 The network is assumed to be partially synchronous.
 \lijl{Could we handle asynchronous network? I guess if network asynchrony is longer than node lifetime, then we can't guarantee availability.}
 \sgd{Probably yes. Also anyway we are bounded with network model of blockchain, which may even be synchronous (such as Bitcoin).}
 
 Nodes do not trust each other.
-Honest nodes are rational \footnote{A node is rational if its actions maximize its expected profit.} and follow the protocol precisely.
+Honest nodes are rational\footnote{A node is rational if its actions maximize its expected profit.} and follow the protocol precisely~\cite{bar}.
 Byzantine nodes can deviate arbitrarily from the protocol, and may behave irrationally.
 Each node possesses a unique private/public key pair.
 Byzantine nodes are computationally bounded, and cannot subvert the cryptographic algorithms used in the paper.
