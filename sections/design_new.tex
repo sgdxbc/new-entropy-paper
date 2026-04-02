@@ -140,6 +140,9 @@ If the node is endorsed, it requests the EC fragments from other storage nodes a
 Subsequently, the node encodes its sampled EC fragment (same as the \textsc{Store} procedure), and stores the fragment locally.
 Our sampling mechanism ensures that the newly joined honest nodes will restore the required redundancy in each placement group with high probability.
 
+When the system size changes due to node churns, \sys updates the public sampling rate $p$ to match this change.
+In \cref{sec:design:param}, we detail how storage nodes reconfigure their storage when $p$ changes.
+
 \subsection{System Parameter Configuration}
 \label{sec:design:param}
 Something.
