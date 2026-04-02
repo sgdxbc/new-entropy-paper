@@ -23,9 +23,9 @@ Honest nodes are rational \footnote{A node is rational if its actions maximize i
 Byzantine nodes can deviate arbitrarily from the protocol, and may behave irrationally.
 Each node possesses a unique private/public key pair.
 Byzantine nodes are computationally bounded, and cannot subvert the cryptographic algorithms used in the paper.
-We assume the presence of a Proof of Stake~\cite{} protocol that defend Sybil attacks;
+We assume the presence of a Proof of Stake~\cite{algorand,ouroboros} protocol that defend Sybil attacks;
 as such, at most $\frac{1}{3}$ of the nodes are Byzantine at any time.
-We also assume the presence of a BFT blockchain protocol~\cite{};
+We also assume the presence of a BFT blockchain protocol~\cite{algorand,bitcoin,ethereum,pbft,hotstuff};
 the blockchain guarantees safety and liveness, and exposes a cryptocurrency as incentives to the nodes.
 
 The set of nodes in the network collectively implements a distributed storage service.
@@ -68,8 +68,8 @@ To achieve scalability, the system needs to partition nodes into placement group
 However, without centralized control, no entity in the system can reliably detect failure correlation within each group.
 More critically, Byzantine nodes can concentrate within a few groups;
 once they collude and discard the data simultaneously, data availability can be easily compromised.
-Even when group formation is done carefully~\cite{}, Byzantine entities can adapt (e.g., by leaving and re-joining with different IDs) and eventually compromise a group.
-Traditional BFT protocols~\cite{} address this issue by requiring an honest majority.
+Even when group formation is done carefully~\cite{elastico}, Byzantine entities can adapt (e.g., by leaving and re-joining with different IDs) and eventually compromise a group.
+Traditional BFT protocols~\cite{pbft,hotstuff,bar} address this issue by requiring an honest majority.
 However, given that a third of all nodes can be Byzantine, having an honest majority in every group violates our storage scalability requirement: Adding nodes no longer results in more groups with additional capacity.
 
 \paragraph{\textbf{Erasure coding and repair integrity}}
