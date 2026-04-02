@@ -145,8 +145,74 @@ In \cref{sec:design:param}, we detail how storage nodes reconfigure their storag
 
 \subsection{System Parameter Configuration}
 \label{sec:design:param}
-Something.
+A critical parameter in \sys is the public sampling rate $p$.
+$p$ is periodically reconfigured based on the Byzantine fault rate $f$, benign failure rate of rational nodes $f'$, EC recovery threshold $k$, and the number of current active nodes $N$.
+The parameters $f$, $f'$, and $k$ are configured statically, and $N$ is derived from the current on-chain $\st{stakingSet}$ state.
+\cref{sec:design:proof} explains how we derive the exact $p$ value.
+% The formula for $p$ is shown in \cref{sec:design:analysis}.
+Storage nodes react to changes in $p$ (\cref{alg:node} line 20-22).
+If $p$ decreases when $N$ grows, each node reruns $\VRFGen$ on its locally stored EC fragments and discards fragments for which it is no longer endorsed.
+Conversely, if $p$ increases when the system shrinks, each node reruns the bootstrap routine (line 3-11) and stores additional endorsed fragments.
+%According to the random sampling definition (\cref{sec:approach:sample}), nodes only need to discard fragments when $p$ decreases and only need to store more fragments when $p$ increases.
+Note that such reconfiguration only happens when $p$ changes, and our design minimizes data transfer during reconfiguration.
 
-\subsection{Data Availability Proof}
+\subsection{Correctness Proof}
 \label{sec:design:proof}
-Something.
+We now formally prove that the \sys protocol guarantees data availability.
+To do so, we derive the target sample rate $p$ from the system parameters ($f$, $f'$, and $k$) and a target (negligible) data loss probability $\varepsilon$.
+We define $f'$ as the probability that a rational node fails within one time unit.
+For simplicity, we let $N$ denote the minimum number of bootstrapped nodes of all time units during a reconfiguration period.
+This assumption means that, when node failures occur, there will be sufficient new nodes finish bootstrapping before the next time unit so that the number of bootstrapped nodes does not drop below $N$.
+This assumption exempts us from cross-time-unit analysis, and we only need to consider simultaneous failures within each time unit.
+
+To simplify the analysis, we will prove data availability with the help of $N_e$, which bounds the minimum number of endorsed rational nodes with high probability.
+We present our data availability guarantee as the following theorem.
+\begin{theorem}\label{thm:main}
+With a configured $N_e$, if \sys sets sample rate to
+$$p=\frac{2N_e}{(1-f)N}$$
+then the probability of data loss $\varepsilon$ is bounded with
+$$\varepsilon\leq \varepsilon_1+(1-\varepsilon_1)\varepsilon_2$$
+where
+$$\varepsilon_1\le e^{-N_e/8}$$
+and
+$$
+\varepsilon_2=
+\sum_{i=N_e-k+1}^{N_e}
+\binom{N_e}{i}(f')^i(1-f')^{N_e-i}
+$$
+\end{theorem}
+For example, we choose $N_e=80$ as the default endorsement size in evaluation (\cref{sec:eval}).
+With a coding parameter $k=32$ and $f'=0.1$, which means each rational node has a 10\% probability to fail during one day,
+the bound above yields $\varepsilon\le 4.54\times 10^{-5}$, corresponding to a mean time to data loss of more than $2.20\times 10^{4}$ days (about 60.3 years).
+With $f=\frac{1}{3}$ and $N=10^5$, sample rate should be set to $p=2.4\times10^{-3}$ (i.e., 0.24\%).
+
+\begin{proof}
+To prove \cref{thm:main}, we analyze the two events that can lead to data loss.
+The first event ($\varepsilon_1$) occurs when the number of endorsed rational nodes is smaller than $N_e$.
+For simplicity, we do not further characterize availability in this case and conservatively treat this event as data loss.
+The second event ($\varepsilon_2$) occurs when enough endorsed rational nodes fail simultaneously so that fewer than $k$ rational nodes remain.
+Therefore, the data-loss probability is bounded by
+$$\varepsilon\leq \varepsilon_1+(1-\varepsilon_1)\varepsilon_2$$
+
+We first bound $\varepsilon_1$ under sample rate $p$.
+For a random data hash, each of the $(1-f)N$ rational nodes is endorsed independently with probability $p$.
+Under a binomial model and its Chernoff lower-tail bound, the probability that the number of endorsed rational nodes is below $N_e$ is
+$$
+\begin{aligned}
+\varepsilon_1
+&=\Pr[X<N_e]\le\exp\!\left(-\frac{(\mu-N_e)^2}{2\mu}\right),\\
+&X\sim\mathrm{Bin}((1-f)N,p),\ \mu=(1-f)Np
+\end{aligned}
+$$
+Applying the conservative target $(1-f)Np=2N_e$ in \cref{thm:main}, namely setting $p$ such that the expected number of endorsed rational nodes is $2N_e$, we obtain
+$$\varepsilon_1\le e^{-N_e/8}$$
+
+Finally, for $\varepsilon_2$, we assume exactly $N_e$ nodes are endorsed and ignore any additional endorsed nodes.
+Then $\varepsilon_2$ is the probability that more than $N_e-k$ rational nodes fail simultaneously, given per-node failure probability $f'$, which is
+$$
+\varepsilon_2=
+\sum_{i=N_e-k+1}^{N_e}
+\binom{N_e}{i}(f')^i(1-f')^{N_e-i}
+$$
+Combining the bounds for $\varepsilon_1$ and $\varepsilon_2$ yields the bound on $\varepsilon$ in \cref{thm:main}.
+\end{proof}
