@@ -67,16 +67,51 @@ Byzantine storage nodes can also freely join and leave the system.
 However, we assume Byzantine entities are bounded by $\frac{1}{3}$ of the overall tokens, so at most $\frac{1}{3}$ of the nodes in the $\st{stakingSet}$ at any time can be Byzantine.
 \lijl{Currently, we don't specify how much stake is required, and how that relates to the storage capacity of the node, or the rewards. We should discuss briefly.}
 
-\subsubsection{Store Procedure}
+\subsubsection{Data Storage}
 \label{sec:design:proto:store}
-Something.
+Storage nodes in \sys are egalitarian.
+There is no hierarchy, no special roles or authorities, and all the nodes follow the exact same protocol.
+The design philosophy minimizes centralization and permits diverse participants in the system to improve fault resilience.
 
-\subsubsection{Data Retrieval}
-\label{sec:design:proto:retrieval}
+As shown in \cref{alg:client} (line 1-3), to store a data blob, a client submits a \st{Store} transaction with the hash of the data and the token payment for storage.
+The transaction does not include the actual data to reduce on-chain storage cost.
+The transaction adds the data hash to the \st{dataSet} on-chain state (\cref{alg:contract} line 5-7), which maintains the current set of data stored in the system.
+
+Storage nodes subscribe to finalized blocks and synchronize the blockchain states locally, as shown in \cref{alg:node}.
+For any \st{Store} transaction in a new finalized block (line 23-26), a node performs the following sampling procedure to determine if it is \emph{endorsed} to store the data.
+It runs $\VRFGen$ with its secret key and the data hash $h$ in the transaction as input, obtaining a pseudorandom output $y$ and a proof $\pi$.
+Suppose the maximum $\VRFGen$ output is $Y$, the node calculates a ratio $\frac{y}{Y}$.
+If the ratio is below a public target sampling rate $p$, the node is endorsed to store the data.
+The sampling rate $p$ is stored on-chain (\cref{alg:contract} line 1);
+we discuss how $p$ is configured in \cref{sec:design:param}.
+For a data blob with hash $h$, this endorsement procedure effectively forms a placement group $\mathcal{P}$:
+$$\mathcal{P}(h)=\left\{n\in\mathcal{N}\mid\frac{\VRFGen(\sk_n,h)}{Y}<p\right\}$$
+where $\mathcal{N}$ is the set of all nodes.
+By properly setting the sampling rate, sufficient honest nodes will independently join the placement group with overwhelming probability to provide data availability.
+Guarantees of VRF ensure that Byzantine nodes cannot tamper with the endorsement of honest nodes.
+
+Endorsed nodes then send an \textsc{Endorsed} message to the client with their public keys, the VRF output and the VRF proof.
+The client (\cref{alg:client} line 4-13) verifies the endorsement by invoking $\VRFVerify$ and similarly calculates the ratio $\nicefrac{y}{Y}$.
+It sends erasure coded data fragments to the verified endorsed nodes.
+As introduced in \cref{sec:approach:case}, we use a sampling-based approach to independently select random fragments for the endorsed nodes.
+To ensure each endorser selects a unique fragment with high probability, we perform sampling on the infinite encoding space of a verifiable rateless EC (\cref{sec:design:primer}).
+Compared to the straw man solution that samples multiple fragments proposed in \cref{sec:approach:case}, the rateless EC-based solution achieves theoretically optimal storage efficiency (one fragment per node), while maintaining the same disjoint fragment selection property.
+Specifically, we use the VRF proof of the endorsed node as the sampling seed, hashing it to obtain a fragment index in the encoding space.
+The client then performs $\ECEncode$ to encode the corresponding fragment and sends to the endorsed node.
+The client repeats the process until it contacts sufficient endorsed nodes which guarantee data availability.
+When a storage node receives an EC fragment (\cref{alg:node} line 27-30), it applies $\ECVerify$ of the verifiable rateless EC to validate the integrity of the fragment.
+It then adds verified fragments to its local permanent storage.
+
+\subsubsection{Storage Verification}
+\label{sec:design:proto:pos}
 Something.
 
 \subsubsection{Repair}
 \label{sec:design:proto:repair}
+Something.
+
+\subsubsection{Data Retrieval}
+\label{sec:design:proto:retrieval}
 Something.
 
 \subsection{System Parameter Configuration}
