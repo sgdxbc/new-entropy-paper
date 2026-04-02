@@ -77,7 +77,7 @@ Erasure coding (EC), using codes such as Reed-Solomon code, Local Reconstruction
 Regardless of the exact code construction, commonly deployed EC requires sufficient nodes storing \emph{unique} encoded symbols to survive simultaneous failures, so that the original data can be reconstructed.
 This invariant needs to hold throughout the lifetime of each stored data.
 
-Proper encoding and symbol assignment is straightforward in the presence of a trusted, centralized service.
+Proper EC and symbol assignment is straightforward in the presence of a trusted, centralized service.
 However, without centralized trust, symbol assignment becomes a coordination problem that requires BFT consensus.
 Given that each repair involves encoded symbol generation and assignment, a data blob requires recurring BFT transactions throughout its lifetime, violating our blockchain efficiency goal.
 

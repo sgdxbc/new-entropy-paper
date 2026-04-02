@@ -189,14 +189,14 @@ As shown in \cref{alg:client} (line 1-3), to store a data blob, a client submits
 The transaction does not include the actual data to reduce on-chain storage cost.
 The transaction adds the data hash to the \st{dataSet} on-chain state (\cref{alg:contract} line 5-7), which maintains the current set of data stored in the system.
 
-Storage nodes subscribe to finalized blocks and synchronize the blockchain states locally, as shown in \cref{alg:node}.
+Storage nodes subscribe to the blockchain (\cref{alg:node}).
 For any \st{Store} transaction in a new finalized block (line 23-26), a node performs the following sampling procedure to determine if it is \emph{endorsed} to store the data.
 It runs $\VRFGen$ with its secret key and the data hash $h$ in the transaction as input, obtaining a pseudorandom output $y$ and a proof $\pi$.
 Suppose the maximum $\VRFGen$ output is $Y$, the node calculates a ratio $\frac{y}{Y}$.
 If the ratio is below a public target sampling rate $p$, the node is endorsed to store the data.
 The sampling rate $p$ is stored on-chain (\cref{alg:contract} line 1);
 we discuss how $p$ is configured in \cref{sec:design:param}.
-For a data blob with hash $h$, this endorsement procedure effectively forms a placement group $\mathcal{P}$:
+For data with hash $h$, this endorsement procedure forms a placement group $\mathcal{P}$:
 $$\mathcal{P}(h)=\left\{n\in\mathcal{N}\mid\frac{\VRFGen(\sk_n,h)}{Y}<p\right\}$$
 where $\mathcal{N}$ is the set of all nodes.
 By properly setting the sampling rate, sufficient honest nodes will independently join the placement group with overwhelming probability to provide data availability.
@@ -211,7 +211,7 @@ Compared to the straw man solution that samples multiple fragments proposed in \
 Specifically, we use the VRF proof of the endorsed node as the sampling seed, hashing it to obtain a fragment index in the encoding space.
 The client then performs $\ECEncode$ to encode the corresponding fragment and sends to the endorsed node.
 The client repeats the process until it contacts sufficient endorsed nodes which guarantee data availability.
-When a storage node receives an EC fragment (\cref{alg:node} line 27-30), it applies $\ECVerify$ of the verifiable rateless EC to validate the integrity of the fragment.
+When a storage node receives an EC fragment (\cref{alg:node} line 27-30), it applies $\ECVerify$ of the verifiable rateless EC to validate fragment integrity.
 It then adds verified fragments to its local permanent storage.
 
 \subsubsection{Storage Verification}
@@ -241,8 +241,8 @@ Once it receives sufficient correct fragments, it performs $\ECDecode$ to recons
 
 \subsubsection{Repair}
 \label{sec:design:proto:repair}
-When honest nodes permanently fail or leave the system, \sys needs to repair impacted data redundancy to maintain data availability.
-Prior solutions typically rely on centralized monitoring and coordination to repair redundancy.
+When honest nodes permanently fail or leave, \sys needs to repair impacted data redundancy to maintain data availability.
+Prior solutions rely on centralized monitoring and coordination to repair redundancy.
 
 Being a decentralized storage system, \sys applies a different approach to data repair.
 When the overall system size remains relatively stable, \sys relies on newly joined nodes to repair lost redundancy due to churns.
@@ -296,7 +296,8 @@ $$
 For example, we choose $N_e=80$ as the default endorsement size in evaluation (\cref{sec:eval}).
 With a coding parameter $k=32$ and $f'=0.1$, which means each rational node has a 10\% probability to fail during one day,
 the bound above yields $\varepsilon\le 4.54\times 10^{-5}$, corresponding to a mean time to data loss of more than $2.20\times 10^{4}$ days (about 60.3 years).
-With $f=\frac{1}{3}$ and $N=10^5$, sample rate should be set to $p=2.4\times10^{-3}$ (i.e., 0.24\%).
+With $f=\frac{1}{3}$ and $N=10^5$, sample rate should be set to $p=2.4\times10^{-3}$.
+%(i.e., 0.24\%).
 
 \begin{proof}
 To prove \cref{thm:main}, we analyze the two events that can lead to data loss.

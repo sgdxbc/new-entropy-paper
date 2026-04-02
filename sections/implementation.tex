@@ -20,9 +20,9 @@ However, vanilla Kademlia cannot efficiently discover all endorsed nodes because
 
 To make discovery DHT-friendly, we modify the endorsement rule.
 An endorsed node must produce a sufficiently small VRF pseudorandom output (\cref{sec:approach:case}) and have an ID with sufficiently small XOR distance to the data hash, that is, it must share a sufficiently long prefix with the data hash.
-Thus, endorsements are restricted to a \emph{subspace} around the data hash that DHT lookup can explore efficiently.
+Thus, endorsements are restricted to a \emph{subspace} near the data hash that DHT lookup can explore.
 To preserve the expected sample size, we scale the sampling probability by the inverse subspace ratio.
-If the endorsed subspace covers $\nicefrac{1}{n}$ of the full hash space, the sample rate $p$ is multiplied by $n$.
+If the endorsed subspace covers $\nicefrac{1}{n}$ of the full hash space, the sample rate is multiplied by $n$.
 \lijl{Might be easier to understand if we explain using ratio of the subspace, instead of prefix length.} \sgd{Revised.}
 
 We also adapt Kademlia's lookup semantics.

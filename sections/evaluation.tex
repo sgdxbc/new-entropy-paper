@@ -13,7 +13,8 @@ We choose Swarm because it is the most resilient prior DSN (\cref{sec:motivation
 We implement external clients for both systems.
 The clients do not participate in the Kademlia DHT and instead randomly select gateway nodes for store and retrieve operations.
 Unless otherwise specified, both \sys and Swarm encode each data object into 10 blocks using a $(10, 8)$ code at the client side.
-As discussed in \cref{sec:impl:encode}, this is a performance optimization in \sys, whereas in Swarm it serves as a security measure.
+%As discussed in \cref{sec:impl:encode},
+This is a performance optimization in \sys, whereas in Swarm it serves as a security measure (\cref{sec:impl:encode}).
 
 \subsection{Simulations}
 
