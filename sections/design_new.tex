@@ -117,12 +117,18 @@ It then validates the VRF proof, ensures that the node is endorsed, and checks t
 If all checks pass, the contract transfers some reward tokens to the submitting node.
 To maximize rewards, a rational honest node will maintain storage of all endorsed data fragments.
 
-\subsubsection{Repair}
-\label{sec:design:proto:repair}
-Something.
-
 \subsubsection{Data Retrieval}
 \label{sec:design:proto:retrieval}
+To retrieve a data blob (\cref{alg:client} line 16-26), a client broadcasts a gossip message \textsc{Query} with the data hash to all storage nodes.
+In \cref{sec:impl:dht}, we discuss an optimized design that reduces the overhead of this global broadcast.
+When a storage node processes the \textsc{Query} message (\cref{alg:node} line 13-17), it searches its local storage to check if it has stored an EC fragment of the queried data.
+Each node maintains an in-memory hash map to speed up the search process.
+On a hit, the node responds the EC fragment to the client.
+The client validates the integrity of the received fragments.
+Once it receives sufficient correct fragments, it performs $\ECDecode$ to reconstruct the original data blob.
+
+\subsubsection{Repair}
+\label{sec:design:proto:repair}
 Something.
 
 \subsection{System Parameter Configuration}
