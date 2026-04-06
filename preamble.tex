@@ -1,16 +1,45 @@
+\ifarxiv
+\title{\sys: Decentralized Storage Made Durable}
+\else
+\title{\sys: Scalable Byzantine Fault Tolerant Decentralized Storage}
+\fi
+
 \ifacm
+\author{Guangda Sun}
+\affiliation{
+    \institution{National University of Singapore}
+    \country{}
+    \city{}
+}
+\author{Jialin Li}
+\affiliation{
+    \institution{National University of Singapore}
+    \country{}
+    \city{}
+}
+
 % DOI
 \acmDOI{}
 % ISBN
 \acmISBN{}
+
+\else
+\author{
+{\rm Guangda Sun}\\
+National University of Singapore\\
+sung@comp.nus.edu.sg
+\and
+{\rm Jialin Li}\\
+National University of Singapore\\
+lijl@comp.nus.edu.sg
+}
 \fi
 
-
-\title{\sys: Scalable Byzantine Fault Tolerant Decentralized Storage}
-\author{Authors}
-
-
+\ifarxiv
+\newcommand{\sys}{\textsc{Vault}\xspace}
+\else
 \newcommand{\sys}{Entropy\xspace}
+\fi
 
 \newcommand{\ProsCell}{\cellcolor{green!20}}
 \newcommand{\ConsCell}{\cellcolor{red!20}}

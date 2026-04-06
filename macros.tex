@@ -7,9 +7,6 @@
 \usepackage{usenix-2020-09}
 \bibliographystyle{plain}
 \fi
-\ifarxiv
-\usepackage{newpxtext}
-\fi
 
 \frenchspacing
 
@@ -27,7 +24,14 @@
 \usepackage{xurl}
 \ifacm
 \else
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
 \usepackage{titlesec}
+
+\fi
+\ifarxiv
+\usepackage{newpxtext}
 \fi
 
 \xspaceaddexceptions{]\}}
@@ -36,22 +40,30 @@
 
 % Cleveref Configuration
 % Format: \crefname{type}{singular}{plural}
-% \crefname{chapter}{Chapter}{Chapters}
-% \Crefname{chapter}{Chapter}{Chapters}
 \crefname{section}{\Snospace}{\Snospace}
 \Crefname{section}{\Snospace}{\Snospace}
 \crefname{subsection}{\Snospace}{\Snospace}
 \Crefname{subsection}{\Snospace}{\Snospace}
 \crefname{subsubsection}{\Snospace}{\Snospace}
 \Crefname{subsubsection}{\Snospace}{\Snospace}
-% \crefname{appendix}{Appendix}{Appendices}
-% \Crefname{appendix}{Appendix}{Appendices}
-% \crefname{theorem}{Theorem}{Theorems}
-% \Crefname{theorem}{Theorem}{Theorems}
-% \crefname{lemma}{Lemma}{Lemmas}
-% \Crefname{lemma}{Lemma}{Lemmas}
-% \crefname{algorithm}{Algorithm}{Algorithms}
-% \Crefname{algorithm}{Algorithm}{Algorithms}
+
+\ifacm
+\else
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+% ACM-like float policy for two-column conference layouts.
+% This reduces large blank regions caused by overly strict float gating.
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{3}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\dblfloatpagefraction}{0.8}
+\fi
 
 \ifdraft
 \newcommand{\editorial}[2]{{\textcolor{#1}{#2}}}
